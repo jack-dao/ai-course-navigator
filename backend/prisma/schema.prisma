@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model School {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id          Int       @id @default(autoincrement())
+  code        String    // Not @unique here because schools could use the same code.
+  name        String
+  credits     Int
+  instructor  String
+  department  String
+  
+  // LINK TO SCHOOL
+  schoolId    Int
+  school      School    @relation(fields: [schoolId], references: [id])
+
+  sections    Section[]
+
+  // COMPOUND UNIQUE: 
+  // This says: "You can't have 'CSE 3' twice AT THE SAME SCHOOL."
+  // But you CAN have 'CSE 3' at UCSC and 'CSE 3' at UCSD.
+  @@unique([schoolId, code])
+}
+
+model Section {
+  id            Int      @id @default(autoincrement())
+  sectionCode   String   @unique 
+  
+  courseId      Int
+  course        Course   @relation(fields: [courseId], references: [id])
+
+  sectionNumber String   
+  sectionType   String   // <--- e.g. "LEC", "LAB", "DIS"
+  
+  // Optional because Lectures don't have parents, and Labs don't have children
+  parentId      Int?     
+  parent        Section?  @relation("LinkedSections", fields: [parentId], references: [id])
+  subSections   Section[] @relation("LinkedSections")
+  // -------------------------
+
+  status        String   
+  days          String   
+  time          String
+  startTime     String
+  endTime       String
+  location      String
+  enrolled      Int
+  capacity      Int
+  instructor    String   
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // We store the HASH here, not the plain text password
+  name      String
+  createdAt DateTime @default(now())
+
+  // A user can have many saved schedules
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  name      String   // e.g. "My Winter Plan"
+  courses   Json     // We will store the selectedCourses array as a JSON blob
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
