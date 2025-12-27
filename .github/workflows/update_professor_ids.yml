@@ -1,16 +1,13 @@
-name: "Update Professor IDs"
+name: "Update Professor IDs and Ratings"
 
 on:
-  # Runs every day at midnight UTC
   schedule:
     - cron: "0 0 * * *"
-  # Allows you to run it manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  update-ids:
+  update-data:
     runs-on: ubuntu-latest
-    # Give the action permission to write changes back to your repo
     permissions:
       contents: write
 
@@ -27,16 +24,18 @@ jobs:
         working-directory: ./backend
         run: |
           npm install axios
-          # If you have other dependencies in package.json, use: npm install
+          npm install
 
-      - name: Run Update Script
+      - name: Run Update Scripts
         working-directory: ./backend
-        run: node scripts/updateProfessorIDs.js
+        run: |
+          node scripts/updateProfessorIDs.js
+          node scripts/updateProfessorRatings.js
 
       - name: Commit and Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Automated update of professor RMP IDs"
-          file_pattern: 'backend/src/data/rmp_ids.json'
+          commit_message: "Automated update of professor RMP IDs and Ratings"
+          file_pattern: 'backend/src/data/*.json'
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
