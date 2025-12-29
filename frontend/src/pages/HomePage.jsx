@@ -54,7 +54,7 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
                       <span className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-black rounded-lg shadow-sm">{rev.course}</span>
                       <span className="text-sm font-bold text-slate-400 tracking-widest">{new Date(rev.date).toLocaleDateString()}</span>
                     </div>
-                    <span className="px-5 py-2 bg-slate-900 text-white text-xs font-black rounded-lg shadow-md tracking-tighter shadow-md">Grade: {rev.grade || 'N/A'}</span>
+                    <span className="px-5 py-2 bg-slate-900 text-white text-xs font-black rounded-lg shadow-md tracking-tighter">Grade: {rev.grade || 'N/A'}</span>
                   </div>
                   <p className="text-slate-700 font-medium leading-relaxed italic border-l-[8px] border-indigo-200 pl-8 text-2xl">"{rev.comment}"</p>
                 </div>
@@ -84,10 +84,15 @@ const HomePage = () => {
   const [notification, setNotification] = useState(null); 
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  // DROPDOWN REFS & STATE
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const dropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
+  
   const [selectedSchool, setSelectedSchool] = useState(SCHOOLS[0]);
   const [showSchoolSelector, setShowSchoolSelector] = useState(false);
+  const schoolDropdownRef = useRef(null);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20; 
@@ -105,10 +110,16 @@ const HomePage = () => {
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
 
+  // CLICK OUTSIDE HANDLER (FOR BOTH DROPDOWNS)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      // Close Profile Dropdown
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setShowProfileDropdown(false);
+      }
+      // Close School Selector
+      if (schoolDropdownRef.current && !schoolDropdownRef.current.contains(event.target)) {
+        setShowSchoolSelector(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -202,7 +213,8 @@ const HomePage = () => {
     const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!match) return 0;
     let [_, hours, minutes, period] = match;
-    hours = parseInt(hours); minutes = parseInt(minutes);
+    hours = parseInt(hours);
+    minutes = parseInt(minutes);
     if (period.toUpperCase() === 'PM' && hours !== 12) hours += 12;
     if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
     return hours * 60 + minutes;
@@ -210,10 +222,13 @@ const HomePage = () => {
 
   const isOverlapping = (s1, s2) => {
     if (!s1 || !s2) return false;
-    const d1 = parseDays(s1.days); const d2 = parseDays(s2.days);
+    const d1 = parseDays(s1.days);
+    const d2 = parseDays(s2.days);
     if (!d1.some(day => d2.includes(day))) return false;
-    const start1 = parseTime(s1.startTime); const end1 = parseTime(s1.endTime);
-    const start2 = parseTime(s2.startTime); const end2 = parseTime(s2.endTime);
+    const start1 = parseTime(s1.startTime);
+    const end1 = parseTime(s1.endTime);
+    const start2 = parseTime(s2.startTime);
+    const end2 = parseTime(s2.endTime);
     return (start1 < end2 && end1 > start2);
   };
 
@@ -276,7 +291,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="h-screen bg-[#F8FAFC] relative font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] relative font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
       {/* NOTIFICATIONS: SQUIRCLE UI */}
       {notification && (
           <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl bg-slate-900 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-slate-700 animate-in slide-in-from-bottom-10`}>
@@ -294,7 +309,7 @@ const HomePage = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tighter">AI Course Navigator</h1>
-                <div className="relative">
+                <div className="relative" ref={schoolDropdownRef}>
                     <button onClick={() => setShowSchoolSelector(!showSchoolSelector)} className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer">
                         <GraduationCap className="w-4 h-4" /> {selectedSchool.name} • {selectedSchool.term} <ChevronDown className="w-3 h-3" />
                     </button>
@@ -317,7 +332,7 @@ const HomePage = () => {
                 <MessageSquare className="w-4 h-4 text-white fill-current" /> AI Assistant
               </button>
               {user ? (
-                <div className="relative" ref={dropdownRef}>
+                <div className="relative" ref={profileDropdownRef}>
                     <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-10 h-10 bg-indigo-600 text-white font-bold rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all uppercase cursor-pointer border-2 border-white">
                       {user.name?.[0]}
                     </button>
@@ -340,7 +355,7 @@ const HomePage = () => {
       </header>
 
       {/* MAIN CONTAINER */}
-      <main className="flex-1 overflow-hidden max-w-[1600px] mx-auto w-full px-8 py-8 flex flex-col gap-8">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full px-8 py-8 flex flex-col gap-8">
         
         {/* TABS (OUTSIDE WINDOW) */}
         <nav className="flex gap-8 px-4 shrink-0">
@@ -355,47 +370,52 @@ const HomePage = () => {
           ))}
         </nav>
 
-        {/* WHITE CONTENT WINDOW */}
-        <div className="flex-1 bg-white rounded-[40px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                {activeTab === 'search' && (
-                <div className="p-10">
-                    <div className="relative mb-12 w-full group">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 w-6 h-6 transition-colors" />
-                        <input type="text" placeholder="Search courses and instructors" className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-indigo-600 outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        {/* CONTENT ROW: WINDOW + CHAT SIDEBAR (SIDE-BY-SIDE) */}
+        <div className="flex gap-8 items-start">
+            {/* WHITE CONTENT WINDOW */}
+            <div className="flex-1 bg-white rounded-[40px] shadow-2xl border border-slate-200 flex flex-col min-h-[800px]">
+                <div className="flex-1">
+                    {activeTab === 'search' && (
+                    <div className="p-10">
+                        <div className="relative mb-12 w-full group">
+                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 w-6 h-6 transition-colors" />
+                            <input type="text" placeholder="Search courses and instructors" className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-indigo-600 outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-1 gap-8">
+                            {currentCourses.length === 0 ? <div className="text-center py-20 text-slate-400 font-bold">No classes found.</div> : currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
+                        </div>
+                        {processedCourses.length > ITEMS_PER_PAGE && (
+                        <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-100">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Prev</button>
+                            <span className="font-bold text-slate-400 text-xs tracking-widest">Page {currentPage} of {totalPages}</span>
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Next</button>
+                        </div>
+                        )}
                     </div>
-                    <div className="grid grid-cols-1 gap-8">
-                        {currentCourses.length === 0 ? <div className="text-center py-20 text-slate-400 font-bold">No classes found.</div> : currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
-                    </div>
-                    {processedCourses.length > ITEMS_PER_PAGE && (
-                    <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-100">
-                        <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Prev</button>
-                        <span className="font-bold text-slate-400 text-xs tracking-widest">Page {currentPage} of {totalPages}</span>
-                        <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Next</button>
+                    )}
+                    
+                    {activeTab === 'schedule' && (
+                    <div className="flex flex-col lg:grid lg:grid-cols-[450px_1fr] gap-8 h-full p-8 min-h-[800px]">
+                        <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100 flex-1 flex flex-col shadow-inner">
+                            <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-indigo-600"/> My Schedule</h3>
+                            <div className="flex-1 pr-2">
+                                {selectedCourses.length === 0 ? <p className="text-slate-300 py-20 text-center font-bold text-sm">Schedule is empty</p> : <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />}
+                            </div>
+                            <div className="pt-6 border-t border-slate-200">
+                              <button onClick={handleSaveSchedule} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
+                                <Save className="w-4 h-4 inline mr-2" /> Save Schedule
+                              </button>
+                            </div>
+                        </div>
+                        <div className="bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden h-[800px] sticky top-8"><CalendarView selectedCourses={selectedCourses} /></div>
                     </div>
                     )}
                 </div>
-                )}
-                
-                {activeTab === 'schedule' && (
-                <div className="flex flex-col lg:grid lg:grid-cols-[450px_1fr] gap-8 h-full p-8 overflow-hidden">
-                    <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100 flex-1 flex flex-col overflow-hidden shadow-inner">
-                        <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-indigo-600"/> My Schedule</h3>
-                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                            {selectedCourses.length === 0 ? <p className="text-slate-300 py-20 text-center font-bold text-sm">Schedule is empty</p> : <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />}
-                        </div>
-                        <div className="pt-6 border-t border-slate-200">
-                          <button onClick={handleSaveSchedule} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
-                            <Save className="w-4 h-4 inline mr-2" /> Save Schedule
-                          </button>
-                        </div>
-                    </div>
-                    <div className="bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden h-full"><CalendarView selectedCourses={selectedCourses} /></div>
-                </div>
-                )}
             </div>
+
+            {/* CHAT SIDEBAR - NOW SITS NEXT TO WINDOW, UNDER TABS */}
+            <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
         </div>
-        <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
       </main>
       
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
