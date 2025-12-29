@@ -5,13 +5,11 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
   const [selectedSubSections, setSelectedSubSections] = useState({});
   const [errors, setErrors] = useState({});
 
-  // Helper: Strip leading zero (05:20 -> 5:20)
   const formatTime = (time) => {
     if (!time) return '';
     return time.replace(/^0/, '');
   };
 
-  // Helper: Proper case for locations
   const formatLocation = (loc) => {
     if (!loc) return 'Location TBA';
     return loc.toLowerCase().split(' ').map(word => 
@@ -67,21 +65,21 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
   return (
     <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all mb-6 overflow-hidden">
       
-      {/* HEADER: Tighter Padding & Noticeable Units */}
+      {/* HEADER: Compact & Bold */}
       <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-none">{course.code}</h3>
+          <h3 className="text-xl font-[800] text-slate-900 tracking-tight uppercase">{course.code}</h3>
           <div className="h-6 w-px bg-slate-200 hidden sm:block" />
           <p className="text-slate-500 font-bold text-sm tracking-tight hidden sm:block">{course.name}</p>
         </div>
-        <span className="px-4 py-1.5 bg-indigo-600 text-white text-[10px] font-bold uppercase rounded-lg shadow-sm">
+        <span className="px-4 py-1.5 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm">
           {course.credits} Units
         </span>
       </div>
 
-      {/* GRID HEADERS: Legible colors, No all-caps */}
+      {/* GRID HEADERS */}
       <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1.2fr_180px] px-8 py-3 bg-white border-b border-slate-50 text-[11px] font-bold text-slate-400">
-        <span>Instructor & Metrics</span>
+        <span>Instructor & Ratings</span>
         <span>Schedule & Location</span>
         <span>Availability</span>
         <span className="text-right pr-4">Action</span>
@@ -98,27 +96,31 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
             <div key={section.id} className="p-6 lg:px-8 hover:bg-indigo-50/5 transition-colors group">
               <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.5fr_1.2fr_180px] items-start lg:items-center gap-8">
                 
-                {/* INSTRUCTOR: Indigo Text */}
+                {/* INSTRUCTOR */}
                 <div className="space-y-2">
-                  <button 
-                    onClick={() => onShowProfessor(section.instructor, ratingData)}
-                    className="text-[17px] font-bold text-indigo-600 hover:underline cursor-pointer transition-all text-left leading-none tracking-tight"
-                  >
-                    {formatInstructor(section.instructor)}
-                  </button>
+                  <div className="flex flex-col">
+                    <button 
+                      onClick={() => onShowProfessor(section.instructor, ratingData)}
+                      className="text-lg font-[800] text-slate-800 hover:text-indigo-600 cursor-pointer transition-all text-left leading-none tracking-tight"
+                    >
+                      {formatInstructor(section.instructor)}
+                    </button>
+                  </div>
                   {ratingData && (
-                    <div className="flex items-center gap-3 bg-white w-fit px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
+                    <div className="flex items-center gap-3 bg-white w-fit px-2 py-1 rounded-lg border border-slate-100">
                       {renderStars(ratingData.avgRating)}
                       <span className="text-xs font-bold text-slate-400">{ratingData.avgRating}</span>
                     </div>
                   )}
                 </div>
 
-                {/* SCHEDULE: Formatted Time & Case */}
+                {/* SCHEDULE */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm font-bold text-slate-700 leading-none">
-                    <Clock className="w-4 h-4 text-indigo-400" />
-                    <span>{section.days} • {formatTime(section.startTime)}—{formatTime(section.endTime)}</span>
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-700 leading-none">
+                      <Clock className="w-4 h-4 text-indigo-400" />
+                      <span>{section.days} • {formatTime(section.startTime)}—{formatTime(section.endTime)}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
                     <MapPin className="w-4 h-4 text-slate-300" />
@@ -136,33 +138,35 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                     </span>
                     <span className="text-xs font-bold text-slate-500">{section.enrolled}/{section.capacity}</span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-600 transition-all duration-700" style={{ width: `${fillPercentage}%` }} />
                   </div>
                 </div>
 
-                {/* ACTION: Purple Button */}
+                {/* ACTION */}
                 <div className="flex flex-col gap-2">
                   {hasDiscussions && (
                     <div className="relative">
-                      <select 
-                        className={`w-full text-xs font-bold border rounded-xl p-2.5 bg-white appearance-none outline-none transition-all cursor-pointer ${
-                          hasError ? 'border-rose-300 bg-rose-50/50' : 'border-slate-100 hover:border-slate-300 focus:border-indigo-500'
-                        }`}
-                        value={selectedSubSections[section.id] || ""}
-                        onChange={(e) => {
-                          setSelectedSubSections(prev => ({ ...prev, [section.id]: e.target.value }));
-                          setErrors(prev => ({ ...prev, [section.id]: false }));
-                        }}
-                      >
-                        <option value="">Select Discussion...</option>
-                        {section.subSections.map(sub => (
-                          <option key={sub.id} value={sub.id}>
-                            {sub.sectionNumber} ({formatTime(sub.startTime)})
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      <div className="relative">
+                        <select 
+                          className={`w-full text-xs font-bold border rounded-xl p-2.5 bg-white appearance-none outline-none transition-all cursor-pointer ${
+                            hasError ? 'border-rose-300 bg-rose-50/50' : 'border-slate-100 hover:border-slate-300 focus:border-indigo-500'
+                          }`}
+                          value={selectedSubSections[section.id] || ""}
+                          onChange={(e) => {
+                            setSelectedSubSections(prev => ({ ...prev, [section.id]: e.target.value }));
+                            setErrors(prev => ({ ...prev, [section.id]: false }));
+                          }}
+                        >
+                          <option value="">Select Discussion...</option>
+                          {section.subSections.map(sub => (
+                            <option key={sub.id} value={sub.id}>
+                              {sub.sectionNumber} ({formatTime(sub.startTime)})
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                      </div>
                     </div>
                   )}
                   
