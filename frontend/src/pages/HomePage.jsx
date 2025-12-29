@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Calendar, ChevronDown, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, LogIn, Loader, ArrowLeft, Star, MessageSquare, Flame, ThumbsUp, TrendingUp, X, Sparkles, User } from 'lucide-react';
+import { Search, Calendar, ChevronDown, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, LogIn, Loader, ArrowLeft, Star, MessageSquare, Flame, ThumbsUp, TrendingUp, X, Sparkles, User, Info } from 'lucide-react';
 
 // COMPONENTS
 import CourseCard from '../components/CourseCard';
@@ -213,8 +213,7 @@ const HomePage = () => {
     const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
     if (!match) return 0;
     let [_, hours, minutes, period] = match;
-    hours = parseInt(hours);
-    minutes = parseInt(minutes);
+    hours = parseInt(hours); minutes = parseInt(minutes);
     if (period.toUpperCase() === 'PM' && hours !== 12) hours += 12;
     if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
     return hours * 60 + minutes;
@@ -222,24 +221,36 @@ const HomePage = () => {
 
   const isOverlapping = (s1, s2) => {
     if (!s1 || !s2) return false;
-    const d1 = parseDays(s1.days);
-    const d2 = parseDays(s2.days);
+    const d1 = parseDays(s1.days); const d2 = parseDays(s2.days);
     if (!d1.some(day => d2.includes(day))) return false;
-    const start1 = parseTime(s1.startTime);
-    const end1 = parseTime(s1.endTime);
-    const start2 = parseTime(s2.startTime);
-    const end2 = parseTime(s2.endTime);
+    const start1 = parseTime(s1.startTime); const end1 = parseTime(s1.endTime);
+    const start2 = parseTime(s2.startTime); const end2 = parseTime(s2.endTime);
     return (start1 < end2 && end1 > start2);
   };
 
   // --- HANDLERS ---
   const showNotification = (message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+    // Clear any existing notification first to force a re-render if message is same
+    setNotification(null);
+    // Use setTimeout to allow state to clear before setting new one (instant feel)
+    setTimeout(() => {
+        setNotification({ message, type });
+    }, 10);
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        setNotification(prev => (prev?.message === message ? null : prev));
+    }, 3000);
   };
 
   const addCourse = (course, section) => {
     const newItems = [section, section.selectedLab].filter(Boolean);
+    
+    // Check if course is already in schedule
+    const existingIndex = selectedCourses.findIndex(c => c.code === course.code);
+    const isUpdate = existingIndex !== -1;
+
+    // Check for conflicts
     for (const existing of selectedCourses) {
       if (existing.code === course.code) continue; 
       const existingItems = [existing.selectedSection, existing.selectedSection?.selectedLab].filter(Boolean);
@@ -252,11 +263,23 @@ const HomePage = () => {
         }
       }
     }
-    setSelectedCourses([...selectedCourses.filter(c => c.code !== course.code), { ...course, selectedSection: section }]);
-    showNotification(`Added ${course.code} to schedule`, 'success');
+
+    // Logic: Remove old instance if it exists, then add new one
+    const newSchedule = isUpdate 
+        ? selectedCourses.map(c => c.code === course.code ? { ...course, selectedSection: section } : c)
+        : [...selectedCourses, { ...course, selectedSection: section }];
+
+    setSelectedCourses(newSchedule);
+
+    // Custom Notification Messages (BOTH SUCCESS TYPE NOW)
+    if (isUpdate) {
+        showNotification(`Updated discussion for ${course.code}`, 'success');
+    } else {
+        showNotification(`Added ${course.code} to schedule`, 'success');
+    }
   };
 
-  const removeCourse = (courseCode) => { setSelectedCourses(selectedCourses.filter(c => c.code !== courseCode)); showNotification(`Removed ${courseCode}`); };
+  const removeCourse = (courseCode) => { setSelectedCourses(selectedCourses.filter(c => c.code !== courseCode)); showNotification(`Removed ${courseCode}`, 'info'); };
 
   const handleLoginSuccess = async (userData, token) => {
       setUser(userData); localStorage.setItem('token', token); localStorage.setItem('user', JSON.stringify(userData));
@@ -268,6 +291,10 @@ const HomePage = () => {
   const handleSaveSchedule = async () => {
     const token = localStorage.getItem('token'); 
     if (!token) { showNotification("Please log in to save!", 'error'); setShowAuthModal(true); return; }
+    
+    // Immediate feedback for UX
+    showNotification("Saving schedule...", 'info');
+
     try {
       const payload = {
         name: `My Schedule`, 
@@ -280,8 +307,8 @@ const HomePage = () => {
       const response = await fetch('http://localhost:3000/api/schedules', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
       });
-      if (response.ok) showNotification("Schedule saved!");
-    } catch (err) { showNotification("Server error", 'error'); }
+      if (response.ok) showNotification("Schedule saved successfully!", 'success');
+    } catch (err) { showNotification("Server error, could not save", 'error'); }
   };
 
   const viewProfessorDetails = (name, stats) => {
@@ -292,15 +319,20 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] relative font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
-      {/* NOTIFICATIONS: SQUIRCLE UI */}
+      {/* NOTIFICATIONS */}
       {notification && (
-          <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl bg-slate-900 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border border-slate-700 animate-in slide-in-from-bottom-10`}>
-              {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-rose-400"/> : <CheckCircle className="w-5 h-5 text-emerald-400"/>}
+          <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border animate-in slide-in-from-bottom-10 
+            ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 
+              'bg-slate-900 border-slate-700'}`}>
+              
+              {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-white"/> : 
+               <CheckCircle className="w-5 h-5 text-emerald-400"/>}
+              
               <span className="font-bold text-xs tracking-tight">{notification.message}</span>
           </div>
       )}
 
-      {/* HEADER WITH BRANDING AND AI BUTTON */}
+      {/* HEADER */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-40 transition-all shrink-0">
         <div className="max-w-[1600px] mx-auto px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -357,64 +389,70 @@ const HomePage = () => {
       {/* MAIN CONTAINER */}
       <main className="flex-1 max-w-[1600px] mx-auto w-full px-8 py-8 flex flex-col gap-8">
         
-        {/* TABS (OUTSIDE WINDOW) */}
-        <nav className="flex gap-8 px-4 shrink-0">
-          {['search', 'schedule'].map(tab => (
-            <button 
-              key={tab} 
-              onClick={() => setActiveTab(tab)} 
-              className={`pb-4 text-[13px] font-bold transition-all border-b-[6px] cursor-pointer ${activeTab === tab ? 'text-indigo-600 border-indigo-600' : 'text-slate-300 border-transparent hover:text-slate-400'}`}
-            >
-              {tab === 'schedule' ? 'My Schedule' : 'Search'}
-            </button>
-          ))}
-        </nav>
-
-        {/* CONTENT ROW: WINDOW + CHAT SIDEBAR (SIDE-BY-SIDE) */}
+        {/* CONTENT ROW: COLUMNS */}
         <div className="flex gap-8 items-start">
-            {/* WHITE CONTENT WINDOW */}
-            <div className="flex-1 bg-white rounded-[40px] shadow-2xl border border-slate-200 flex flex-col min-h-[800px]">
-                <div className="flex-1">
-                    {activeTab === 'search' && (
-                    <div className="p-10">
-                        <div className="relative mb-12 w-full group">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 w-6 h-6 transition-colors" />
-                            <input type="text" placeholder="Search courses and instructors" className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-indigo-600 outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            
+            {/* LEFT COLUMN: TABS + WINDOW */}
+            <div className="flex-1 flex flex-col gap-0 min-w-0">
+                {/* TABS (INSIDE LEFT COLUMN) */}
+                <nav className="flex gap-8 px-4 shrink-0 mb-4">
+                  {['search', 'schedule'].map(tab => (
+                    <button 
+                      key={tab} 
+                      onClick={() => setActiveTab(tab)} 
+                      className={`pb-4 text-[13px] font-bold transition-all border-b-[6px] cursor-pointer ${activeTab === tab ? 'text-indigo-600 border-indigo-600' : 'text-slate-300 border-transparent hover:text-slate-400'}`}
+                    >
+                      {tab === 'schedule' ? 'My Schedule' : 'Search'}
+                    </button>
+                  ))}
+                </nav>
+
+                {/* WHITE CONTENT WINDOW */}
+                <div className="bg-white rounded-[40px] shadow-2xl border border-slate-200 flex flex-col min-h-[800px]">
+                    <div className="flex-1">
+                        {activeTab === 'search' && (
+                        <div className="p-10">
+                            <div className="relative mb-12 w-full group">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 w-6 h-6 transition-colors" />
+                                <input type="text" placeholder="Search courses and instructors" className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-indigo-600 outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-1 gap-8">
+                                {currentCourses.length === 0 ? <div className="text-center py-20 text-slate-400 font-bold">No classes found.</div> : currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
+                            </div>
+                            {processedCourses.length > ITEMS_PER_PAGE && (
+                            <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-100">
+                                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Prev</button>
+                                <span className="font-bold text-slate-400 text-xs tracking-widest">Page {currentPage} of {totalPages}</span>
+                                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Next</button>
+                            </div>
+                            )}
                         </div>
-                        <div className="grid grid-cols-1 gap-8">
-                            {currentCourses.length === 0 ? <div className="text-center py-20 text-slate-400 font-bold">No classes found.</div> : currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
-                        </div>
-                        {processedCourses.length > ITEMS_PER_PAGE && (
-                        <div className="flex justify-between items-center mt-12 pt-8 border-t border-slate-100">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Prev</button>
-                            <span className="font-bold text-slate-400 text-xs tracking-widest">Page {currentPage} of {totalPages}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-6 py-3 border-2 border-slate-100 rounded-2xl font-bold text-sm hover:bg-slate-50 disabled:opacity-30 transition-all cursor-pointer">Next</button>
+                        )}
+                        
+                        {activeTab === 'schedule' && (
+                        <div className="flex flex-col lg:grid lg:grid-cols-[450px_1fr] gap-8 h-full p-8 min-h-[800px]">
+                            <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100 flex-1 flex flex-col shadow-inner">
+                                <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-indigo-600"/> My Schedule</h3>
+                                <div className="flex-1 pr-2">
+                                    {selectedCourses.length === 0 ? <p className="text-slate-300 py-20 text-center font-bold text-sm">Schedule is empty</p> : <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />}
+                                </div>
+                                <div className="pt-6 border-t border-slate-200">
+                                  <button onClick={handleSaveSchedule} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
+                                    <Save className="w-4 h-4 inline mr-2" /> Save Schedule
+                                  </button>
+                                </div>
+                            </div>
+                            <div className="bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden h-[800px] sticky top-8"><CalendarView selectedCourses={selectedCourses} /></div>
                         </div>
                         )}
                     </div>
-                    )}
-                    
-                    {activeTab === 'schedule' && (
-                    <div className="flex flex-col lg:grid lg:grid-cols-[450px_1fr] gap-8 h-full p-8 min-h-[800px]">
-                        <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100 flex-1 flex flex-col shadow-inner">
-                            <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-indigo-600"/> My Schedule</h3>
-                            <div className="flex-1 pr-2">
-                                {selectedCourses.length === 0 ? <p className="text-slate-300 py-20 text-center font-bold text-sm">Schedule is empty</p> : <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />}
-                            </div>
-                            <div className="pt-6 border-t border-slate-200">
-                              <button onClick={handleSaveSchedule} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
-                                <Save className="w-4 h-4 inline mr-2" /> Save Schedule
-                              </button>
-                            </div>
-                        </div>
-                        <div className="bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-hidden h-[800px] sticky top-8"><CalendarView selectedCourses={selectedCourses} /></div>
-                    </div>
-                    )}
                 </div>
             </div>
 
-            {/* CHAT SIDEBAR - NOW SITS NEXT TO WINDOW, UNDER TABS */}
-            <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
+            {/* CHAT SIDEBAR - RIGHT COLUMN (Sticky + Top Padding) */}
+            <div className="sticky top-8 pt-16"> {/* Matches tabs height approx */}
+                <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
+            </div>
         </div>
       </main>
       
