@@ -31149,9 +31149,18 @@
     "name": "Kai Pommerenke",
     "avgRating": 2.8,
     "avgDifficulty": 3.4,
-    "numRatings": 54,
-    "wouldTakeAgain": 39,
+    "numRatings": 55,
+    "wouldTakeAgain": 38,
     "reviews": [
+      {
+        "comment": "The class is not about gaining knowledge unfortunately. It's about perfectly executing his overly complicated, poorly-explained procedures exactly as he envisions them",
+        "date": "2025-12-28 08:52:14 +0000 UTC",
+        "course": "ECON233",
+        "grade": "B-",
+        "rating": 1,
+        "difficulty": 5,
+        "wouldTakeAgain": false
+      },
       {
         "comment": "He will take joy in failing you over a rounding error. Half the course boils down to long multi-step financial calculation problems where at the end, if you give an answer like 2.014 instead of 2.015 , he will give you a zero. So he can tell you know the content but will still give you a zero, I don't know any other teacher that does this. ",
         "date": "2025-12-18 07:39:00 +0000 UTC",
@@ -31320,15 +31329,6 @@
         "course": "ECON135",
         "grade": "A+",
         "rating": 5,
-        "difficulty": 4,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "Kai is a solid professor. He knows how to push his students with participation and can encourage the class to study and stay on top of studying. He has good knowledge of the topics and shares some sarcasm here and there.",
-        "date": "2020-04-17 04:47:21 +0000 UTC",
-        "course": "ECON233",
-        "grade": "A",
-        "rating": 4,
         "difficulty": 4,
         "wouldTakeAgain": true
       }
@@ -70623,10 +70623,10 @@
   },
   "Hyun,S.": {
     "name": "Sangwon Hyun",
-    "avgRating": 1.9,
+    "avgRating": 2,
     "avgDifficulty": 4.4,
-    "numRatings": 41,
-    "wouldTakeAgain": 22,
+    "numRatings": 40,
+    "wouldTakeAgain": 23,
     "reviews": [
       {
         "comment": "He had okay hands-on lectures, but no-email policy and spoke fast. Two hard HW's due every Friday, only class where I went to TA sections and tutoring consistently. Mandatory lecture and section activities. Midterm had test corrections for half points which saved many, final had a mean of 52%. Only need 65% to pass, hard class for non-math majors. ",
@@ -70705,15 +70705,6 @@
         "date": "2025-11-20 19:06:24 +0000 UTC",
         "course": "STAT131",
         "grade": "Rather not say",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
-        "comment": "So terrible. Just stay away if you can, take a different professor or postpone this class until he stops teaching it. He doesn't actually care about his students or their learning. He's basically just roleplaying a professor and doing a terrible job. Good luck to everyone taking this class currently, somethings seriously wrong lol.",
-        "date": "2025-10-29 02:04:15 +0000 UTC",
-        "course": "STAT131",
-        "grade": "Not sure yet",
         "rating": 1,
         "difficulty": 5,
         "wouldTakeAgain": false
@@ -70806,6 +70797,15 @@
         "grade": "B+",
         "rating": 3,
         "difficulty": 3,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "What is supposed to be an introductory, non-prerequisite data course is somehow more work and stress than my Calculus 19 class&#8230; His lecture slides were made more for STATS5 material but then graded us as if we were in a high-level grad class?? This professor is a joke and i've honestly never had a professor as unprofessional and clueless as him. ",
+        "date": "2024-12-17 04:57:35 +0000 UTC",
+        "course": "STAT80B",
+        "grade": "Not sure yet",
+        "rating": 1,
+        "difficulty": 5,
         "wouldTakeAgain": false
       }
     ]
