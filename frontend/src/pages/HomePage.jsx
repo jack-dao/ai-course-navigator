@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, Sparkles, Filter, X, Star, Flame, ThumbsUp, TrendingUp, MessageSquare, Tag } from 'lucide-react';
+import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, MessageSquare, Bot, Sparkles, Filter, X } from 'lucide-react';
 
 // COMPONENTS
 import CourseCard from '../components/CourseCard';
@@ -7,105 +7,10 @@ import ChatSidebar from '../components/ChatSidebar';
 import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
-
-// --- INTERNAL PROFESSOR MODAL (UCSC THEMED) ---
-const ProfessorModal = ({ professor, isOpen, onClose }) => {
-  if (!isOpen || !professor) return null;
-
-  const hasReviews = professor.reviews && professor.reviews.length > 0;
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
-        
-        {/* HEADER */}
-        <div className="px-10 py-8 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
-          <div>
-            <h2 className="text-4xl font-black text-[#003C6C] tracking-tight">{professor.name.replace(/,/g, ', ')}</h2>
-            <div className="flex items-center gap-2 mt-1">
-                <span className="bg-[#FDC700] text-[#003C6C] text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">
-                   Instructor
-                </span>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[3px]">Analytics</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"><X className="w-8 h-8 text-slate-400" /></button>
-        </div>
-
-        {/* BODY */}
-        <div className="flex-1 overflow-y-auto p-10 bg-slate-50/50 custom-scrollbar">
-          
-          {/* STATS GRID */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              { label: 'Quality', val: `${professor.avgRating || '?'}/5`, icon: <Star className="w-6 h-6 text-[#FDC700]" />, bg: 'bg-[#003C6C]' },
-              { label: 'Difficulty', val: `${professor.avgDifficulty || '?'}/5`, icon: <Flame className="w-6 h-6 text-rose-400" />, bg: 'bg-slate-800' },
-              { label: 'Retake', val: `${professor.wouldTakeAgain || '0'}%`, icon: <ThumbsUp className="w-6 h-6 text-emerald-400" />, bg: 'bg-slate-800' },
-              { label: 'Ratings', val: professor.numRatings || '0', icon: <TrendingUp className="w-6 h-6 text-slate-500" />, bg: 'bg-white border-2 border-slate-100', text: 'text-slate-900' }
-            ].map((s, i) => (
-              <div key={i} className={`${s.bg} p-8 rounded-[28px] shadow-sm flex flex-col items-center text-center transition-transform hover:scale-105`}>
-                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-inner mb-4">{s.icon}</div>
-                <p className={`text-xs font-black tracking-widest mb-1 ${s.text ? 'text-slate-400' : 'text-white/60'}`}>{s.label}</p>
-                <p className={`text-3xl font-black ${s.text || 'text-white'}`}>{s.val}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* REVIEWS LIST */}
-          <div className="space-y-8">
-            <h3 className="text-xl font-black text-[#003C6C] tracking-widest flex items-center gap-3 mb-8 px-2">
-              <MessageSquare className="w-6 h-6 text-[#003C6C]" /> Recent student feedback
-            </h3>
-            {hasReviews ? (
-              professor.reviews?.map((rev, i) => (
-                <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-200 hover:shadow-lg transition-all group relative overflow-hidden">
-                  <div className="absolute top-0 bottom-0 left-0 w-2 bg-slate-100 group-hover:bg-[#FDC700] transition-colors" />
-                  
-                  <div className="flex items-center justify-between mb-6 pl-4">
-                    <div className="flex items-center gap-4">
-                      <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-black rounded-lg shadow-sm">{rev.course}</span>
-                      <span className="text-sm font-bold text-slate-400 tracking-widest flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(rev.date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    {rev.grade && (
-                        <span className="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-100 text-xs font-black rounded-lg shadow-sm tracking-tighter">
-                            Grade: {rev.grade}
-                        </span>
-                    )}
-                  </div>
-                  
-                  <p className="text-slate-700 font-medium leading-relaxed italic pl-4 text-xl mb-4">"{rev.comment}"</p>
-
-                  {/* TAGS */}
-                  {rev.tags && rev.tags.length > 0 && (
-                     <div className="flex flex-wrap gap-2 pl-4 pt-4 border-t border-slate-100">
-                        {rev.tags.map((tag, idx) => (
-                            <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-200">
-                                <Tag className="w-3 h-3" /> {tag}
-                            </span>
-                        ))}
-                     </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-24 bg-white rounded-[32px] border-4 border-dashed border-slate-200">
-                 <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-400 font-bold tracking-[6px] text-lg">No professor reviews available yet.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import ProfessorModal from '../components/ProfessorModal';
 
 const HomePage = () => {
-  // --- CONFIGURATION ---
+  // --- CONFIGURATION (UCSC ONLY) ---
   const UCSC_SCHOOL = { 
     id: 'ucsc', 
     name: 'UC Santa Cruz', 
@@ -122,15 +27,19 @@ const HomePage = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20; 
+
   const [availableCourses, setAvailableCourses] = useState([]);
   const [professorRatings, setProfessorRatings] = useState({}); 
   const [loading, setLoading] = useState(true);
   const [selectedCourses, setSelectedCourses] = useState([]);
+  
   const [showAIChat, setShowAIChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
+  
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
 
@@ -295,6 +204,7 @@ const HomePage = () => {
     const token = localStorage.getItem('token'); 
     if (!token) { showNotification("Please log in to save!", 'error'); setShowAuthModal(true); return; }
     
+    // SAVE CONFIRMATION MESSAGE
     showNotification("Schedule saved successfully! 🐌", 'success');
 
     try {
@@ -339,8 +249,7 @@ const HomePage = () => {
                  <span className="text-2xl">🐌</span>
               </div>
               <div>
-                {/* REBRANDED FONT: Serif + Bold + Tight Tracking */}
-                <h1 className="text-2xl font-serif font-bold text-white tracking-tight flex items-center gap-2">
+                <h1 className="text-2xl font-black text-white tracking-tighter flex items-center gap-2">
                   AI Slug Navigator
                 </h1>
                 <div className="flex items-center gap-2 text-[10px] font-bold text-blue-100 mt-1">
@@ -350,7 +259,7 @@ const HomePage = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* GOLD SQUIRCLE AI BUTTON */}
+              {/* AI ASSISTANT BUTTON - GOLD SQUIRCLE */}
               <button 
                 onClick={() => setShowAIChat(true)} 
                 className="px-6 py-2.5 bg-[#FDC700] hover:bg-[#eec00e] text-[#003C6C] text-[11px] font-black rounded-2xl shadow-[0_4px_0_#b88e00] active:shadow-none active:translate-y-1 transition-all flex items-center gap-2 cursor-pointer"
@@ -444,13 +353,14 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* CHAT SIDEBAR */}
-            <div className="sticky top-8 pt-16">
+            {/* CHAT SIDEBAR - RIGHT COLUMN (Sticky + Top Padding) */}
+            <div className="sticky top-8 pt-16"> {/* Matches tabs height approx */}
                 <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
             </div>
         </div>
       </main>
       
+      <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} selectedSchool={selectedSchool} />
     </div>
   );
