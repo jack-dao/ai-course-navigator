@@ -2100,9 +2100,18 @@
     "name": "Emily Schach",
     "avgRating": 4.6,
     "avgDifficulty": 2.1,
-    "numRatings": 39,
+    "numRatings": 40,
     "wouldTakeAgain": 95,
     "reviews": [
+      {
+        "comment": "Dr. Schach is awesome!! She gives amazing interesting lectures and there is no homework besides the occasionally online lab, otherwise they're in person. There's two exams that are both non-cumulative and multiple choice!",
+        "date": "2025-12-29 19:46:20 +0000 UTC",
+        "course": "ANTH1",
+        "grade": "A+",
+        "rating": 5,
+        "difficulty": 2,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Optional lectures, grade is 70% based on the midterm and final with 30% on simple weekly lab activities.",
         "date": "2025-12-27 00:09:43 +0000 UTC",
@@ -2272,15 +2281,6 @@
         "grade": "A",
         "rating": 5,
         "difficulty": 1,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "Dr. Schach is one of the best teachers I've ever had. She's not only so personable and kind, but her lectures are incredible. Her lectures and slide decks are engaging and accessible. This class's required reading is tougher, its all scientific journals that have to be responded to in weekly papers. Fun class though!",
-        "date": "2023-01-19 21:02:04 +0000 UTC",
-        "course": "ANTH101",
-        "grade": "",
-        "rating": 5,
-        "difficulty": 3,
         "wouldTakeAgain": true
       }
     ]
@@ -8796,9 +8796,18 @@
     "name": "Julie Simons",
     "avgRating": 3.1,
     "avgDifficulty": 3.2,
-    "numRatings": 25,
-    "wouldTakeAgain": 60,
+    "numRatings": 26,
+    "wouldTakeAgain": 62,
     "reviews": [
+      {
+        "comment": "She has a lot of tutoring options avalible and if you want to pass this class I recommend going to as many tutoring and office hours as possible. There is no midterm but there is a lecture quiz every two weeks and a mini quiz every discussion. She is really nice tho so if you tell her you are struggling she'll help. Attendence boots the grade a lot",
+        "date": "2025-12-29 05:59:00 +0000 UTC",
+        "course": "AM11B",
+        "grade": "C+",
+        "rating": 3,
+        "difficulty": 4,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Your grade is basically entirely determined by lecture quizzes, as they effectively replace midterms (practically 4 midterms). Final is cumulative; no notes of yours are ever allowed on anything. Has a lowest-score-dropped policy that makes extenuating circumstances blanketly applied under this policy. Don't have family emergencies, or else.",
         "date": "2025-12-22 23:46:02 +0000 UTC",
@@ -8969,15 +8978,6 @@
         "rating": 1,
         "difficulty": 2,
         "wouldTakeAgain": false
-      },
-      {
-        "comment": "Lectures and homework are a waste of time. The test material is disconnected from what she teaches and what our homework is on. This is a good thing though because the test work is significantly easier than the stuff covered in lecture or the homework. Easy class overall and nothing to worry about if you put vague effort in and show up to class.",
-        "date": "2025-03-19 18:25:21 +0000 UTC",
-        "course": "Math19B",
-        "grade": "A",
-        "rating": 2,
-        "difficulty": 1,
-        "wouldTakeAgain": true
       }
     ]
   },
@@ -30897,9 +30897,18 @@
     "name": "Aaron Meininger",
     "avgRating": 3.2,
     "avgDifficulty": 3.2,
-    "numRatings": 96,
-    "wouldTakeAgain": 47,
+    "numRatings": 97,
+    "wouldTakeAgain": 48,
     "reviews": [
+      {
+        "comment": "Amazing class, I learned so much. LOTS of reading and writing though but he is very clear on how he grades his essays and assignments. Three essays all 1k - 1.2k, theres no tests and two writings due every week. A 250 response on Wednesday, 450 reflection on friday, and mandatory debates on friday in class. Super fun class tho and would take again.",
+        "date": "2025-12-29 06:09:19 +0000 UTC",
+        "course": "ECON125",
+        "grade": "A+",
+        "rating": 5,
+        "difficulty": 2,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Very good professor with clear instructions and explanations ",
         "date": "2025-12-16 16:06:43 +0000 UTC",
@@ -31070,15 +31079,6 @@
         "rating": 4,
         "difficulty": 4,
         "wouldTakeAgain": true
-      },
-      {
-        "comment": "Rude. Typical high school jock that thinks his jokes are funny and continue to bullies student. Multiple students had reported him for his disrespectfulness. This class is easy, however it's completely unbearable. You don't learn and it is just a bunch of busy work.",
-        "date": "2024-02-14 22:06:12 +0000 UTC",
-        "course": "ECON125",
-        "grade": "Rather not say",
-        "rating": 1,
-        "difficulty": 1,
-        "wouldTakeAgain": false
       }
     ]
   },
@@ -53865,9 +53865,18 @@
     "name": "Daniel Fister",
     "avgRating": 2,
     "avgDifficulty": 3,
-    "numRatings": 1,
+    "numRatings": 2,
     "wouldTakeAgain": 0,
     "reviews": [
+      {
+        "comment": "A nice guy, but man does not grade anything!!!! Waited to put in grades for almost all assignments the day grades were due!! One too many group projects, and way too much writing required for this course. Just a lot of busy work. If you can, try and get a different Merr1 prof",
+        "date": "2025-12-29 20:19:54 +0000 UTC",
+        "course": "MERR1",
+        "grade": "A",
+        "rating": 2,
+        "difficulty": 3,
+        "wouldTakeAgain": false
+      },
       {
         "comment": "He never grades or gives feedback. All assignments were graded the day before grades were due. There are weekly journal entries that are over 500 words on top of reading about nine articles or chapters of texts each week. In class there are discussions about the readings.",
         "date": "2025-12-21 03:17:07 +0000 UTC",
@@ -70623,10 +70632,10 @@
   },
   "Hyun,S.": {
     "name": "Sangwon Hyun",
-    "avgRating": 2,
-    "avgDifficulty": 4.4,
-    "numRatings": 40,
-    "wouldTakeAgain": 23,
+    "avgRating": 2.2,
+    "avgDifficulty": 4.2,
+    "numRatings": 32,
+    "wouldTakeAgain": 28,
     "reviews": [
       {
         "comment": "He had okay hands-on lectures, but no-email policy and spoke fast. Two hard HW's due every Friday, only class where I went to TA sections and tutoring consistently. Mandatory lecture and section activities. Midterm had test corrections for half points which saved many, final had a mean of 52%. Only need 65% to pass, hard class for non-math majors. ",
@@ -70638,15 +70647,6 @@
         "wouldTakeAgain": false
       },
       {
-        "comment": "Never again! &#129299;&#9757;&#65039;",
-        "date": "2025-12-18 00:48:01 +0000 UTC",
-        "course": "STAT131",
-        "grade": "C+",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
         "comment": "The homework did not correlate with exams. He mentioned that we should study the homework and throughly work through them. None of that did nothing. I'm so sad really.",
         "date": "2025-12-17 04:47:03 +0000 UTC",
         "course": "STAT131",
@@ -70654,24 +70654,6 @@
         "rating": 1,
         "difficulty": 5,
         "wouldTakeAgain": true
-      },
-      {
-        "comment": "Grades are due today. Everyone failed. Class average on exam after curve was 50%. How does that make sense? Hmm. Idk. Easily the worst non-tenured professor on campus. Advocates to talk in person when he is a rush to his research meetings. Please, my internship at Google, my boss would let me email him with his 500k salary. U r not important dude.",
-        "date": "2025-12-17 04:44:19 +0000 UTC",
-        "course": "STAT131",
-        "grade": "C",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
-        "comment": "announced that he designed the class so you do all of the learning yourself. Thinks that college courses are entirely self study, but don't worry you have to come to class as there's attendance quizzes and section worksheets that are 15% of your grade. Problem difficulty is inflated; lectures recorded but not available to students - everyone failed",
-        "date": "2025-12-16 23:27:46 +0000 UTC",
-        "course": "STAT131",
-        "grade": "C+",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
       },
       {
         "comment": "Doesn't do emails. Lectures are rambly and often incomplete (warning: telling students to 'self study' topics we don't cover isn't actually teaching.) Tests are curveball atop curveball. Scaffolding for non-math majors? Zero. Grading is 'generous' because if it wasn't, we'd all fail. Sections are also poorly structured. TAs carried. Disappointing.",
@@ -70701,15 +70683,6 @@
         "wouldTakeAgain": false
       },
       {
-        "comment": "In my view, this faculty member feels wildly out of place on campus. Lectures trail off, access to help vanishes outside class, and the homework is a slog. Student questions seem to trigger passive-aggressive replies. Overall, a frustrating experience that'll be met with a department review. ",
-        "date": "2025-11-20 19:06:24 +0000 UTC",
-        "course": "STAT131",
-        "grade": "Rather not say",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
         "comment": "this is without a doubt the worst class i've ever taken. and it's not like the class should be this painfully difficult. the content isn't the issue it's just made way more difficult than it needs to be. it takes a serious amount of effort just to figure out what you need to study. save yourself the misery and take the e campus version.",
         "date": "2025-10-27 23:13:29 +0000 UTC",
         "course": "STAT131",
@@ -70721,15 +70694,6 @@
       {
         "comment": "Proudly stated at the start of the quarter that he designed the class so you will spend MOST of your time learning material and concepts on your own. Seems to think theres an absolute link between how much you're struggling and how much you learn, so he makes problems artificially difficult even if it's just repetition and not conceptual.",
         "date": "2025-10-25 00:50:46 +0000 UTC",
-        "course": "STAT131",
-        "grade": "Not sure yet",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
-        "comment": "Less than 3 weeks in, giving us homework with concepts we haven't learned said \"hint: you can't solve this with what I've taught in lecture\". He rambles in class looking at the floor, missing students with raised hands. His homework problems consistently have typos and don't make sense, and he makes it clear he wants no emails. Young guy, big ego.",
-        "date": "2025-10-17 22:19:03 +0000 UTC",
         "course": "STAT131",
         "grade": "Not sure yet",
         "rating": 1,
@@ -70782,15 +70746,6 @@
         "wouldTakeAgain": false
       },
       {
-        "comment": "The worst professor I've ever had the displeasure of taking a class with at UCSC. Vague grading criteria, changes grades halfway through, and creates a very toxic class culture; he expects you to understand everything at his PhD level just because he vaguely showed an image of something. The only reason he's a prof is bc of his research.",
-        "date": "2025-02-21 20:03:00 +0000 UTC",
-        "course": "STAT7",
-        "grade": "A",
-        "rating": 1,
-        "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
         "comment": "Nice guy, and passionate about stats. I am not a stem major, so I just took this class for my GE. It wasn't horrible, but I was annoyed that towards the end of the quarter, grades would fluctuate. Assignments would get changed to lower scores randomly. Maybe he was fixing grades? But just know halfway through he's gonna become a tougher grader.",
         "date": "2024-12-19 22:58:49 +0000 UTC",
         "course": "STAT80B",
@@ -70800,12 +70755,66 @@
         "wouldTakeAgain": false
       },
       {
-        "comment": "What is supposed to be an introductory, non-prerequisite data course is somehow more work and stress than my Calculus 19 class&#8230; His lecture slides were made more for STATS5 material but then graded us as if we were in a high-level grad class?? This professor is a joke and i've honestly never had a professor as unprofessional and clueless as him. ",
-        "date": "2024-12-17 04:57:35 +0000 UTC",
+        "comment": "For the class it is, the assignments are way harder than they need to be and feedback + the overall workload isn't worth the time. I also felt like class just went on. Wasn't a good experience.",
+        "date": "2024-12-17 04:15:54 +0000 UTC",
         "course": "STAT80B",
+        "grade": "",
+        "rating": 1,
+        "difficulty": 4,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "He basically just says \"This is what this graph is\" then never expands, eventually expecting us to understand it at his level. He doesn't respond on EdDiscussion, the site he said he'd explicitly respond on if we wanted responses at all, so if you want responses, go in person. Most lectures don't even feel important, as he just rambles anyway. ",
+        "date": "2024-12-10 19:12:46 +0000 UTC",
+        "course": "STAT7",
         "grade": "Not sure yet",
         "rating": 1,
-        "difficulty": 5,
+        "difficulty": 2,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "Stats 80B course: appalled by how unprofessional the feedback on the final assignment was. It was downright rude as he wrote over 200 words describing how \"lacking\" \"poor quality\" \"plain\" \"not design worthy of high score\" my project was. I followed the rubric but just not to his standards - just grade it appropriately instead of insulting my work ",
+        "date": "2024-12-10 18:30:18 +0000 UTC",
+        "course": "STAT7",
+        "grade": "Not sure yet",
+        "rating": 1,
+        "difficulty": 3,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "There are very few assignments in this class so it's easy for an exam to sink your grade. The material is clear and fairly straightforward but some of the calculations are a little tedious. Beware time management during exams, I misunderstood the amount of time we had and wasted a lot of it on tedious calculations.",
+        "date": "2024-09-26 21:00:56 +0000 UTC",
+        "course": "STAT7",
+        "grade": "C+",
+        "rating": 4,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
+      {
+        "comment": "While I don't love prof Hyun or his lectures, this isn't a relatively hard class to pass if you do the work. He is very clear about grading, policies, and is strict on both. However, he attempts to be understanding but fair to the class, and offers an environment that encourages learning through mistakes, like test corrections for extra points.",
+        "date": "2024-05-13 18:46:44 +0000 UTC",
+        "course": "STAT7",
+        "grade": "B+",
+        "rating": 4,
+        "difficulty": 3,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "The assignments are hard but he makes the tests easier. He's a really nice guy and keeps lectures interesting. He goes over examples/proofs during lecture several times so the class fell behind and we didn't end up getting to some of the later topics but he didn't put them on the final. The concepts are hard but just practice them and read the text",
+        "date": "2024-03-20 01:03:59 +0000 UTC",
+        "course": "STAT131",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
+      {
+        "comment": "Professor Hyun is not exactly the best lecturer. He focuses a lot on theory whereas his tests are more focused on applications. I did not learn much in this class but I got an A because the curve was insane. The average before a regrade on the first exam was like a 25%. He gives homework every 2 weeks. You will have a midterm and a final.",
+        "date": "2024-03-18 00:52:17 +0000 UTC",
+        "course": "STAT131",
+        "grade": "A-",
+        "rating": 3,
+        "difficulty": 3,
         "wouldTakeAgain": false
       }
     ]
