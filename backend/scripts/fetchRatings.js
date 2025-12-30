@@ -13,7 +13,7 @@ async function fetchDetails(legacyId) {
                     numRatings
                     avgDifficulty
                     wouldTakeAgainPercent
-                    ratings(first: 10) { 
+                    ratings(first: 20) { 
                       edges {
                         node {
                           comment
@@ -24,6 +24,7 @@ async function fetchDetails(legacyId) {
                           clarityRating
                           difficultyRating
                           wouldTakeAgain
+                          ratingTags  # <--- NEW FIELD ADDED
                         }
                       }
                     }
@@ -43,7 +44,8 @@ async function fetchDetails(legacyId) {
             grade: edge.node.grade,
             rating: (edge.node.helpfulRating + edge.node.clarityRating) / 2,
             difficulty: edge.node.difficultyRating,
-            wouldTakeAgain: edge.node.wouldTakeAgain === 1
+            wouldTakeAgain: edge.node.wouldTakeAgain === 1,
+            tags: edge.node.ratingTags ? edge.node.ratingTags.split("--").filter(t => t) : [] // Parse tags
         }));
 
         return {
@@ -58,21 +60,18 @@ async function run() {
         where: { rmpId: { not: null } }
     });
 
-    console.log(`⭐ Downloading reviews for ${professors.length} professors...`);
+    console.log(`⭐ Updating tags for ${professors.length} professors...`);
 
     for (const prof of professors) {
         const data = await fetchDetails(prof.rmpId);
         
         if (data) {
-            console.log(`   updated ${prof.name}: ${data.reviews.length} reviews fetched`);
+            console.log(`   updated ${prof.name}: ${data.reviews.length} reviews`);
             
             await prisma.professor.update({
                 where: { id: prof.id },
                 data: {
-                    rating: data.avgRating,
-                    difficulty: data.avgDifficulty,
-                    numRatings: data.numRatings,
-                    reviews: data.reviews 
+                    reviews: data.reviews
                 }
             });
         }
