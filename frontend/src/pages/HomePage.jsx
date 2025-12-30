@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Calendar, ChevronDown, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, LogIn, Loader, ArrowLeft, Star, MessageSquare, Flame, ThumbsUp, TrendingUp, X, Sparkles, User, Info } from 'lucide-react';
+import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, Sparkles, Filter, X, Star, Flame, ThumbsUp, TrendingUp, MessageSquare, Tag } from 'lucide-react';
 
 // COMPONENTS
 import CourseCard from '../components/CourseCard';
@@ -8,9 +8,7 @@ import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
 
-/**
- * PROFESSOR MODAL COMPONENT
- */
+// --- INTERNAL PROFESSOR MODAL (UCSC THEMED) ---
 const ProfessorModal = ({ professor, isOpen, onClose }) => {
   if (!isOpen || !professor) return null;
 
@@ -20,47 +18,81 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
       <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
+        
+        {/* HEADER */}
         <div className="px-10 py-8 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div>
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">{professor.name.replace(/,/g, ', ')}</h2>
-            <p className="text-xs font-bold text-indigo-500 tracking-[3px] mt-1">Professor analytics</p>
+            <h2 className="text-4xl font-black text-[#003C6C] tracking-tight">{professor.name.replace(/,/g, ', ')}</h2>
+            <div className="flex items-center gap-2 mt-1">
+                <span className="bg-[#FDC700] text-[#003C6C] text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">
+                   Instructor
+                </span>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[3px]">Analytics</p>
+            </div>
           </div>
           <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"><X className="w-8 h-8 text-slate-400" /></button>
         </div>
-        <div className="flex-1 overflow-y-auto p-10 bg-white custom-scrollbar">
+
+        {/* BODY */}
+        <div className="flex-1 overflow-y-auto p-10 bg-slate-50/50 custom-scrollbar">
+          
+          {/* STATS GRID */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             {[
-              { label: 'Quality', val: `${professor.avgRating || '?'}/5`, icon: <Star className="w-6 h-6 text-emerald-600" />, bg: 'bg-emerald-100 border-emerald-200' },
-              { label: 'Difficulty', val: `${professor.avgDifficulty || '?'}/5`, icon: <Flame className="w-6 h-6 text-rose-600" />, bg: 'bg-rose-100 border-rose-200' },
-              { label: 'Retake', val: `${professor.wouldTakeAgain || '0'}%`, icon: <ThumbsUp className="w-6 h-6 text-indigo-600" />, bg: 'bg-indigo-100 border-indigo-200' },
-              { label: 'Ratings', val: professor.numRatings || '0', icon: <TrendingUp className="w-6 h-6 text-slate-500" />, bg: 'bg-slate-100 border-slate-200' }
+              { label: 'Quality', val: `${professor.avgRating || '?'}/5`, icon: <Star className="w-6 h-6 text-[#FDC700]" />, bg: 'bg-[#003C6C]' },
+              { label: 'Difficulty', val: `${professor.avgDifficulty || '?'}/5`, icon: <Flame className="w-6 h-6 text-rose-400" />, bg: 'bg-slate-800' },
+              { label: 'Retake', val: `${professor.wouldTakeAgain || '0'}%`, icon: <ThumbsUp className="w-6 h-6 text-emerald-400" />, bg: 'bg-slate-800' },
+              { label: 'Ratings', val: professor.numRatings || '0', icon: <TrendingUp className="w-6 h-6 text-slate-500" />, bg: 'bg-white border-2 border-slate-100', text: 'text-slate-900' }
             ].map((s, i) => (
-              <div key={i} className={`${s.bg} p-8 rounded-[28px] border-2 shadow-sm flex flex-col items-center text-center transition-transform hover:scale-105`}>
-                <div className="w-14 h-14 rounded-2xl bg-white/70 flex items-center justify-center shadow-sm mb-4">{s.icon}</div>
-                <p className="text-xs font-black tracking-widest text-slate-500 mb-1">{s.label}</p>
-                <p className="text-3xl font-black text-slate-900">{s.val}</p>
+              <div key={i} className={`${s.bg} p-8 rounded-[28px] shadow-sm flex flex-col items-center text-center transition-transform hover:scale-105`}>
+                <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-inner mb-4">{s.icon}</div>
+                <p className={`text-xs font-black tracking-widest mb-1 ${s.text ? 'text-slate-400' : 'text-white/60'}`}>{s.label}</p>
+                <p className={`text-3xl font-black ${s.text || 'text-white'}`}>{s.val}</p>
               </div>
             ))}
           </div>
+
+          {/* REVIEWS LIST */}
           <div className="space-y-8">
-            <h3 className="text-xl font-black text-slate-900 tracking-widest flex items-center gap-3 mb-8 px-2">
-              <MessageSquare className="w-6 h-6 text-indigo-600" /> Recent student feedback
+            <h3 className="text-xl font-black text-[#003C6C] tracking-widest flex items-center gap-3 mb-8 px-2">
+              <MessageSquare className="w-6 h-6 text-[#003C6C]" /> Recent student feedback
             </h3>
             {hasReviews ? (
               professor.reviews?.map((rev, i) => (
-                <div key={i} className="bg-slate-50 p-10 rounded-[32px] border border-slate-100 hover:shadow-lg transition-all">
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-5">
-                      <span className="px-4 py-1.5 bg-indigo-600 text-white text-xs font-black rounded-lg shadow-sm">{rev.course}</span>
-                      <span className="text-sm font-bold text-slate-400 tracking-widest">{new Date(rev.date).toLocaleDateString()}</span>
+                <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-200 hover:shadow-lg transition-all group relative overflow-hidden">
+                  <div className="absolute top-0 bottom-0 left-0 w-2 bg-slate-100 group-hover:bg-[#FDC700] transition-colors" />
+                  
+                  <div className="flex items-center justify-between mb-6 pl-4">
+                    <div className="flex items-center gap-4">
+                      <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-black rounded-lg shadow-sm">{rev.course}</span>
+                      <span className="text-sm font-bold text-slate-400 tracking-widest flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(rev.date).toLocaleDateString()}
+                      </span>
                     </div>
-                    <span className="px-5 py-2 bg-slate-900 text-white text-xs font-black rounded-lg shadow-md tracking-tighter">Grade: {rev.grade || 'N/A'}</span>
+                    {rev.grade && (
+                        <span className="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-100 text-xs font-black rounded-lg shadow-sm tracking-tighter">
+                            Grade: {rev.grade}
+                        </span>
+                    )}
                   </div>
-                  <p className="text-slate-700 font-medium leading-relaxed italic border-l-[8px] border-indigo-200 pl-8 text-2xl">"{rev.comment}"</p>
+                  
+                  <p className="text-slate-700 font-medium leading-relaxed italic pl-4 text-xl mb-4">"{rev.comment}"</p>
+
+                  {/* TAGS */}
+                  {rev.tags && rev.tags.length > 0 && (
+                     <div className="flex flex-wrap gap-2 pl-4 pt-4 border-t border-slate-100">
+                        {rev.tags.map((tag, idx) => (
+                            <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-200">
+                                <Tag className="w-3 h-3" /> {tag}
+                            </span>
+                        ))}
+                     </div>
+                  )}
                 </div>
               ))
             ) : (
-              <div className="text-center py-24 bg-slate-50 rounded-[32px] border-4 border-dashed border-slate-200">
+              <div className="text-center py-24 bg-white rounded-[32px] border-4 border-dashed border-slate-200">
                  <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-400 font-bold tracking-[6px] text-lg">No professor reviews available yet.</p>
               </div>
@@ -74,52 +106,39 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
 
 const HomePage = () => {
   // --- CONFIGURATION ---
-  const SCHOOLS = [
-    { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' },
-    { id: 'sjsu', name: 'San Jose State', shortName: 'SJSU', term: 'Spring 2026', status: 'inactive' }
-  ];
+  const UCSC_SCHOOL = { 
+    id: 'ucsc', 
+    name: 'UC Santa Cruz', 
+    shortName: 'UCSC', 
+    term: 'Winter 2026', 
+    status: 'active' 
+  };
+  const selectedSchool = UCSC_SCHOOL;
 
   // --- STATE ---
   const [activeTab, setActiveTab] = useState('search');
   const [notification, setNotification] = useState(null); 
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  
-  // DROPDOWN REFS & STATE
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef(null);
-  
-  const [selectedSchool, setSelectedSchool] = useState(SCHOOLS[0]);
-  const [showSchoolSelector, setShowSchoolSelector] = useState(false);
-  const schoolDropdownRef = useRef(null);
-
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20; 
-
   const [availableCourses, setAvailableCourses] = useState([]);
   const [professorRatings, setProfessorRatings] = useState({}); 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedCourses, setSelectedCourses] = useState([]);
-  
   const [showAIChat, setShowAIChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
-  
-  // MODAL STATE
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
 
-  // CLICK OUTSIDE HANDLER (FOR BOTH DROPDOWNS)
+  // CLICK OUTSIDE HANDLER
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close Profile Dropdown
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setShowProfileDropdown(false);
-      }
-      // Close School Selector
-      if (schoolDropdownRef.current && !schoolDropdownRef.current.contains(event.target)) {
-        setShowSchoolSelector(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -175,10 +194,10 @@ const HomePage = () => {
           } catch (schedErr) { console.error("Failed to auto-load schedule:", schedErr); }
         }
         setLoading(false);
-      } catch (err) { setError(err.message); setLoading(false); }
+      } catch (err) { setLoading(false); }
     };
     initData();
-  }, [selectedSchool]);
+  }, []); 
 
   useEffect(() => { setCurrentPage(1); }, [searchQuery]);
 
@@ -230,27 +249,16 @@ const HomePage = () => {
 
   // --- HANDLERS ---
   const showNotification = (message, type = 'success') => {
-    // Clear any existing notification first to force a re-render if message is same
     setNotification(null);
-    // Use setTimeout to allow state to clear before setting new one (instant feel)
-    setTimeout(() => {
-        setNotification({ message, type });
-    }, 10);
-
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-        setNotification(prev => (prev?.message === message ? null : prev));
-    }, 3000);
+    setTimeout(() => { setNotification({ message, type }); }, 10);
+    setTimeout(() => { setNotification(prev => (prev?.message === message ? null : prev)); }, 3000);
   };
 
   const addCourse = (course, section) => {
     const newItems = [section, section.selectedLab].filter(Boolean);
-    
-    // Check if course is already in schedule
     const existingIndex = selectedCourses.findIndex(c => c.code === course.code);
     const isUpdate = existingIndex !== -1;
 
-    // Check for conflicts
     for (const existing of selectedCourses) {
       if (existing.code === course.code) continue; 
       const existingItems = [existing.selectedSection, existing.selectedSection?.selectedLab].filter(Boolean);
@@ -264,19 +272,14 @@ const HomePage = () => {
       }
     }
 
-    // Logic: Remove old instance if it exists, then add new one
     const newSchedule = isUpdate 
         ? selectedCourses.map(c => c.code === course.code ? { ...course, selectedSection: section } : c)
         : [...selectedCourses, { ...course, selectedSection: section }];
 
     setSelectedCourses(newSchedule);
 
-    // Custom Notification Messages (BOTH SUCCESS TYPE NOW)
-    if (isUpdate) {
-        showNotification(`Updated discussion for ${course.code}`, 'success');
-    } else {
-        showNotification(`Added ${course.code} to schedule`, 'success');
-    }
+    if (isUpdate) showNotification(`Updated discussion for ${course.code}`, 'success');
+    else showNotification(`Added ${course.code} to schedule`, 'success');
   };
 
   const removeCourse = (courseCode) => { setSelectedCourses(selectedCourses.filter(c => c.code !== courseCode)); showNotification(`Removed ${courseCode}`, 'info'); };
@@ -292,8 +295,7 @@ const HomePage = () => {
     const token = localStorage.getItem('token'); 
     if (!token) { showNotification("Please log in to save!", 'error'); setShowAuthModal(true); return; }
     
-    // Immediate feedback for UX
-    showNotification("Saving schedule...", 'info');
+    showNotification("Schedule saved successfully! 🐌", 'success');
 
     try {
       const payload = {
@@ -307,7 +309,7 @@ const HomePage = () => {
       const response = await fetch('http://localhost:3000/api/schedules', {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload)
       });
-      if (response.ok) showNotification("Schedule saved successfully!", 'success');
+      if (response.ok) showNotification("Schedule saved successfully! 🐌", 'success');
     } catch (err) { showNotification("Server error, could not save", 'error'); }
   };
 
@@ -318,60 +320,53 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] relative font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+    <div className="min-h-screen bg-[#F8FAFC] relative font-sans selection:bg-[#003C6C] selection:text-white flex flex-col">
       {/* NOTIFICATIONS */}
       {notification && (
           <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border animate-in slide-in-from-bottom-10 
             ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 
-              'bg-slate-900 border-slate-700'}`}>
-              
-              {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-white"/> : 
-               <CheckCircle className="w-5 h-5 text-emerald-400"/>}
-              
+              'bg-[#003C6C] border-[#FDC700]'}`}>
+              {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-white"/> : <CheckCircle className="w-5 h-5 text-[#FDC700]"/>}
               <span className="font-bold text-xs tracking-tight">{notification.message}</span>
           </div>
       )}
 
       {/* HEADER */}
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-40 transition-all shrink-0">
+      <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-40 shadow-xl transition-all shrink-0">
         <div className="max-w-[1600px] mx-auto px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-12 h-12 bg-indigo-600 rounded-[18px] shadow-2xl flex items-center justify-center cursor-pointer transform hover:rotate-6 transition-transform">
-                <Calendar className="w-7 h-7 text-white" />
+              <div className="w-12 h-12 bg-white rounded-[18px] shadow-2xl flex items-center justify-center border-4 border-[#FDC700]">
+                 <span className="text-2xl">🐌</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tighter">AI Course Navigator</h1>
-                <div className="relative" ref={schoolDropdownRef}>
-                    <button onClick={() => setShowSchoolSelector(!showSchoolSelector)} className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer">
-                        <GraduationCap className="w-4 h-4" /> {selectedSchool.name} • {selectedSchool.term} <ChevronDown className="w-3 h-3" />
-                    </button>
-                    {showSchoolSelector && (
-                        <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border z-[60] overflow-hidden">
-                            {SCHOOLS.map(school => (
-                                <button key={school.id} onClick={() => { setSelectedSchool(school); setSelectedCourses([]); setShowSchoolSelector(false); }} className="w-full text-left px-4 py-3 border-b hover:bg-gray-50 cursor-pointer">
-                                    <div className="font-bold text-gray-800">{school.name}</div>
-                                    <div className="text-xs text-gray-500">{school.term}</div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                {/* REBRANDED FONT: Serif + Bold + Tight Tracking */}
+                <h1 className="text-2xl font-serif font-bold text-white tracking-tight flex items-center gap-2">
+                  AI Slug Navigator
+                </h1>
+                <div className="flex items-center gap-2 text-[10px] font-bold text-blue-100 mt-1">
+                    <GraduationCap className="w-4 h-4 text-[#FDC700]" /> {selectedSchool.term}
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <button onClick={() => setShowAIChat(true)} className="px-6 py-2.5 bg-indigo-600 text-white text-[11px] font-bold rounded-2xl shadow-xl hover:bg-indigo-700 transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
-                <MessageSquare className="w-4 h-4 text-white fill-current" /> AI Assistant
+              {/* GOLD SQUIRCLE AI BUTTON */}
+              <button 
+                onClick={() => setShowAIChat(true)} 
+                className="px-6 py-2.5 bg-[#FDC700] hover:bg-[#eec00e] text-[#003C6C] text-[11px] font-black rounded-2xl shadow-[0_4px_0_#b88e00] active:shadow-none active:translate-y-1 transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Bot className="w-5 h-5" /> Ask Sammy AI
               </button>
+
               {user ? (
                 <div className="relative" ref={profileDropdownRef}>
-                    <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-10 h-10 bg-indigo-600 text-white font-bold rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-all uppercase cursor-pointer border-2 border-white">
+                    <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-10 h-10 bg-[#FDC700] text-[#003C6C] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer hover:scale-105 transition-transform">
                       {user.name?.[0]}
                     </button>
                     {showProfileDropdown && (
                       <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[24px] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-slate-100 p-8 animate-in zoom-in-95 z-[60]">
                           <div className="flex flex-col items-center text-center mb-6">
-                              <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-black mb-4 uppercase mx-auto">{user.name?.[0]}</div>
+                              <div className="w-16 h-16 bg-[#003C6C] rounded-full flex items-center justify-center text-white text-3xl font-black mb-4 uppercase mx-auto">{user.name?.[0]}</div>
                               <h4 className="font-bold text-slate-900 text-lg leading-tight tracking-tight">{user.name}</h4>
                               <p className="text-[10px] font-bold text-slate-400 mt-1">Student account</p>
                           </div>
@@ -380,7 +375,7 @@ const HomePage = () => {
                     )}
                 </div>
               ) : (
-                <button onClick={() => setShowAuthModal(true)} className="px-6 py-2.5 bg-white border-2 border-slate-100 text-slate-900 font-bold rounded-xl text-[11px] hover:border-slate-900 transition-all cursor-pointer">Log in</button>
+                <button onClick={() => setShowAuthModal(true)} className="px-6 py-2.5 bg-white text-[#003C6C] font-black rounded-xl text-[11px] hover:bg-slate-50 transition-all cursor-pointer border-2 border-transparent hover:border-[#FDC700]">Log in</button>
               )}
             </div>
         </div>
@@ -400,9 +395,9 @@ const HomePage = () => {
                     <button 
                       key={tab} 
                       onClick={() => setActiveTab(tab)} 
-                      className={`pb-4 text-[13px] font-bold transition-all border-b-[6px] cursor-pointer ${activeTab === tab ? 'text-indigo-600 border-indigo-600' : 'text-slate-300 border-transparent hover:text-slate-400'}`}
+                      className={`pb-4 text-[13px] font-bold transition-all border-b-[6px] cursor-pointer ${activeTab === tab ? 'text-[#003C6C] border-[#003C6C]' : 'text-slate-300 border-transparent hover:text-slate-400'}`}
                     >
-                      {tab === 'schedule' ? 'My Schedule' : 'Search'}
+                      {tab === 'schedule' ? 'My Schedule' : 'Search Classes'}
                     </button>
                   ))}
                 </nav>
@@ -413,8 +408,8 @@ const HomePage = () => {
                         {activeTab === 'search' && (
                         <div className="p-10">
                             <div className="relative mb-12 w-full group">
-                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 w-6 h-6 transition-colors" />
-                                <input type="text" placeholder="Search courses and instructors" className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-indigo-600 outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#003C6C] w-6 h-6 transition-colors" />
+                                <input type="text" placeholder="Search courses and instructors..." className="w-full pl-14 pr-8 py-4 bg-slate-50 border-2 border-slate-100 rounded-[20px] focus:bg-white focus:border-[#003C6C] outline-none transition-all text-lg font-bold shadow-inner placeholder:text-slate-300 text-slate-700" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                             </div>
                             <div className="grid grid-cols-1 gap-8">
                                 {currentCourses.length === 0 ? <div className="text-center py-20 text-slate-400 font-bold">No classes found.</div> : currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
@@ -432,12 +427,12 @@ const HomePage = () => {
                         {activeTab === 'schedule' && (
                         <div className="flex flex-col lg:grid lg:grid-cols-[450px_1fr] gap-8 h-full p-8 min-h-[800px]">
                             <div className="bg-slate-50/50 rounded-[32px] p-8 border border-slate-100 flex-1 flex flex-col shadow-inner">
-                                <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-indigo-600"/> My Schedule</h3>
+                                <h3 className="font-bold text-slate-700 mb-6 text-sm flex items-center gap-3"><BookOpen className="w-5 h-5 text-[#003C6C]"/> My Schedule</h3>
                                 <div className="flex-1 pr-2">
                                     {selectedCourses.length === 0 ? <p className="text-slate-300 py-20 text-center font-bold text-sm">Schedule is empty</p> : <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />}
                                 </div>
                                 <div className="pt-6 border-t border-slate-200">
-                                  <button onClick={handleSaveSchedule} className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
+                                  <button onClick={handleSaveSchedule} className="w-full py-4 bg-[#003C6C] text-white font-bold rounded-2xl hover:bg-[#002a4d] shadow-xl transition-all cursor-pointer active:scale-95 text-xs">
                                     <Save className="w-4 h-4 inline mr-2" /> Save Schedule
                                   </button>
                                 </div>
@@ -449,14 +444,13 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* CHAT SIDEBAR - RIGHT COLUMN (Sticky + Top Padding) */}
-            <div className="sticky top-8 pt-16"> {/* Matches tabs height approx */}
+            {/* CHAT SIDEBAR */}
+            <div className="sticky top-8 pt-16">
                 <ChatSidebar isOpen={showAIChat} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
             </div>
         </div>
       </main>
       
-      <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} selectedSchool={selectedSchool} />
     </div>
   );
