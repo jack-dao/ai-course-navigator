@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +10,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// --- 1. SCHOOL & COURSE ---
+
 model School {
   id      Int      @id @default(autoincrement())
   name    String   @unique
@@ -16,39 +20,39 @@ model School {
 
 model Course {
   id          Int       @id @default(autoincrement())
-  code        String    // Not @unique here because schools could use the same code.
-  name        String
+  code        String    // e.g. "CSE 101"
+  name        String    // e.g. "Algorithms"
   credits     Int
-  instructor  String
   department  String
   
-  // LINK TO SCHOOL
+  // Note: This field gets overwritten if multiple profs teach the same course.
+  // The real instructor info lives in 'Section'.
+  instructor  String    
+
   schoolId    Int
   school      School    @relation(fields: [schoolId], references: [id])
 
   sections    Section[]
 
-  // COMPOUND UNIQUE: 
-  // This says: "You can't have 'CSE 3' twice AT THE SAME SCHOOL."
-  // But you CAN have 'CSE 3' at UCSC and 'CSE 3' at UCSD.
   @@unique([schoolId, code])
 }
 
+// --- 2. SECTION & PROFESSOR (The New Part) ---
+
 model Section {
   id            Int      @id @default(autoincrement())
-  sectionCode   String   @unique 
+  sectionCode   String   @unique // e.g. "CSE 101-01"
   
   courseId      Int
   course        Course   @relation(fields: [courseId], references: [id])
 
   sectionNumber String   
-  sectionType   String   // <--- e.g. "LEC", "LAB", "DIS"
+  sectionType   String   // "LEC", "LAB", etc.
   
-  // Optional because Lectures don't have parents, and Labs don't have children
+  // Parent/Child linking (e.g. Labs linked to a Lecture)
   parentId      Int?     
   parent        Section?  @relation("LinkedSections", fields: [parentId], references: [id])
   subSections   Section[] @relation("LinkedSections")
-  // -------------------------
 
   status        String   
   days          String   
@@ -58,24 +62,44 @@ model Section {
   location      String
   enrolled      Int
   capacity      Int
-  instructor    String   
+
+  // --- NEW: LINKING TO PROFESSOR ---
+  instructor    String   // The raw name from the scraper (e.g. "Tantalo, P.")
+  
+  // This relation connects the raw string above to the Professor table below.
+  professor     Professor? @relation(fields: [instructor], references: [name])
 }
+
+model Professor {
+  id          String   @id @default(uuid())
+  name        String   @unique // Matches "Tantalo, P."
+  
+  // Rate My Professor Data
+  rmpId       String?  // The weird ID RMP uses (e.g. "VGVhY2hlci0yMzM=")
+  rating      Float?   // 0.0 to 5.0
+  difficulty  Float?   // 0.0 to 5.0
+  numRatings  Int?     // How many students reviewed them
+  
+  // Back-relation to see all classes this prof teaches
+  sections    Section[]
+}
+
+// --- 3. USER DATA ---
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String   // We store the HASH here, not the plain text password
+  password  String   
   name      String
   createdAt DateTime @default(now())
 
-  // A user can have many saved schedules
   schedules Schedule[]
 }
 
 model Schedule {
   id        Int      @id @default(autoincrement())
-  name      String   // e.g. "My Winter Plan"
-  courses   Json     // We will store the selectedCourses array as a JSON blob
+  name      String   
+  courses   Json     // Stores the list of selected class IDs
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
