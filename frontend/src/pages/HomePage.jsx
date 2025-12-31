@@ -302,7 +302,7 @@ const HomePage = () => {
   };
 
   return (
-    // ROOT LAYOUT: min-h-screen ensures full height.
+    // ROOT LAYOUT: min-h-screen allows window scrolling. w-full.
     <div className="min-h-screen w-full bg-white flex flex-col font-sans selection:bg-[#003C6C] selection:text-white relative">
       
       {/* NOTIFICATIONS */}
@@ -357,10 +357,10 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* DASHBOARD LAYOUT */}
-      <div className="flex w-full min-h-[calc(100vh-80px)] relative">
+      {/* DASHBOARD LAYOUT - FLEX ROW */}
+      <div className="flex w-full min-h-[calc(100vh-80px)]">
         
-        {/* LEFT & CENTER CONTENT */}
+        {/* LEFT & CENTER CONTENT - flex-1 allows it to take remaining space */}
         <div className="flex flex-1 min-w-0 transition-all duration-300" style={{ marginRight: showAIChat ? '400px' : '0' }}>
             {activeTab === 'search' && (
               <>
@@ -472,10 +472,11 @@ const HomePage = () => {
             )}
         </div>
 
-        {/* 3. CHAT SIDEBAR (Right - Fixed/Sticky) */}
+        {/* 3. CHAT SIDEBAR (Right - Sticky Sibling) */}
         {/* Fixed position keeps it in view. Width transition handles slide. */}
+        {/* ADDED: border-l border-[#FDC700] for the YELLOW SEPARATOR LINE */}
         <div 
-            className={`fixed top-[80px] bottom-0 right-0 w-[400px] bg-white z-50 transition-transform duration-300 ease-in-out border-l border-slate-100 shadow-xl ${showAIChat ? 'translate-x-0' : 'translate-x-full'}`}
+            className={`fixed top-[80px] bottom-0 right-0 w-[400px] bg-white z-50 transition-transform duration-300 ease-in-out border-l border-[#FDC700] shadow-xl ${showAIChat ? 'translate-x-0' : 'translate-x-full'}`}
         >
              <div className="w-full h-full">
                 <ChatSidebar isOpen={true} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
