@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'; 
-import { X, Bot, Send, Sparkles } from 'lucide-react'; 
+import { X, Bot, Send, Sparkles, ArrowRight } from 'lucide-react'; 
 
 const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) => {
   const [input, setInput] = React.useState('');
@@ -18,38 +18,105 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
   };
   
   return (
-    <div className="w-full h-full bg-white flex flex-col">
-      <div className="p-6 border-b border-[#FDC700] bg-gradient-to-r from-[#003C6C] to-[#00508c] flex items-center justify-between shrink-0">
+    <div className="w-full h-full bg-slate-50 flex flex-col">
+      {/* HEADER */}
+      <div className="p-6 border-b border-[#FDC700] bg-gradient-to-r from-[#003C6C] to-[#00508c] flex items-center justify-between shrink-0 shadow-sm relative z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-inner backdrop-blur-sm"><Bot className="w-6 h-6 text-[#FDC700]" /></div>
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-inner backdrop-blur-sm">
+            <Bot className="w-6 h-6 text-[#FDC700]" />
+          </div>
           <div>
             <h3 className="font-bold text-white text-base tracking-tight">Sammy AI</h3>
             <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Academic Advisor</p>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white/70 hover:text-white"><X className="w-5 h-5" /></button>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white/70 hover:text-white">
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50 custom-scrollbar">
-        {messages.length === 0 && (
-            <div className="text-center py-10 opacity-60">
-                <Sparkles className="w-12 h-12 text-[#003C6C] mx-auto mb-3" />
-                <p className="text-sm font-bold text-slate-500">Ask me about GEs, easy professors, or schedule planning!</p>
+      {/* CHAT CONTENT */}
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-[#F8FAFC]">
+        {messages.length === 0 ? (
+            <div className="h-full flex flex-col justify-center px-2">
+                <div className="text-center mb-8 opacity-80">
+                    <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-blue-200">
+                        <Sparkles className="w-8 h-8 text-[#003C6C]" />
+                    </div>
+                    <h4 className="font-black text-slate-700 text-lg mb-2">How can I help you?</h4>
+                    <p className="text-xs font-bold text-slate-400 max-w-[240px] mx-auto leading-relaxed">
+                        I can help you find easy classes, build the perfect schedule, or avoid 8am lectures.
+                    </p>
+                </div>
+
+                <div className="space-y-3">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Suggested Prompts</p>
+                    
+                    <button 
+                        onClick={() => onSendMessage("What is an easy GE to take that fits in with my schedule?")} 
+                        className="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#FDC700] hover:shadow-md transition-all group flex items-start gap-3"
+                    >
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-700 group-hover:text-[#003C6C] transition-colors">Find an easy GE</p>
+                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">That fits my current schedule</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FDC700] mt-1" />
+                    </button>
+
+                    <button 
+                        onClick={() => onSendMessage("Build a schedule with no Friday classes")} 
+                        className="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#FDC700] hover:shadow-md transition-all group flex items-start gap-3"
+                    >
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-700 group-hover:text-[#003C6C] transition-colors">No Friday classes</p>
+                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">Maximize my weekend</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FDC700] mt-1" />
+                    </button>
+
+                    <button 
+                        onClick={() => onSendMessage("What should I take to balance our course workload?")} 
+                        className="w-full text-left p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#FDC700] hover:shadow-md transition-all group flex items-start gap-3"
+                    >
+                        <div className="flex-1">
+                            <p className="text-sm font-bold text-slate-700 group-hover:text-[#003C6C] transition-colors">Balance workload</p>
+                            <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">Mix major reqs with lighter classes</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FDC700] mt-1" />
+                    </button>
+                </div>
+            </div>
+        ) : (
+            <div className="space-y-6">
+                {messages.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] rounded-2xl p-4 text-sm font-medium leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-[#003C6C] text-white rounded-br-sm' : 'bg-white text-slate-700 border border-slate-200 rounded-bl-sm'}`}>
+                      <p>{msg.text}</p>
+                    </div>
+                  </div>
+                ))}
             </div>
         )}
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl p-4 text-sm font-medium leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-[#003C6C] text-white rounded-br-sm' : 'bg-white text-slate-700 border border-slate-200 rounded-bl-sm'}`}>
-              <p>{msg.text}</p>
-            </div>
-          </div>
-        ))}
       </div>
 
-      <div className="p-4 border-t border-slate-200 bg-white shrink-0">
+      {/* INPUT AREA */}
+      <div className="p-5 bg-white border-t border-slate-100 shrink-0">
         <div className="flex gap-2 relative group">
-          <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }} placeholder="Ask a question..." className="flex-1 pl-5 pr-12 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] focus:ring-0 outline-none transition-all text-sm font-bold text-slate-700 placeholder:text-slate-400" />
-          <button onClick={handleSend} disabled={!input.trim()} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[#FDC700] text-[#003C6C] rounded-xl hover:bg-[#e5b600] transition-all shadow-sm active:scale-95 disabled:opacity-0 disabled:scale-50"><Send className="w-4 h-4 font-bold" /></button>
+          <input 
+            type="text" 
+            value={input} 
+            onChange={(e) => setInput(e.target.value)} 
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSend(); } }} 
+            placeholder="Ask a question..." 
+            className="flex-1 pl-5 pr-12 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] focus:ring-0 outline-none transition-all text-sm font-bold text-slate-700 placeholder:text-slate-400" 
+          />
+          <button 
+            onClick={handleSend} 
+            disabled={!input.trim()} 
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[#FDC700] text-[#003C6C] rounded-xl hover:bg-[#e5b600] transition-all shadow-sm active:scale-95 disabled:opacity-0 disabled:scale-50"
+          >
+            <Send className="w-4 h-4 font-bold" />
+          </button>
         </div>
       </div>
     </div>
