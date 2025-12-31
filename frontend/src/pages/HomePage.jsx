@@ -302,9 +302,7 @@ const HomePage = () => {
   };
 
   return (
-    // ROOT LAYOUT: Flex Column for the whole page
-    // min-h-screen ensures the background covers at least viewport. 
-    // w-full ensures it takes full width.
+    // ROOT LAYOUT: min-h-screen ensures full height.
     <div className="min-h-screen w-full bg-white flex flex-col font-sans selection:bg-[#003C6C] selection:text-white relative">
       
       {/* NOTIFICATIONS */}
@@ -318,7 +316,7 @@ const HomePage = () => {
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} selectedSchool={selectedSchool} />
 
-      {/* HEADER: Sticky at top */}
+      {/* HEADER - STICKY TOP */}
       <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[80px]">
         <div className="w-full h-full px-8 flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -335,7 +333,7 @@ const HomePage = () => {
                   ))}
               </div>
               <div className="w-px h-8 bg-blue-800/50 mx-2" />
-              {/* BUTTON COLOR FIXED */}
+              {/* BUTTON REMAINS GOLD */}
               <button 
                 onClick={() => setShowAIChat(!showAIChat)} 
                 className={`px-6 py-2.5 text-[11px] font-black rounded-2xl transition-all flex items-center gap-2 cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:shadow-inner active:translate-y-0.5`}
@@ -359,130 +357,130 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* CONTENT WRAPPER - FLEX ROW */}
-      {/* This container aligns the Sidebar next to the Main Content */}
-      <div className="flex w-full flex-1">
+      {/* DASHBOARD LAYOUT */}
+      <div className="flex w-full min-h-[calc(100vh-80px)] relative">
         
-        {/* LEFT + CENTER CONTENT */}
-        {/* flex-1 lets it grow. min-w-0 prevents it from refusing to shrink. */}
-        <div className="flex flex-1 min-w-0 flex-col">
-            <div className="flex flex-1">
-                {activeTab === 'search' && (
-                  <>
-                    {/* FILTER SIDEBAR (STICKY) */}
-                    <aside className="w-[260px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar border-r border-slate-100 bg-white p-6 z-40">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2"><Filter className="w-4 h-4 text-[#003C6C]" /> Filters</h3>
-                        <button onClick={resetFilters} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-wider flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+        {/* LEFT & CENTER CONTENT */}
+        <div className="flex flex-1 min-w-0 transition-all duration-300" style={{ marginRight: showAIChat ? '400px' : '0' }}>
+            {activeTab === 'search' && (
+              <>
+                {/* 1. FILTER SIDEBAR (Left - Sticky) */}
+                <aside className="w-[260px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar border-r border-slate-100 bg-white p-6 z-40">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2"><Filter className="w-4 h-4 text-[#003C6C]" /> Filters</h3>
+                    <button onClick={resetFilters} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-wider flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                  </div>
+
+                  <FilterSection title="Department">
+                      <div className="relative">
+                        <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-600 outline-none focus:border-[#003C6C]">
+                            <option>All Departments</option><option>Computer Science</option><option>Mathematics</option><option>Psychology</option>
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                       </div>
+                  </FilterSection>
 
-                      <FilterSection title="Department">
-                          <div className="relative">
-                            <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-600 outline-none focus:border-[#003C6C]">
-                                <option>All Departments</option><option>Computer Science</option><option>Mathematics</option><option>Psychology</option>
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
-                          </div>
-                      </FilterSection>
+                  <FilterSection title="Units">
+                      <div className="flex flex-col gap-1">
+                        {[2, 5].map(u => (
+                            <label key={u} className="flex items-center gap-3 cursor-pointer group p-2 hover:bg-slate-50 rounded-lg">
+                                <input type="checkbox" checked={filters.minUnits.includes(u)} onChange={() => toggleUnit(u)} className="accent-[#003C6C]" />
+                                <span className="text-xs font-bold text-slate-600">{u} Units</span>
+                            </label>
+                        ))}
+                      </div>
+                  </FilterSection>
 
-                      <FilterSection title="Units">
-                          <div className="flex flex-col gap-1">
-                            {[2, 5].map(u => (
-                                <label key={u} className="flex items-center gap-3 cursor-pointer group p-2 hover:bg-slate-50 rounded-lg">
-                                    <input type="checkbox" checked={filters.minUnits.includes(u)} onChange={() => toggleUnit(u)} className="accent-[#003C6C]" />
-                                    <span className="text-xs font-bold text-slate-600">{u} Units</span>
-                                </label>
-                            ))}
-                          </div>
-                      </FilterSection>
+                  <FilterSection title="Days">
+                      <div className="flex justify-between gap-1">
+                        {['M', 'Tu', 'W', 'Th', 'F'].map(day => (
+                            <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all border-2 shadow-sm ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-400 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
+                        ))}
+                      </div>
+                  </FilterSection>
 
-                      <FilterSection title="Days">
-                          <div className="flex justify-between gap-1">
-                            {['M', 'Tu', 'W', 'Th', 'F'].map(day => (
-                                <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all border-2 shadow-sm ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-400 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
-                            ))}
-                          </div>
-                      </FilterSection>
-
-                      <FilterSection title="Time Range">
-                          <div className="px-2 py-2">
-                            <div className="h-1.5 bg-slate-100 rounded-full mb-6 relative mt-2 border border-slate-200">
-                                <div className="absolute left-0 w-full h-full bg-[#FDC700] rounded-full opacity-50" />
-                                <div className="absolute left-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
-                                <div className="absolute right-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
-                            </div>
-                            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span>8:00 AM</span><span>10:00 PM</span></div>
-                          </div>
-                      </FilterSection>
-
-                      <FilterSection title="Availability">
-                          <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#FDC700] transition-all">
-                            <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C]" />
-                            <span className="text-xs font-bold text-slate-700">Open Classes Only</span>
-                          </label>
-                      </FilterSection>
-
-                      <FilterSection title="Instructor Rating">
-                          <div className="px-2 py-2">
-                            <input type="range" min="0" max="5" step="0.5" value={filters.minRating} onChange={(e) => setFilters({...filters, minRating: parseFloat(e.target.value)})} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#003C6C]" />
-                            <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-500">
-                                <span className="opacity-50">Any</span>
-                                <div className="flex items-center gap-1 text-[#003C6C]"><span className="text-lg font-black">{filters.minRating}+</span><Star className="w-3 h-3 fill-[#FDC700] text-[#FDC700]" /></div>
-                                <span className="opacity-50">5.0</span>
-                            </div>
-                          </div>
-                      </FilterSection>
-                    </aside>
-
-                    {/* RESULTS AREA */}
-                    {/* This div shrinks because the parent flex container constrains it when the sibling (chat) grows */}
-                    <main className="flex-1 min-w-0 bg-white">
-                        <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-[80px] z-30">
-                            <div className="flex gap-4 mb-4">
-                                <div className="relative flex-1 group">
-                                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
-                                    <input type="text" placeholder="Search courses..." className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                                </div>
-                                <div className="relative w-64">
-                                    <select className="w-full h-full px-5 bg-white border-2 border-slate-100 rounded-2xl text-xs font-bold text-slate-500 hover:border-[#003C6C] cursor-pointer outline-none appearance-none transition-colors">
-                                        <option>Sort by: Best Match</option>
-                                        <option>Sort by: Rating</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                                </div>
-                            </div>
-                            <div className="flex items-center justify-between"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[2px]">{processedCourses.length} Results</span></div>
+                  <FilterSection title="Time Range">
+                      <div className="px-2 py-2">
+                        <div className="h-1.5 bg-slate-100 rounded-full mb-6 relative mt-2 border border-slate-200">
+                            <div className="absolute left-0 w-full h-full bg-[#FDC700] rounded-full opacity-50" />
+                            <div className="absolute left-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
+                            <div className="absolute right-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
                         </div>
-                        <div className="p-8 grid grid-cols-1 gap-6">
-                            {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
-                        </div>
-                    </main>
-                  </>
-                )}
+                        <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span>8:00 AM</span><span>10:00 PM</span></div>
+                      </div>
+                  </FilterSection>
 
-                {activeTab === 'schedule' && (
-                    <div className="flex flex-1 h-[calc(100vh-80px)]">
-                        <div className="w-[400px] shrink-0 border-r border-slate-100 p-6 overflow-y-auto">
+                  <FilterSection title="Availability">
+                      <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#FDC700] transition-all">
+                        <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C]" />
+                        <span className="text-xs font-bold text-slate-700">Open Classes Only</span>
+                      </label>
+                  </FilterSection>
+
+                  <FilterSection title="Instructor Rating">
+                      <div className="px-2 py-2">
+                        <input type="range" min="0" max="5" step="0.5" value={filters.minRating} onChange={(e) => setFilters({...filters, minRating: parseFloat(e.target.value)})} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#003C6C]" />
+                        <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-500">
+                            <span className="opacity-50">Any</span>
+                            <div className="flex items-center gap-1 text-[#003C6C]"><span className="text-lg font-black">{filters.minRating}+</span><Star className="w-3 h-3 fill-[#FDC700] text-[#FDC700]" /></div>
+                            <span className="opacity-50">5.0</span>
+                        </div>
+                      </div>
+                  </FilterSection>
+                </aside>
+
+                {/* 2. RESULTS AREA (Center) */}
+                <main className="flex-1 min-w-0 bg-white">
+                    <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-[80px] z-30">
+                        <div className="flex gap-4 mb-4">
+                            <div className="relative flex-1 group">
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
+                                <input type="text" placeholder="Search courses..." className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                            </div>
+                            <div className="relative w-64">
+                                <select className="w-full h-full px-5 bg-white border-2 border-slate-100 rounded-2xl text-xs font-bold text-slate-500 hover:border-[#003C6C] cursor-pointer outline-none appearance-none transition-colors">
+                                    <option>Sort by: Best Match</option>
+                                    <option>Sort by: Rating</option>
+                                </select>
+                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[2px]">{processedCourses.length} Results</span></div>
+                    </div>
+                    <div className="p-8 grid grid-cols-1 gap-6">
+                        {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
+                    </div>
+                </main>
+              </>
+            )}
+
+            {activeTab === 'schedule' && (
+                <div className="flex flex-1 h-[calc(100vh-80px)]">
+                    <div className="w-[400px] shrink-0 border-r border-slate-100 flex flex-col z-10 bg-white">
+                        <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
                             <h3 className="font-bold text-[#003C6C] mb-6 text-sm uppercase tracking-widest"><BookOpen className="w-5 h-5 inline mr-2"/> My Schedule</h3>
                             <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />
                         </div>
-                        <div className="flex-1 overflow-hidden">
-                            <CalendarView selectedCourses={selectedCourses} />
+                        <div className="p-6 border-t border-slate-100 shrink-0 bg-white">
+                            <button onClick={handleSaveSchedule} className="w-full py-4 bg-[#003C6C] text-white font-bold rounded-2xl hover:bg-[#002a4d] shadow-xl transition-all cursor-pointer active:scale-95 text-xs uppercase tracking-[2px] flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Schedule</button>
                         </div>
                     </div>
-                )}
-            </div>
+                    <div className="flex-1 overflow-hidden">
+                        <CalendarView selectedCourses={selectedCourses} />
+                    </div>
+                </div>
+            )}
         </div>
 
-        {/* 3. CHAT SIDEBAR (Right - Sticky Sibling) */}
-        {/* STICKY helps it stay in view. It is a sibling to the content div, so it PUSHES the content. */}
-        {showAIChat && (
-            <div 
-                className="w-[400px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] bg-white border-l border-slate-100 z-40"
-            >
-                 <ChatSidebar isOpen={true} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
-            </div>
-        )}
+        {/* 3. CHAT SIDEBAR (Right - Fixed/Sticky) */}
+        {/* Fixed position keeps it in view. Width transition handles slide. */}
+        <div 
+            className={`fixed top-[80px] bottom-0 right-0 w-[400px] bg-white z-50 transition-transform duration-300 ease-in-out border-l border-slate-100 shadow-xl ${showAIChat ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+             <div className="w-full h-full">
+                <ChatSidebar isOpen={true} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
+             </div>
+        </div>
 
       </div>
     </div>
