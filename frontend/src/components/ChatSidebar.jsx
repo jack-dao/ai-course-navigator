@@ -19,7 +19,6 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
   
   return (
     <div className="w-full h-full bg-slate-50 flex flex-col">
-      {/* HEADER */}
       <div className="p-6 border-b border-[#FDC700] bg-gradient-to-r from-[#003C6C] to-[#00508c] flex items-center justify-between shrink-0 shadow-sm relative z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/20 shadow-inner backdrop-blur-sm">
@@ -27,7 +26,8 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
           </div>
           <div>
             <h3 className="font-bold text-white text-base tracking-tight">Sammy AI</h3>
-            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Academic Advisor</p>
+            {/* FIX: Title Case */}
+            <p className="text-xs font-bold text-blue-200">Academic Advisor</p>
           </div>
         </div>
         <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white/70 hover:text-white">
@@ -35,7 +35,6 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
         </button>
       </div>
 
-      {/* CHAT CONTENT */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-[#F8FAFC]">
         {messages.length === 0 ? (
             <div className="h-full flex flex-col justify-center px-2">
@@ -50,7 +49,8 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
                 </div>
 
                 <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2">Suggested Prompts</p>
+                    {/* FIX: Title Case */}
+                    <p className="text-xs font-bold text-slate-400 ml-1 mb-2">Suggested Prompts</p>
                     
                     <button 
                         onClick={() => onSendMessage("What is an easy GE to take that fits in with my schedule?")} 
@@ -99,7 +99,6 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName }) =
         )}
       </div>
 
-      {/* INPUT AREA */}
       <div className="p-5 bg-white border-t border-slate-100 shrink-0">
         <div className="flex gap-2 relative group">
           <input 

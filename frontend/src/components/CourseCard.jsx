@@ -72,18 +72,16 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
 
   return (
     <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card">
-      {/* HEADER */}
       <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h3 className="text-xl font-[800] text-slate-900 tracking-tight uppercase">{course.code}</h3>
+          <h3 className="text-xl font-[800] text-slate-900">{course.code}</h3>
           <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-          <p className="text-slate-500 font-bold text-sm tracking-tight hidden sm:block">{course.name}</p>
+          <p className="text-slate-500 font-bold text-sm hidden sm:block">{course.name}</p>
         </div>
-        <span className="px-4 py-1.5 bg-[#003C6C] text-white text-[10px] font-black uppercase rounded-lg shadow-sm">{course.credits} Units</span>
+        <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-bold rounded-lg shadow-sm">{course.credits} Units</span>
       </div>
 
-      {/* GRID HEADERS */}
-      <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1.2fr_180px] px-8 py-3 bg-white border-b border-slate-50 text-[11px] font-bold text-slate-400">
+      <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1.2fr_180px] px-8 py-3 bg-white border-b border-slate-50 text-sm font-bold text-slate-800">
         <span>Instructor & Ratings</span>
         <span>Schedule & Location</span>
         <span>Availability</span>
@@ -103,8 +101,13 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
           const fillRatio = enrolled / capacity;
           const fillPercentage = Math.min(fillRatio * 100, 100);
 
-          const isClosed = section.status === 'Closed' || fillRatio >= 1;
-          const isWaitlist = section.status === 'Wait List';
+          // FIX: Strict status checking to prevent false Reds
+          // Only explicit "Closed" is Red.
+          // Explicit "Wait List" (or "Wait") is Orange.
+          // Everything else (including full but not closed) defaults to Green/Teal.
+          const statusText = section.status || 'Open';
+          const isClosed = statusText === 'Closed';
+          const isWaitlist = statusText.includes('Wait');
           
           let barColor = 'bg-emerald-500';
           let statusBadge = 'bg-emerald-50 text-emerald-700 border-emerald-100';
@@ -112,69 +115,62 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
           if (isClosed) {
             barColor = 'bg-rose-500';
             statusBadge = 'bg-rose-50 text-rose-700 border-rose-100';
-          } else if (isWaitlist || fillRatio > 0.85) {
-            barColor = 'bg-amber-500';
-            statusBadge = 'bg-amber-50 text-amber-700 border-amber-100';
+          } else if (isWaitlist) {
+            barColor = 'bg-orange-500';
+            statusBadge = 'bg-orange-50 text-orange-700 border-orange-100';
           }
 
           return (
             <div key={section.id} className="p-6 lg:px-8 hover:bg-slate-50/50 transition-colors group/row">
               <div className="grid grid-cols-1 lg:grid-cols-[2fr_1.5fr_1.2fr_180px] items-start lg:items-center gap-8">
                 
-                {/* INSTRUCTOR */}
                 <div className="space-y-2">
                   <div className="flex flex-col items-start">
                     <button 
                       onClick={() => onShowProfessor(section.instructor, ratingData)}
-                      className="group/prof flex items-center gap-2 text-lg font-[800] text-[#003C6C] cursor-pointer transition-all text-left leading-none tracking-tight hover:underline decoration-2 underline-offset-4 decoration-[#FDC700]"
+                      className="group/prof flex items-center gap-2 text-lg font-[800] text-[#003C6C] cursor-pointer transition-all text-left leading-none hover:underline decoration-2 underline-offset-4 decoration-[#FDC700]"
                     >
-                      {/* DARKER USER ICON */}
                       <User className="w-4 h-4 text-[#003C6C] transition-colors" />
                       {formatInstructor(section.instructor)}
-                      {/* DARKER INFO ICON */}
                       <Info className="w-3 h-3 text-[#003C6C] opacity-0 group-hover/prof:opacity-100 transition-opacity" />
                     </button>
                   </div>
                   {ratingData ? (
                     <div className="flex items-center gap-3 bg-white w-fit px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
                       {renderStars(ratingData.avgRating)}
-                      <span className="text-xs font-bold text-slate-500">{ratingData.avgRating}</span>
+                      <span className="text-xs font-bold text-slate-700">{ratingData.avgRating}</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">No Ratings</span>
+                    <span className="text-xs font-bold text-slate-400">No Ratings</span>
                   )}
                 </div>
 
-                {/* SCHEDULE */}
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    {/* DARKER CLOCK ICON */}
                     <Clock className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
                     <div className="flex flex-col">
                         <span className="text-sm font-bold text-slate-900 leading-tight">
                             {expandDays(section.days)}
                         </span>
-                        <span className="text-xs font-bold text-slate-500 mt-0.5">
+                        <span className="text-xs font-bold text-slate-700 mt-0.5">
                             {formatTime(section.startTime)}—{formatTime(section.endTime)}
                         </span>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    {/* DARKER MAP ICON */}
                     <MapPin className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
-                    <span className="text-xs font-bold text-slate-500 mt-0.5 leading-tight">
+                    <span className="text-xs font-bold text-slate-700 mt-0.5 leading-tight">
                         {formatLocation(section.location)}
                     </span>
                   </div>
                 </div>
 
-                {/* AVAILABILITY */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] px-2 py-0.5 font-bold uppercase rounded border ${statusBadge}`}>
-                      {section.status}
+                    <span className={`text-xs px-2 py-1 font-bold rounded border ${statusBadge}`}>
+                      {statusText}
                     </span>
-                    <span className="text-xs font-bold text-slate-500">{enrolled}/{capacity}</span>
+                    <span className="text-xs font-bold text-slate-700">{enrolled}/{capacity}</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div 
@@ -184,14 +180,13 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                   </div>
                 </div>
 
-                {/* ACTION */}
                 <div className="flex flex-col gap-2 relative">
                   {hasDiscussions && (
                     <div className="relative" ref={openDropdownId === section.id ? dropdownRef : null}>
                         <button
                           onClick={() => toggleDropdown(section.id)}
                           className={`w-full flex items-center justify-between text-xs font-bold border rounded-xl px-3 py-2.5 bg-white transition-all cursor-pointer ${
-                            hasError ? 'border-rose-300 bg-rose-50 text-rose-600' : 'border-slate-200 text-slate-600 hover:border-[#003C6C] hover:text-[#003C6C]'
+                            hasError ? 'border-rose-300 bg-rose-50 text-rose-600' : 'border-slate-200 text-slate-700 hover:border-[#003C6C] hover:text-[#003C6C]'
                           }`}
                         >
                           <span className="truncate">
@@ -200,7 +195,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdownId === section.id ? 'rotate-180' : ''}`} />
                         </button>
 
-                        {/* DROPDOWN MENU */}
                         {openDropdownId === section.id && (
                           <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200">
                             <div className="p-1">
@@ -220,14 +214,14 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                                   key={sub.id}
                                   onClick={() => handleSelectDiscussion(section.id, sub.id)}
                                   className={`w-full text-left px-3 py-2 rounded-lg text-xs mb-1 last:mb-0 flex items-center justify-between group cursor-pointer ${
-                                    selectedSubId === sub.id ? 'bg-[#003C6C]/10 text-[#003C6C]' : 'hover:bg-slate-50 text-slate-600'
+                                    selectedSubId === sub.id ? 'bg-[#003C6C]/10 text-[#003C6C]' : 'hover:bg-slate-50 text-slate-700'
                                   }`}
                                 >
                                   <div className="flex flex-col gap-0.5">
                                     <span className="font-bold text-slate-800 group-hover:text-[#003C6C]">
                                       {expandDays(sub.days)}
                                     </span>
-                                    <span className="text-xs text-slate-500 font-medium group-hover:text-[#003C6C]">
+                                    <span className="text-xs text-slate-600 font-medium group-hover:text-[#003C6C]">
                                       {formatTime(sub.startTime)}–{formatTime(sub.endTime)}
                                     </span>
                                   </div>
@@ -240,10 +234,9 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                     </div>
                   )}
                   
-                  {/* ADD BUTTON - ALWAYS "Add Class" */}
                   <button
                     onClick={() => handleAddClick(section)}
-                    className="w-full py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 bg-[#003C6C] text-white hover:bg-[#002a4d] shadow-md hover:shadow-lg"
+                    className="w-full py-3 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 bg-[#003C6C] text-white hover:bg-[#002a4d] shadow-md hover:shadow-lg"
                   >
                     <Plus className="w-4 h-4" />
                     Add Class

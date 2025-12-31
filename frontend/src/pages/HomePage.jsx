@@ -8,6 +8,55 @@ import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
 
+// --- HELPER: CUSTOM DROPDOWN COMPONENT ---
+const CustomDropdown = ({ value, options, onChange, placeholder, prefix = "" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full" ref={ref}>
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 hover:border-[#003C6C] transition-all shadow-sm active:scale-[0.99]"
+      >
+        <span className="truncate">{prefix}{value || placeholder}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200">
+          <div className="p-1">
+            {options.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => { onChange(opt); setIsOpen(false); }}
+                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold mb-0.5 last:mb-0 transition-colors flex items-center justify-between ${
+                  value === opt 
+                    ? 'bg-[#003C6C]/10 text-[#003C6C]' 
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                {opt}
+                {value === opt && <Check className="w-3 h-3 text-[#003C6C]" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- INTERNAL PROFESSOR MODAL ---
 const ProfessorModal = ({ professor, isOpen, onClose }) => {
   if (!isOpen || !professor) return null;
@@ -20,10 +69,10 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
       <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
         <div className="px-10 py-8 border-b border-slate-100 flex items-center justify-between bg-white sticky top-0 z-10">
           <div>
-            <h2 className="text-4xl font-serif font-bold text-[#003C6C] tracking-tight">{professor.name.replace(/,/g, ', ')}</h2>
+            <h2 className="text-4xl font-bold text-[#003C6C] tracking-tight">{professor.name.replace(/,/g, ', ')}</h2>
             <div className="flex items-center gap-2 mt-2">
-                <span className="bg-[#FDC700] text-[#003C6C] text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">Instructor</span>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[3px]">Analytics</p>
+                <span className="bg-[#FDC700] text-[#003C6C] text-sm px-3 py-1 rounded-full font-bold">Instructor</span>
+                <p className="text-sm font-bold text-slate-500">Analytics</p>
             </div>
           </div>
           <button onClick={onClose} className="p-3 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"><X className="w-8 h-8 text-slate-400" /></button>
@@ -38,29 +87,29 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
             ].map((s, i) => (
               <div key={i} className={`${s.bg} p-8 rounded-[28px] shadow-sm flex flex-col items-center text-center transition-transform hover:scale-105`}>
                 <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shadow-inner mb-4">{s.icon}</div>
-                <p className={`text-xs font-black tracking-widest mb-1 ${s.text ? 'text-slate-400' : 'text-white/60'}`}>{s.label}</p>
-                <p className={`text-3xl font-black ${s.text || 'text-white'}`}>{s.val}</p>
+                <p className={`text-xs font-bold mb-1 ${s.text ? 'text-slate-500' : 'text-white/60'}`}>{s.label}</p>
+                <p className={`text-3xl font-bold ${s.text || 'text-white'}`}>{s.val}</p>
               </div>
             ))}
           </div>
           <div className="space-y-8">
-            <h3 className="text-xl font-black text-[#003C6C] tracking-widest flex items-center gap-3 mb-8 px-2"><MessageSquare className="w-6 h-6 text-[#003C6C]" /> Recent student feedback</h3>
+            <h3 className="text-xl font-bold text-[#003C6C] flex items-center gap-3 mb-8 px-2"><MessageSquare className="w-6 h-6 text-[#003C6C]" /> Recent student feedback</h3>
             {hasReviews ? (
               reviews.map((rev, i) => (
                 <div key={i} className="bg-white p-8 rounded-[32px] border border-slate-200 hover:shadow-lg transition-all group relative overflow-hidden">
                   <div className="absolute top-0 bottom-0 left-0 w-2 bg-slate-100 group-hover:bg-[#FDC700] transition-colors" />
                   <div className="flex items-center justify-between mb-6 pl-4">
                     <div className="flex items-center gap-4">
-                      <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-black rounded-lg shadow-sm">{rev.course || 'General'}</span>
-                      <span className="text-sm font-bold text-slate-400 tracking-widest flex items-center gap-2"><Calendar className="w-4 h-4" />{rev.date ? new Date(rev.date).toLocaleDateString() : 'N/A'}</span>
+                      <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-bold rounded-lg shadow-sm">{rev.course || 'General'}</span>
+                      <span className="text-sm font-bold text-slate-500 flex items-center gap-2"><Calendar className="w-4 h-4" />{rev.date ? new Date(rev.date).toLocaleDateString() : 'N/A'}</span>
                     </div>
-                    {rev.grade && <span className="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-100 text-xs font-black rounded-lg shadow-sm tracking-tighter">Grade: {rev.grade}</span>}
+                    {rev.grade && <span className="px-4 py-2 bg-slate-50 text-slate-600 border border-slate-100 text-xs font-bold rounded-lg shadow-sm">Grade: {rev.grade}</span>}
                   </div>
-                  <p className="text-slate-700 font-medium leading-relaxed italic pl-4 text-xl mb-4">"{rev.comment}"</p>
+                  <p className="text-slate-800 font-medium leading-relaxed italic pl-4 text-xl mb-4">"{rev.comment}"</p>
                   {rev.tags && rev.tags.length > 0 && (
                      <div className="flex flex-wrap gap-2 pl-4 pt-4 border-t border-slate-100">
                         {rev.tags.map((tag, idx) => (
-                            <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider rounded-lg border border-slate-200"><Tag className="w-3 h-3" /> {tag}</span>
+                            <span key={idx} className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase rounded-lg border border-slate-200"><Tag className="w-3 h-3" /> {tag}</span>
                         ))}
                      </div>
                   )}
@@ -69,7 +118,7 @@ const ProfessorModal = ({ professor, isOpen, onClose }) => {
             ) : (
               <div className="text-center py-24 bg-white rounded-[32px] border-4 border-dashed border-slate-200">
                  <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-400 font-bold tracking-[6px] text-lg">No professor reviews available yet.</p>
+                <p className="text-slate-500 font-bold text-lg">No professor reviews available yet.</p>
               </div>
             )}
           </div>
@@ -88,7 +137,7 @@ const FilterSection = ({ title, children, isOpen = true }) => {
         onClick={() => setOpen(!open)} 
         className="flex items-center justify-between w-full mb-4 group cursor-pointer outline-none"
       >
-        <h4 className="font-black text-[11px] text-[#003C6C] uppercase tracking-[2px] group-hover:text-[#FDC700] transition-colors">{title}</h4>
+        <h4 className="font-bold text-sm text-[#003C6C] group-hover:text-[#FDC700] transition-colors">{title}</h4>
         {open ? <ChevronUp className="w-3 h-3 text-slate-400" /> : <ChevronDown className="w-3 h-3 text-slate-400" />}
       </button>
       {open && <div className="space-y-3 animate-in slide-in-from-top-1">{children}</div>}
@@ -97,11 +146,9 @@ const FilterSection = ({ title, children, isOpen = true }) => {
 };
 
 const HomePage = () => {
-  // --- CONFIGURATION ---
   const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
   const selectedSchool = UCSC_SCHOOL;
 
-  // --- STATE ---
   const [activeTab, setActiveTab] = useState('search');
   const [notification, setNotification] = useState(null); 
   const [user, setUser] = useState(null);
@@ -109,14 +156,17 @@ const HomePage = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef(null);
   
-  // SEARCH & FILTERS STATE
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Updated Filters State: minUnits is now just a number (0), timeRange default 7-23
   const [filters, setFilters] = useState({
     openOnly: false,
     minRating: 0,
-    minUnits: [], 
+    minUnits: 0, // Single number for slider
     days: [],
-    department: 'All Departments'
+    department: 'All Departments',
+    sort: 'Best Match',
+    timeRange: [7, 23] 
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -133,7 +183,6 @@ const HomePage = () => {
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
 
-  // CLICK OUTSIDE HANDLER
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
@@ -144,7 +193,6 @@ const HomePage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- HELPERS ---
   const restoreScheduleFromData = (savedCourses, allCourses) => {
       if (!savedCourses || !Array.isArray(savedCourses)) return [];
       if (!allCourses || allCourses.length === 0) return [];
@@ -161,7 +209,6 @@ const HomePage = () => {
       }).filter(Boolean); 
   };
 
-  // --- INITIAL DATA FETCH ---
   useEffect(() => {
     const initData = async () => {
       const storedUser = localStorage.getItem('user');
@@ -197,7 +244,6 @@ const HomePage = () => {
 
   useEffect(() => { setCurrentPage(1); }, [searchQuery, filters]);
 
-  // --- FILTER HANDLERS ---
   const toggleDay = (day) => {
     setFilters(prev => ({
         ...prev,
@@ -212,17 +258,35 @@ const HomePage = () => {
     }));
   };
 
+  const handleTimeChange = (index, value) => {
+    const newRange = [...filters.timeRange];
+    newRange[index] = parseInt(value);
+    if (newRange[0] > newRange[1]) {
+        if (index === 0) newRange[1] = newRange[0];
+        else newRange[0] = newRange[1];
+    }
+    setFilters({ ...filters, timeRange: newRange });
+  };
+
+  const formatHour = (h) => {
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:00 ${ampm}`;
+  };
+
   const resetFilters = () => {
-    setFilters({ openOnly: false, minRating: 0, minUnits: [], days: [], department: 'All Departments' });
+    setFilters({ 
+        openOnly: false, minRating: 0, minUnits: 0, days: [], 
+        department: 'All Departments', sort: 'Best Match', timeRange: [7, 23] 
+    });
     setSearchQuery('');
   };
 
-  // --- SEARCH & FILTER LOGIC ---
+  // FILTER LOGIC
   const processedCourses = useMemo(() => {
     const pisaSort = (a, b) => a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
     let results = [...availableCourses].sort(pisaSort);
 
-    // 1. Search Query
     if (searchQuery) {
         const lowerQuery = searchQuery.toLowerCase();
         results = results.map(course => {
@@ -233,25 +297,16 @@ const HomePage = () => {
           if (instructorMatch) score += 80;
           if (course.name.toLowerCase().includes(lowerQuery)) score += 10;
           return { course, score };
-        })
-        .filter(item => item.score > 0)
-        .sort((a, b) => b.score - a.score || pisaSort(a.course, b.course))
-        .map(item => item.course);
+        }).filter(item => item.score > 0).sort((a, b) => b.score - a.score || pisaSort(a.course, b.course)).map(item => item.course);
     }
 
-    // 2. Filters
-    if (filters.openOnly) {
-        results = results.filter(course => course.sections?.some(sec => sec.status !== 'Closed' && sec.status !== 'Wait List'));
-    }
-    if (filters.minRating > 0) {
-        results = results.filter(course => course.sections?.some(sec => {
-            const stats = professorRatings[sec.instructor];
-            return stats && stats.avgRating >= filters.minRating;
-        }));
-    }
-    if (filters.minUnits.length > 0) {
-        results = results.filter(course => filters.minUnits.includes(parseInt(course.credits)));
-    }
+    if (filters.openOnly) results = results.filter(course => course.sections?.some(sec => sec.status !== 'Closed' && sec.status !== 'Wait List'));
+    
+    if (filters.minRating > 0) results = results.filter(course => course.sections?.some(sec => { const stats = professorRatings[sec.instructor]; return stats && stats.avgRating >= filters.minRating; }));
+    
+    // FIX: Using slider value for min units
+    // User requested "exactly the units"
+    if (filters.minUnits > 0) results = results.filter(course => parseInt(course.credits) === filters.minUnits);
 
     return results;
   }, [availableCourses, searchQuery, filters, professorRatings]);
@@ -268,7 +323,6 @@ const HomePage = () => {
   const addCourse = (course, section) => {
     const existingIndex = selectedCourses.findIndex(c => c.code === course.code);
     const isUpdate = existingIndex !== -1;
-    // (Simplified conflict logic)
     const newSchedule = isUpdate 
         ? selectedCourses.map(c => c.code === course.code ? { ...course, selectedSection: section } : c)
         : [...selectedCourses, { ...course, selectedSection: section }];
@@ -302,10 +356,8 @@ const HomePage = () => {
   };
 
   return (
-    // ROOT LAYOUT: min-h-screen allows window scrolling. w-full.
     <div className="min-h-screen w-full bg-white flex flex-col font-sans selection:bg-[#003C6C] selection:text-white relative">
       
-      {/* NOTIFICATIONS */}
       {notification && (
           <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border animate-in slide-in-from-bottom-10 ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-[#003C6C] border-[#FDC700]'}`}>
               {notification.type === 'error' ? <AlertCircle className="w-5 h-5"/> : <CheckCircle className="w-5 h-5 text-[#FDC700]"/>}
@@ -316,27 +368,38 @@ const HomePage = () => {
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} selectedSchool={selectedSchool} />
 
-      {/* HEADER - STICKY TOP */}
       <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[80px]">
-        <div className="w-full h-full px-8 flex items-center justify-between">
-            <div className="flex items-center gap-6">
+        <div className="w-full h-full px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="flex items-center gap-6 justify-self-start">
               <div className="w-12 h-12 bg-white rounded-[18px] shadow-2xl flex items-center justify-center border-4 border-[#FDC700]"><span className="text-2xl">🐌</span></div>
               <div>
-                <h1 className="text-3xl font-serif font-medium text-white tracking-tight flex items-center gap-2">AI Slug Navigator</h1>
+                <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">AI Slug Navigator</h1>
                 <div className="flex items-center gap-2 text-[10px] font-bold text-blue-100 mt-1"><GraduationCap className="w-4 h-4 text-[#FDC700]" /> {selectedSchool.term}</div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex bg-[#002a4d] rounded-xl p-1">
-                  {['search', 'schedule'].map(tab => (
-                    <button key={tab} onClick={() => setActiveTab(tab)} className={`px-6 py-2 rounded-lg text-[11px] font-bold transition-all uppercase tracking-wider ${activeTab === tab ? 'bg-white text-[#003C6C] shadow-sm' : 'text-blue-200 hover:text-white'}`}>{tab === 'schedule' ? 'My Schedule' : 'Search'}</button>
-                  ))}
-              </div>
-              <div className="w-px h-8 bg-blue-800/50 mx-2" />
-              {/* BUTTON REMAINS GOLD */}
+
+            <div className="flex justify-center">
+                <div className="flex bg-[#002a4d]/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden">
+                    {['search', 'schedule'].map(tab => (
+                        <button 
+                            key={tab} 
+                            onClick={() => setActiveTab(tab)} 
+                            className={`px-8 py-2.5 text-sm font-bold transition-all duration-200 rounded-none ${
+                                activeTab === tab 
+                                ? 'bg-white text-[#003C6C] shadow-sm' 
+                                : 'text-blue-200 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {tab === 'schedule' ? 'My Schedule' : 'Search'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="flex items-center gap-4 justify-self-end">
               <button 
                 onClick={() => setShowAIChat(!showAIChat)} 
-                className={`px-6 py-2.5 text-[11px] font-black rounded-2xl transition-all flex items-center gap-2 cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:shadow-inner active:translate-y-0.5`}
+                className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:shadow-inner active:translate-y-0.5`}
               >
                 <Bot className="w-5 h-5" /> {showAIChat ? 'Hide Assistant' : 'Ask Sammy AI'}
               </button>
@@ -357,62 +420,105 @@ const HomePage = () => {
         </div>
       </header>
 
-      {/* DASHBOARD LAYOUT - FLEX ROW */}
       <div className="flex w-full min-h-[calc(100vh-80px)]">
         
-        {/* LEFT & CENTER CONTENT - flex-1 allows it to take remaining space */}
         <div className="flex flex-1 min-w-0 transition-all duration-300" style={{ marginRight: showAIChat ? '400px' : '0' }}>
             {activeTab === 'search' && (
               <>
-                {/* 1. FILTER SIDEBAR (Left - Sticky) */}
                 <aside className="w-[260px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar border-r border-slate-100 bg-white p-6 z-40">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2"><Filter className="w-4 h-4 text-[#003C6C]" /> Filters</h3>
-                    <button onClick={resetFilters} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-wider flex items-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                  <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-slate-100">
+                    <h3 className="font-bold text-2xl text-[#003C6C]">Filters</h3>
+                    <button 
+                        onClick={resetFilters} 
+                        className="text-sm font-bold text-slate-500 hover:text-rose-500 hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                        <RotateCcw className="w-3 h-3" /> Reset
+                    </button>
                   </div>
 
                   <FilterSection title="Department">
-                      <div className="relative">
-                        <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-600 outline-none focus:border-[#003C6C]">
-                            <option>All Departments</option><option>Computer Science</option><option>Mathematics</option><option>Psychology</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
-                      </div>
+                      <CustomDropdown 
+                        value={filters.department !== 'All Departments' ? filters.department : ''}
+                        placeholder="All Departments"
+                        options={['All Departments', 'Computer Science', 'Mathematics', 'Psychology']}
+                        onChange={(val) => setFilters({...filters, department: val})}
+                      />
                   </FilterSection>
 
+                  {/* FIX: Units Slider 0-10, strict match display */}
                   <FilterSection title="Units">
-                      <div className="flex flex-col gap-1">
-                        {[2, 5].map(u => (
-                            <label key={u} className="flex items-center gap-3 cursor-pointer group p-2 hover:bg-slate-50 rounded-lg">
-                                <input type="checkbox" checked={filters.minUnits.includes(u)} onChange={() => toggleUnit(u)} className="accent-[#003C6C]" />
-                                <span className="text-xs font-bold text-slate-600">{u} Units</span>
-                            </label>
-                        ))}
+                      <div className="px-2 py-4">
+                        <div className="relative h-4 flex items-center">
+                            <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
+                                <div 
+                                    className="absolute h-full bg-[#FDC700] opacity-60 rounded-full left-0" 
+                                    style={{ width: `${(filters.minUnits / 10) * 100}%` }} 
+                                />
+                            </div>
+                            <input 
+                                type="range" 
+                                min="0" max="10" step="1"
+                                value={filters.minUnits} 
+                                onChange={(e) => setFilters({ ...filters, minUnits: parseInt(e.target.value) })} 
+                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
+                            />
+                        </div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
+                            <span>0</span>
+                            {/* FIX: "5 Units" instead of "5+ Units" */}
+                            <span>{filters.minUnits > 0 ? `${filters.minUnits} Units` : 'Any'}</span>
+                            <span>10</span>
+                        </div>
                       </div>
                   </FilterSection>
 
                   <FilterSection title="Days">
                       <div className="flex justify-between gap-1">
                         {['M', 'Tu', 'W', 'Th', 'F'].map(day => (
-                            <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all border-2 shadow-sm ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-400 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
+                            <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-bold transition-all border-2 shadow-sm cursor-pointer ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
                         ))}
                       </div>
                   </FilterSection>
 
                   <FilterSection title="Time Range">
-                      <div className="px-2 py-2">
-                        <div className="h-1.5 bg-slate-100 rounded-full mb-6 relative mt-2 border border-slate-200">
-                            <div className="absolute left-0 w-full h-full bg-[#FDC700] rounded-full opacity-50" />
-                            <div className="absolute left-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
-                            <div className="absolute right-0 w-4 h-4 bg-[#003C6C] rounded-full border-2 border-white shadow-md -translate-y-[5px] cursor-grab" />
+                      <div className="px-2 py-4">
+                        <div className="relative h-4 flex items-center">
+                            {/* Track Container */}
+                            <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
+                                <div 
+                                    className="absolute h-full bg-[#FDC700] opacity-60 rounded-full" 
+                                    style={{ 
+                                        left: `${(filters.timeRange[0] - 7) / 16 * 100}%`, 
+                                        right: `${100 - ((filters.timeRange[1] - 7) / 16 * 100)}%` 
+                                    }} 
+                                />
+                            </div>
+                            {/* Input Sliders */}
+                            <input 
+                                type="range" 
+                                min="7" max="23" step="1"
+                                value={filters.timeRange[0]} 
+                                onChange={(e) => handleTimeChange(0, e.target.value)} 
+                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
+                            />
+                            <input 
+                                type="range" 
+                                min="7" max="23" step="1"
+                                value={filters.timeRange[1]} 
+                                onChange={(e) => handleTimeChange(1, e.target.value)} 
+                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
+                            />
                         </div>
-                        <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider"><span>8:00 AM</span><span>10:00 PM</span></div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
+                            <span>{formatHour(filters.timeRange[0])}</span>
+                            <span>{formatHour(filters.timeRange[1])}</span>
+                        </div>
                       </div>
                   </FilterSection>
 
                   <FilterSection title="Availability">
                       <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#FDC700] transition-all">
-                        <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C]" />
+                        <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C] cursor-pointer w-4 h-4" />
                         <span className="text-xs font-bold text-slate-700">Open Classes Only</span>
                       </label>
                   </FilterSection>
@@ -429,27 +535,34 @@ const HomePage = () => {
                   </FilterSection>
                 </aside>
 
-                {/* 2. RESULTS AREA (Center) */}
                 <main className="flex-1 min-w-0 bg-white">
                     <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-[80px] z-30">
                         <div className="flex gap-4 mb-4">
                             <div className="relative flex-1 group">
                                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
-                                <input type="text" placeholder="Search courses..." className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                                <input type="text" placeholder="Search courses and instructors..." className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner text-slate-700 placeholder:text-slate-400" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                             </div>
                             <div className="relative w-64">
-                                <select className="w-full h-full px-5 bg-white border-2 border-slate-100 rounded-2xl text-xs font-bold text-slate-500 hover:border-[#003C6C] cursor-pointer outline-none appearance-none transition-colors">
-                                    <option>Sort by: Best Match</option>
-                                    <option>Sort by: Rating</option>
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                                <CustomDropdown 
+                                    prefix="Sort by: "
+                                    value={filters.sort}
+                                    options={['Best Match', 'Rating', 'Difficulty']}
+                                    onChange={(val) => setFilters({...filters, sort: val})}
+                                />
                             </div>
                         </div>
-                        <div className="flex items-center justify-between"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[2px]">{processedCourses.length} Results</span></div>
+                        <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
                     </div>
                     <div className="p-8 grid grid-cols-1 gap-6">
                         {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
                     </div>
+                    {processedCourses.length > ITEMS_PER_PAGE && (
+                        <div className="flex justify-between items-center mt-12 mb-8 px-8 border-t border-slate-200 pt-8">
+                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 hover:border-[#003C6C] hover:text-[#003C6C] disabled:opacity-50 transition-colors">Prev</button>
+                            <span className="font-bold text-slate-500 text-sm">Page {currentPage} of {totalPages}</span>
+                            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 hover:border-[#003C6C] hover:text-[#003C6C] disabled:opacity-50 transition-colors">Next</button>
+                        </div>
+                    )}
                 </main>
               </>
             )}
@@ -458,11 +571,15 @@ const HomePage = () => {
                 <div className="flex flex-1 h-[calc(100vh-80px)]">
                     <div className="w-[400px] shrink-0 border-r border-slate-100 flex flex-col z-10 bg-white">
                         <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-                            <h3 className="font-bold text-[#003C6C] mb-6 text-sm uppercase tracking-widest"><BookOpen className="w-5 h-5 inline mr-2"/> My Schedule</h3>
+                            <div className="pb-4 mb-4 border-b border-slate-100 flex justify-center">
+                                <h3 className="font-bold text-[#003C6C] text-lg flex items-center gap-2">
+                                    <BookOpen className="w-5 h-5"/> My Schedule
+                                </h3>
+                            </div>
                             <ScheduleList selectedCourses={selectedCourses} onRemove={removeCourse} />
                         </div>
                         <div className="p-6 border-t border-slate-100 shrink-0 bg-white">
-                            <button onClick={handleSaveSchedule} className="w-full py-4 bg-[#003C6C] text-white font-bold rounded-2xl hover:bg-[#002a4d] shadow-xl transition-all cursor-pointer active:scale-95 text-xs uppercase tracking-[2px] flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Schedule</button>
+                            <button onClick={handleSaveSchedule} className="w-full py-4 bg-[#003C6C] text-white font-bold rounded-2xl hover:bg-[#002a4d] shadow-xl transition-all cursor-pointer active:scale-95 text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Schedule</button>
                         </div>
                     </div>
                     <div className="flex-1 overflow-hidden">
@@ -472,9 +589,6 @@ const HomePage = () => {
             )}
         </div>
 
-        {/* 3. CHAT SIDEBAR (Right - Sticky Sibling) */}
-        {/* Fixed position keeps it in view. Width transition handles slide. */}
-        {/* ADDED: border-l border-[#FDC700] for the YELLOW SEPARATOR LINE */}
         <div 
             className={`fixed top-[80px] bottom-0 right-0 w-[400px] bg-white z-50 transition-transform duration-300 ease-in-out border-l border-[#FDC700] shadow-xl ${showAIChat ? 'translate-x-0' : 'translate-x-full'}`}
         >
