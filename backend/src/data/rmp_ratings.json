@@ -3018,9 +3018,18 @@
     "name": "Kyle Miller",
     "avgRating": 3.1,
     "avgDifficulty": 3.3,
-    "numRatings": 42,
-    "wouldTakeAgain": 45,
+    "numRatings": 43,
+    "wouldTakeAgain": 44,
     "reviews": [
+      {
+        "comment": "Didn't really learn anything from the lectures, but if you use zybooks and the internet to learn you'll be alright. Was really inconsistent in grading (Midterm 1 wasn't graded until after Midterm 2, Midterm 2 wasn't graded until day of the final, lots of homework/projects weren't graded until after the final). Overall wouldn't take again though",
+        "date": "2025-12-30 22:49:41 +0000 UTC",
+        "course": "CSE16",
+        "grade": "B+",
+        "rating": 2,
+        "difficulty": 5,
+        "wouldTakeAgain": false
+      },
       {
         "comment": "he's nice, but it's pretty clear that he's unorganized. you don't get your tests or assignments graded until really late after into the semester, so our second midterm was graded right before our final. he also assigns projects along with tests, so there's a lot to do. homeworks are also a lot of writing. you need to self study to get a good grade.",
         "date": "2025-12-19 09:57:07 +0000 UTC",
@@ -3190,15 +3199,6 @@
         "grade": "A+",
         "rating": 5,
         "difficulty": 1,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "I had Miller his first quarter teaching cse16. The class was scaled to 110%, with many assignments but lenient grading. Class was a bit unorganized, but he's nice, easy to contact, and listens to students. Midterms were doable. We had a 41-page question bank instead of a final review, where some questions were guaranteed on the final\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
-        "date": "2025-03-27 06:50:08 +0000 UTC",
-        "course": "CSE-16",
-        "grade": "A+",
-        "rating": 4,
-        "difficulty": 2,
         "wouldTakeAgain": true
       }
     ]
@@ -24340,11 +24340,20 @@
   },
   "Berkley,L.": {
     "name": "Lisa Berkley",
-    "avgRating": 3.6,
-    "avgDifficulty": 2.1,
-    "numRatings": 16,
-    "wouldTakeAgain": 69,
+    "avgRating": 3.7,
+    "avgDifficulty": 2.2,
+    "numRatings": 17,
+    "wouldTakeAgain": 71,
     "reviews": [
+      {
+        "comment": "The point of the class is for everyone to be vulnerable and open up about past experiences to explore and learn from shared experiences. She doesn't have a set curriculum, so there's no knowing what to expect in each class. She's pretty woke and also open to criticism and open communication. Exciting experience for sure, be ready to get emotional.",
+        "date": "2025-12-30 06:07:44 +0000 UTC",
+        "course": "CRWN81",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Although she's passionate/has good intentions, these classes are unstructured, unpredictable, & exhausting. There is no way to predict what any day of class will be like. Takes forever to answer emails, never provided expectations for assignments & dropped them all on week 5/halloweekend w/ no warning. Also constantly interrupts students in class.",
         "date": "2025-12-08 06:08:48 +0000 UTC",
@@ -57947,9 +57956,18 @@
     "name": "Nico Orlandi",
     "avgRating": 4.4,
     "avgDifficulty": 2.6,
-    "numRatings": 35,
-    "wouldTakeAgain": 84,
+    "numRatings": 36,
+    "wouldTakeAgain": 85,
     "reviews": [
+      {
+        "comment": "Love love LOVED talking with the professor. They were super lovely and very approachable, but the class content was challenging and will be for anyone who hasn't practiced their algebraic thinking. It isn't at all a math class, but at times it felt worse. Just study!",
+        "date": "2025-12-30 16:36:26 +0000 UTC",
+        "course": "PHI9",
+        "grade": "B+",
+        "rating": 4,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "A great teacher! However if you struggle with math the class can be tough so don't underestimate it.",
         "date": "2025-12-27 00:17:18 +0000 UTC",
@@ -58119,15 +58137,6 @@
         "grade": "A+",
         "rating": 5,
         "difficulty": 2,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "This class was awesome. I genuinely enjoyed learning the material. If you want to do well, you absolutely have to come to class. The homework is a great way to practice on material you may have trouble with. This class was structured beautifully!",
-        "date": "2019-04-19 23:36:50 +0000 UTC",
-        "course": "PHIL9",
-        "grade": "A+",
-        "rating": 5,
-        "difficulty": 3,
         "wouldTakeAgain": true
       }
     ]
@@ -64454,9 +64463,18 @@
     "name": "Claire Ganem",
     "avgRating": 4.9,
     "avgDifficulty": 1.8,
-    "numRatings": 11,
+    "numRatings": 12,
     "wouldTakeAgain": 100,
     "reviews": [
+      {
+        "comment": "Such a kind teacher, genuinely. The course itself is mid, but again, that's not really her fault lol. I would recommend this professor 100% for the porter 1 class. A lot of reading as well outside of class, but I imagine its similar to other porter 1 classes.",
+        "date": "2025-12-31 00:55:56 +0000 UTC",
+        "course": "PRTR-1",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 1,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Claire is the sweetest person on planet Earth. The class itself was boring, but Claire tried her best to make the material engaging. There is a lot of readings, but nothing too time consuming. There are two homework assignments a week. She gives clear instructions and meaningful feedback. Claire is very forgiving and not a harsh grader. ",
         "date": "2025-12-12 20:45:59 +0000 UTC",
@@ -79164,9 +79182,18 @@
     "name": "Ellen Newberry",
     "avgRating": 3.6,
     "avgDifficulty": 2.8,
-    "numRatings": 68,
-    "wouldTakeAgain": 41,
+    "numRatings": 69,
+    "wouldTakeAgain": 42,
     "reviews": [
+      {
+        "comment": "Newberry was an amazing professor. A lot of people here are quite harsh on their ratings, but don't let them deceive you. She always has office hours for you to attend to receive feedback or talk. I sprained my ankle mid-quarter, and I was allowed to turn things in late. She's very understanding, just talk to her and have a reason. ",
+        "date": "2025-12-30 05:47:56 +0000 UTC",
+        "course": "WRIT1",
+        "grade": "B",
+        "rating": 5,
+        "difficulty": 2,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "The single most accommodating and understanding teacher I've ever had. Allowed me to switch out of a group that was not working (project) into a group in a separate class, and continually accommodated me for countless obstacles I had during the process. Attend office hours too! Do one for every project, her advice is super helpful for passing.",
         "date": "2025-12-08 05:39:54 +0000 UTC",
@@ -79336,15 +79363,6 @@
         "grade": "C",
         "rating": 2,
         "difficulty": 4,
-        "wouldTakeAgain": false
-      },
-      {
-        "comment": "Ellen is really nice but this class was very disorganized. Lots of what she told us will be graded at the beginning was never graded and we had to buy a textbook we never used. The papers she did grade though were straightforward and easy. This class is a pretty easy A if you turn all your assignments in on time.",
-        "date": "2020-09-17 19:02:22 +0000 UTC",
-        "course": "WRIT2",
-        "grade": "A",
-        "rating": 4,
-        "difficulty": 2,
         "wouldTakeAgain": false
       }
     ]
