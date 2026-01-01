@@ -60,16 +60,19 @@ model Section {
 }
 
 model Professor {
-  id          String   @id @default(uuid())
-  name        String   @unique
+  id             String    @id @default(uuid())
+  name           String    @unique
+  rmpId          String?   // The weird ID RMP uses
   
-  rmpId       String?  // The weird ID RMP uses (e.g. "VGVhY2hlci0yMzM=")
-  rating      Float?   
-  difficulty  Float?   
-  numRatings  Int?       
-  reviews     Json?
+  avgRating      Float?    @default(0)      
+  avgDifficulty  Float?    @default(0)      
+  numRatings     Int?      @default(0)
+  wouldTakeAgain String?   @default("N/A")  
+  rmpLink        String?
+  reviews        Json?
+  // -----------------------------------------
 
-  sections    Section[]
+  sections       Section[]
 }
 
 model User {

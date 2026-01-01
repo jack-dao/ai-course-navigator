@@ -13,6 +13,7 @@ async function fetchDetails(legacyId) {
                     numRatings
                     avgDifficulty
                     wouldTakeAgainPercent
+                    department
                     ratings(first: 20) { 
                       edges {
                         node {
@@ -24,7 +25,7 @@ async function fetchDetails(legacyId) {
                           clarityRating
                           difficultyRating
                           wouldTakeAgain
-                          ratingTags  # <--- NEW FIELD ADDED
+                          ratingTags
                         }
                       }
                     }
@@ -45,14 +46,17 @@ async function fetchDetails(legacyId) {
             rating: (edge.node.helpfulRating + edge.node.clarityRating) / 2,
             difficulty: edge.node.difficultyRating,
             wouldTakeAgain: edge.node.wouldTakeAgain === 1,
-            tags: edge.node.ratingTags ? edge.node.ratingTags.split("--").filter(t => t) : [] // Parse tags
+            tags: edge.node.ratingTags ? edge.node.ratingTags.split("--").filter(t => t) : []
         }));
 
         return {
             ...instructor,
             reviews: cleanReviews
         };
-    } catch (e) { return null; }
+    } catch (e) { 
+        console.error("Error fetching RMP:", e.message);
+        return null; 
+    }
 }
 
 async function run() {
@@ -60,23 +64,38 @@ async function run() {
         where: { rmpId: { not: null } }
     });
 
-    console.log(`⭐ Updating tags for ${professors.length} professors...`);
+    console.log(`⭐ Updating ratings for ${professors.length} professors...`);
 
     for (const prof of professors) {
         const data = await fetchDetails(prof.rmpId);
         
         if (data) {
-            console.log(`   updated ${prof.name}: ${data.reviews.length} reviews`);
+            const takeAgainRaw = data.wouldTakeAgainPercent;
+            const takeAgainVal = (takeAgainRaw !== null && takeAgainRaw !== -1) 
+                ? Math.round(takeAgainRaw).toString() 
+                : "N/A";
+
+            const rmpLink = `https://www.ratemyprofessors.com/professor/${prof.rmpId}`;
+
+            console.log(`   📝 ${prof.name}: ${data.avgRating}/5 | ${takeAgainVal}% Again | ${data.reviews.length} reviews`);
             
             await prisma.professor.update({
                 where: { id: prof.id },
                 data: {
+                    avgRating: data.avgRating,
+                    avgDifficulty: data.avgDifficulty,
+                    numRatings: data.numRatings,
+                    wouldTakeAgain: takeAgainVal, 
+                    rmpLink: rmpLink,
                     reviews: data.reviews
                 }
             });
         }
         await new Promise(r => setTimeout(r, 200)); 
     }
+    console.log("✅ Ratings refresh complete!");
 }
 
-run();
+run()
+  .catch(e => console.error(e))
+  .finally(async () => await prisma.$disconnect());

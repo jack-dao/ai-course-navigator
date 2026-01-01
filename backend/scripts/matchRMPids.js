@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const axios = require('axios');
 const prisma = new PrismaClient();
 
-const SCHOOL_ID = "U2Nob29sLTEwNzg=";
+const SCHOOL_ID = "U2Nob29sLTEwNzg="; 
 
 const DEPT_MAP = {
     "AM": ["Applied Mathematics"],   
@@ -83,9 +83,13 @@ async function run() {
 
     console.log(`🔍 Auditing ${professors.length} professors with STRICT logic...`);
 
+    let matchCount = 0;
+
     for (const prof of professors) {
         const { lastName, firstInitial } = getPisaName(prof.name);
         
+        if (lastName === 'Staff') continue;
+
         const taughtSubjects = [...new Set(prof.sections.map(s => s.course.department))]; 
         const taughtCodes = prof.sections.map(s => s.course.code.replace(/\s/g, ""));     
 
@@ -133,7 +137,12 @@ async function run() {
 
         if (best.score >= 5) {
             if (prof.rmpId !== best.candidate.legacyId.toString()) {
-                console.log(`   ✅ FIXED: ${prof.name} -> ${best.candidate.firstName} ${best.candidate.lastName} (Score: ${best.score})`);
+                const pisaName = prof.name.padEnd(25); 
+                const rmpName = `${best.candidate.firstName} ${best.candidate.lastName}`;
+                console.log(`   🔗 LINKED: ${pisaName} => ${rmpName}`);
+                
+                matchCount++;
+
                 await prisma.professor.update({
                     where: { id: prof.id },
                     data: { rmpId: best.candidate.legacyId.toString() }
@@ -141,15 +150,16 @@ async function run() {
             }
         } else {
             if (prof.rmpId && prof.rmpId === best.candidate.legacyId.toString()) {
-                console.log(`   ❌ DROPPING: ${prof.name} (Score ${best.score} too low)`);
                 await prisma.professor.update({
                     where: { id: prof.id },
-                    data: { rmpId: null, rating: null, difficulty: null }
+                    data: { rmpId: null, avgRating: null, avgDifficulty: null }
                 });
             }
         }
+        
         await new Promise(r => setTimeout(r, 200)); 
     }
+    console.log(`\n✅ Done! Matched ${matchCount} professors.`);
 }
 
 run();
