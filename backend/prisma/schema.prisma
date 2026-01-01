@@ -73,7 +73,7 @@ model Professor {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String   
   name      String
@@ -86,7 +86,7 @@ model Schedule {
   id        Int      @id @default(autoincrement())
   name      String   
   courses   Json     // Stores the list of selected class IDs
-  userId    Int
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }
