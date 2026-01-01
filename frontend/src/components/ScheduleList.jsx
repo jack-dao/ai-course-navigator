@@ -30,6 +30,7 @@ const ScheduleList = ({ selectedCourses, onRemove }) => {
                   <h3 className="font-bold text-[#003C6C] text-sm">{course.code}</h3>
                   <p className="text-xs font-bold text-slate-500">{course.name}</p>
                   
+                  {/* FIX: Force time on one line */}
                   <p className="text-xs text-slate-700 mt-2 font-bold whitespace-nowrap">
                       {course.selectedSection ? 
                           `Section - ${course.selectedSection.sectionCode}: ${course.selectedSection.days} ${formatTimeRange(course.selectedSection)}` : 
@@ -37,7 +38,6 @@ const ScheduleList = ({ selectedCourses, onRemove }) => {
                   </p>
                   
                   {course.selectedSection?.selectedLab && (
-                      // FIX: Removed indent (ml/border/pl) and overflow hiding
                       <p className="text-xs text-slate-500 mt-1 font-medium whitespace-nowrap">
                           Discussion - {course.selectedSection.selectedLab.sectionCode}: {course.selectedSection.selectedLab.days} {formatTimeRange(course.selectedSection.selectedLab)}
                       </p>

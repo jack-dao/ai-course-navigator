@@ -55,8 +55,10 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
     setOpenDropdownId(null);
   };
 
+  // FIX: Ensure selectedLab is passed correctly
   const handleAddClick = (section) => {
     const hasDiscussions = section.subSections?.length > 0;
+    
     if (hasDiscussions) {
       const selectedId = selectedSubSections[section.id];
       if (!selectedId) {
@@ -64,8 +66,10 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
         return;
       }
       const discussion = section.subSections.find(s => String(s.id) === String(selectedId));
+      // Pass the main section PLUS the selected lab as a property
       onAdd(course, { ...section, selectedLab: discussion });
     } else {
+      // No labs, just pass the section
       onAdd(course, section);
     }
   };
@@ -101,12 +105,9 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
           const fillRatio = enrolled / capacity;
           const fillPercentage = Math.min(fillRatio * 100, 100);
 
-          // FIX: Strict status checking to prevent false Reds
-          // Only explicit "Closed" is Red.
-          // Explicit "Wait List" (or "Wait") is Orange.
-          // Everything else (including full but not closed) defaults to Green/Teal.
+          // FIX: Strict color logic. Only 'Closed' text triggers red.
           const statusText = section.status || 'Open';
-          const isClosed = statusText === 'Closed';
+          const isClosed = statusText === 'Closed'; 
           const isWaitlist = statusText.includes('Wait');
           
           let barColor = 'bg-emerald-500';

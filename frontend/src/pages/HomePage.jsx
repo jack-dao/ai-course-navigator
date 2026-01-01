@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, Sparkles, Filter, X, ChevronDown, ChevronUp, Check, Star, RotateCcw, MessageSquare, Tag, Flame, ThumbsUp, TrendingUp } from 'lucide-react';
+import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, RotateCcw, MessageSquare, Tag, Flame, ThumbsUp, TrendingUp, X, ChevronDown, ChevronUp, Check, Star, User } from 'lucide-react';
+import { supabase } from '../supabase'; // IMPORT SUPABASE
 
 // COMPONENTS
 import CourseCard from '../components/CourseCard';
@@ -145,24 +146,25 @@ const FilterSection = ({ title, children, isOpen = true }) => {
   );
 };
 
-const HomePage = () => {
+// --- MAIN HOMEPAGE COMPONENT ---
+// FIXED: Accepts 'user' and 'session' from App.jsx
+const HomePage = ({ user, session }) => {
+  console.log("📢 HomePage.jsx: Received User Prop:", user);
   const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
   const selectedSchool = UCSC_SCHOOL;
 
   const [activeTab, setActiveTab] = useState('search');
   const [notification, setNotification] = useState(null); 
-  const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Updated Filters State: minUnits is now just a number (0), timeRange default 7-23
   const [filters, setFilters] = useState({
     openOnly: false,
     minRating: 0,
-    minUnits: 0, // Single number for slider
+    minUnits: 0, 
     days: [],
     department: 'All Departments',
     sort: 'Best Match',
@@ -209,38 +211,57 @@ const HomePage = () => {
       }).filter(Boolean); 
   };
 
+  // 1. LOAD PUBLIC DATA (Courses & Ratings)
   useEffect(() => {
-    const initData = async () => {
-      const storedUser = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      if (storedUser && token) setUser(JSON.parse(storedUser));
-
+    const fetchPublicData = async () => {
       try {
         setLoading(true);
+        // Fetch Courses
         const response = await fetch('http://localhost:3000/api/courses');
         if (!response.ok) throw new Error('Failed to connect to server');
         const courseData = await response.json();
         setAvailableCourses(courseData);
 
+        // Fetch Ratings
         try {
           const ratingsRes = await fetch('http://localhost:3000/api/ratings');
           if (ratingsRes.ok) setProfessorRatings(await ratingsRes.json());
         } catch (e) { console.error("Ratings Error:", e); }
 
-        if (token) {
-          try {
-            const schedResponse = await fetch('http://localhost:3000/api/schedules', { headers: { 'Authorization': `Bearer ${token}` } });
+        setLoading(false);
+      } catch (err) { 
+        setLoading(false); 
+      }
+    };
+    fetchPublicData();
+  }, []);
+
+  // 2. LOAD USER SCHEDULE (Only when logged in)
+  useEffect(() => {
+    const fetchUserSchedule = async () => {
+      if (user && session && availableCourses.length > 0) {
+        try {
+            const schedResponse = await fetch('http://localhost:3000/api/schedules', { 
+              headers: { 'Authorization': `Bearer ${session.access_token}` } 
+            });
+            
             if (schedResponse.ok) {
               const schedData = await schedResponse.json();
-              if (schedData.courses) setSelectedCourses(restoreScheduleFromData(schedData.courses, courseData));
+              // Backend returns { courses: [...] }
+              if (schedData.courses) {
+                const restored = restoreScheduleFromData(schedData.courses, availableCourses);
+                setSelectedCourses(restored);
+                console.log("Restored schedule:", restored.length, "items");
+              }
             }
-          } catch (schedErr) { console.error("Schedule Error:", schedErr); }
-        }
-        setLoading(false);
-      } catch (err) { setLoading(false); }
+        } catch (schedErr) { console.error("Schedule Error:", schedErr); }
+      } else if (!user) {
+        setSelectedCourses([]); // Clear schedule if logged out
+      }
     };
-    initData();
-  }, []); 
+    
+    fetchUserSchedule();
+  }, [user, session, availableCourses]); // Re-run if user logs in or courses load
 
   useEffect(() => { setCurrentPage(1); }, [searchQuery, filters]);
 
@@ -282,7 +303,17 @@ const HomePage = () => {
     setSearchQuery('');
   };
 
-  // FILTER LOGIC
+  const parseTime = (timeStr) => {
+    if (!timeStr) return null;
+    const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
+    if (!match) return null;
+    let [_, h, m, period] = match;
+    h = parseInt(h);
+    if (period === 'PM' && h !== 12) h += 12;
+    if (period === 'AM' && h === 12) h = 0;
+    return h + (parseInt(m) / 60);
+  };
+
   const processedCourses = useMemo(() => {
     const pisaSort = (a, b) => a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
     let results = [...availableCourses].sort(pisaSort);
@@ -301,12 +332,27 @@ const HomePage = () => {
     }
 
     if (filters.openOnly) results = results.filter(course => course.sections?.some(sec => sec.status !== 'Closed' && sec.status !== 'Wait List'));
-    
     if (filters.minRating > 0) results = results.filter(course => course.sections?.some(sec => { const stats = professorRatings[sec.instructor]; return stats && stats.avgRating >= filters.minRating; }));
     
-    // FIX: Using slider value for min units
-    // User requested "exactly the units"
     if (filters.minUnits > 0) results = results.filter(course => parseInt(course.credits) === filters.minUnits);
+
+    if (filters.days.length > 0) {
+        results = results.filter(course => course.sections?.some(sec => {
+            const secDays = sec.days || ""; 
+            const map = { M: 'Monday', Tu: 'Tuesday', W: 'Wednesday', Th: 'Thursday', F: 'Friday' };
+            const selectedFullDays = filters.days.map(d => map[d]);
+            return selectedFullDays.some(day => secDays.includes(day));
+        }));
+    }
+
+    if (filters.timeRange[0] > 7 || filters.timeRange[1] < 23) {
+        results = results.filter(course => course.sections?.some(sec => {
+            const start = parseTime(sec.startTime);
+            const end = parseTime(sec.endTime);
+            if (!start || !end) return false;
+            return start >= filters.timeRange[0] && end <= filters.timeRange[1];
+        }));
+    }
 
     return results;
   }, [availableCourses, searchQuery, filters, professorRatings]);
@@ -326,27 +372,64 @@ const HomePage = () => {
     const newSchedule = isUpdate 
         ? selectedCourses.map(c => c.code === course.code ? { ...course, selectedSection: section } : c)
         : [...selectedCourses, { ...course, selectedSection: section }];
+    
     setSelectedCourses(newSchedule);
+    
     if (isUpdate) showNotification(`Updated ${course.code}`, 'success');
     else showNotification(`Added ${course.code}`, 'success');
   };
 
   const removeCourse = (courseCode) => { setSelectedCourses(selectedCourses.filter(c => c.code !== courseCode)); showNotification(`Removed ${courseCode}`, 'info'); };
 
-  const handleLoginSuccess = async (userData, token) => {
-      setUser(userData); localStorage.setItem('token', token); localStorage.setItem('user', JSON.stringify(userData));
-      setShowAuthModal(false); showNotification(`Welcome back, ${userData.name}!`);
+  // --- UPDATED HANDLERS ---
+  const handleLoginSuccess = (userData, token) => {
+      // App.jsx listener will handle the state update.
+      // We just need to close the modal.
+      setShowAuthModal(false);
+      showNotification(`Welcome back!`);
   };
-  const handleLogout = () => { localStorage.clear(); setUser(null); setSelectedCourses([]); setShowProfileDropdown(false); showNotification("Logged out"); };
+
+  const handleLogout = async () => { 
+    await supabase.auth.signOut();
+    // App.jsx will catch this and set user to null
+    setSelectedCourses([]); 
+    setShowProfileDropdown(false); 
+    showNotification("Logged out"); 
+  };
   
   const handleSaveSchedule = async () => {
-    const token = localStorage.getItem('token'); 
-    if (!token) { showNotification("Please log in to save", 'error'); setShowAuthModal(true); return; }
-    showNotification("Schedule saved! 🐌", 'success');
+    if (!user || !session) { 
+        showNotification("Please log in to save", 'error'); 
+        setShowAuthModal(true); 
+        return; 
+    }
+    
+    showNotification("Saving schedule...", 'info');
     try {
-      const payload = { name: `My Schedule`, courses: selectedCourses.map(c => ({ code: c.code, sectionCode: c.selectedSection?.sectionCode })) };
-      await fetch('http://localhost:3000/api/schedules', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-    } catch (err) { showNotification("Server error", 'error'); }
+      const payload = { 
+          name: `My Schedule`, 
+          courses: selectedCourses.map(course => ({ 
+              code: course.code, 
+              sectionCode: course.selectedSection?.sectionCode,
+              labCode: course.selectedSection?.selectedLab?.sectionCode
+          })) 
+      };
+      
+      const response = await fetch('http://localhost:3000/api/schedules', { 
+          method: 'POST', 
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${session.access_token}` // USE SUPABASE TOKEN
+          }, 
+          body: JSON.stringify(payload) 
+      });
+      
+      if (response.ok) {
+          showNotification("Schedule saved successfully!", 'success');
+      } else {
+          showNotification("Failed to save schedule", 'error');
+      }
+    } catch (err) { showNotification("Server error, could not save", 'error'); }
   };
 
   const viewProfessorDetails = (name, stats) => {
@@ -406,9 +489,16 @@ const HomePage = () => {
 
               {user ? (
                 <div className="relative" ref={profileDropdownRef}>
-                    <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-10 h-10 bg-[#FDC700] text-[#003C6C] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer hover:scale-105 transition-transform">{user.name?.[0]}</button>
+                    <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-10 h-10 bg-[#FDC700] text-[#003C6C] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-white cursor-pointer hover:scale-105 transition-transform">
+                      {/* Handle generic user names */}
+                      {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
+                    </button>
                     {showProfileDropdown && (
                       <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[24px] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-slate-100 p-8 animate-in zoom-in-95 z-[60]">
+                          <div className="mb-4 pb-4 border-b border-slate-100">
+                             <p className="font-bold text-slate-800">{user.user_metadata?.full_name || "User"}</p>
+                             <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                          </div>
                           <button onClick={handleLogout} className="w-full flex items-center justify-center gap-3 py-3.5 bg-rose-50 text-rose-600 rounded-xl font-bold text-[11px] hover:bg-rose-600 hover:text-white transition-all cursor-pointer"><LogOut className="w-4 h-4" /> Log out</button>
                       </div>
                     )}
@@ -445,7 +535,6 @@ const HomePage = () => {
                       />
                   </FilterSection>
 
-                  {/* FIX: Units Slider 0-10, strict match display */}
                   <FilterSection title="Units">
                       <div className="px-2 py-4">
                         <div className="relative h-4 flex items-center">
@@ -465,7 +554,7 @@ const HomePage = () => {
                         </div>
                         <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
                             <span>0</span>
-                            {/* FIX: "5 Units" instead of "5+ Units" */}
+                            {/* FIX: Removed '+' to show exact unit number */}
                             <span>{filters.minUnits > 0 ? `${filters.minUnits} Units` : 'Any'}</span>
                             <span>10</span>
                         </div>
@@ -483,7 +572,6 @@ const HomePage = () => {
                   <FilterSection title="Time Range">
                       <div className="px-2 py-4">
                         <div className="relative h-4 flex items-center">
-                            {/* Track Container */}
                             <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
                                 <div 
                                     className="absolute h-full bg-[#FDC700] opacity-60 rounded-full" 
@@ -493,7 +581,6 @@ const HomePage = () => {
                                     }} 
                                 />
                             </div>
-                            {/* Input Sliders */}
                             <input 
                                 type="range" 
                                 min="7" max="23" step="1"
