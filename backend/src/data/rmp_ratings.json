@@ -3018,9 +3018,18 @@
     "name": "Kyle Miller",
     "avgRating": 3.1,
     "avgDifficulty": 3.3,
-    "numRatings": 43,
-    "wouldTakeAgain": 44,
+    "numRatings": 44,
+    "wouldTakeAgain": 43,
     "reviews": [
+      {
+        "comment": "prof miller is very kind and caring. However, the course was very unorganized. usually came to class late, grading was also extremely delayed. m1 was returned a day before m2, and m2 was returned right before the final, making it difficult to learn from mistakes. grading also took forever. nothing was graded until the very end which caused stress.",
+        "date": "2025-12-31 03:49:27 +0000 UTC",
+        "course": "CSE-16",
+        "grade": "A-",
+        "rating": 3,
+        "difficulty": 4,
+        "wouldTakeAgain": false
+      },
       {
         "comment": "Didn't really learn anything from the lectures, but if you use zybooks and the internet to learn you'll be alright. Was really inconsistent in grading (Midterm 1 wasn't graded until after Midterm 2, Midterm 2 wasn't graded until day of the final, lots of homework/projects weren't graded until after the final). Overall wouldn't take again though",
         "date": "2025-12-30 22:49:41 +0000 UTC",
@@ -3191,25 +3200,25 @@
         "rating": 4,
         "difficulty": 3,
         "wouldTakeAgain": true
-      },
-      {
-        "comment": "very good teacher, offered so many opportunities for people to do good and listens to all of students complaints.",
-        "date": "2025-03-27 12:05:27 +0000 UTC",
-        "course": "CSE-16",
-        "grade": "A+",
-        "rating": 5,
-        "difficulty": 1,
-        "wouldTakeAgain": true
       }
     ]
   },
   "Hutton,M.": {
     "name": "Mike Hutton",
-    "avgRating": 1.5,
-    "avgDifficulty": 4,
-    "numRatings": 2,
-    "wouldTakeAgain": 0,
+    "avgRating": 2,
+    "avgDifficulty": 3.3,
+    "numRatings": 3,
+    "wouldTakeAgain": 33,
     "reviews": [
+      {
+        "comment": "He's a new lecturer, so naturally there were some growing pains, but he did well for his first class at UCSC and used extra lectures for review and giving advice on finding work in the industry. He has a lot of professional experience outside of academics.",
+        "date": "2025-12-31 23:16:05 +0000 UTC",
+        "course": "CSE100",
+        "grade": "A",
+        "rating": 3,
+        "difficulty": 2,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Very inappropriate conduct towards students. ",
         "date": "2025-12-28 02:24:59 +0000 UTC",
@@ -21307,9 +21316,18 @@
     "name": "Alegra Eroy-Reveles",
     "avgRating": 4.1,
     "avgDifficulty": 3,
-    "numRatings": 170,
+    "numRatings": 171,
     "wouldTakeAgain": 82,
     "reviews": [
+      {
+        "comment": "If you have the i-clicker app, you can use it in your dorm (helps when attendance is mandatory). Alegra is a good professor and explains concepts very easily, however, her teaching is split with another professor for half of the quarter. Use LSS tutoring when you need to and make sure to do your ALEKS, it helps more than any of the lectures.",
+        "date": "2025-12-31 04:43:12 +0000 UTC",
+        "course": "CHEM3A",
+        "grade": "B+",
+        "rating": 4,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Professor Eroy- Reveles is a good professor  but sometimes lecture she be ranting and explains too much that makes lecture confusing. There were 2 midterms and a final which she had practice exams for us but the answer keys were always wrong or confusing. I also dont like how there werent any posted annotated notes it makes learning hard.",
         "date": "2025-12-26 23:39:23 +0000 UTC",
@@ -21480,15 +21498,6 @@
         "rating": 5,
         "difficulty": 4,
         "wouldTakeAgain": true
-      },
-      {
-        "comment": "Basically everything I learned from this class was from the online homework. In lecture, she didn't explain things, she just repeated the questions and talked in circles. I am currently fearing for my sanity because participation is required and I don't understand why if lecture doesn't teach me anything.",
-        "date": "2025-10-20 19:27:22 +0000 UTC",
-        "course": "CHEM3A",
-        "grade": "A",
-        "rating": 2,
-        "difficulty": 3,
-        "wouldTakeAgain": false
       }
     ]
   },
