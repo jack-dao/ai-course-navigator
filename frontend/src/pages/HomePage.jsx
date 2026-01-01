@@ -495,7 +495,7 @@ const HomePage = ({ user, session }) => {
                     </button>
                     {showProfileDropdown && (
                       <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[24px] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-slate-100 p-8 animate-in zoom-in-95 z-[60]">
-                          <div className="mb-4 pb-4 border-b border-slate-100">
+                          <div className="mb-4 pb-4 border-b border-slate-100 text-center">
                              <p className="font-bold text-slate-800">{user.user_metadata?.full_name || "User"}</p>
                              <p className="text-xs text-slate-500 truncate">{user.email}</p>
                           </div>
