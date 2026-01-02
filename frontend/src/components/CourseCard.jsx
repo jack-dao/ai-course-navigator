@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, Plus, Star, MapPin, ChevronDown, Check, RotateCcw, Info, User } from 'lucide-react';
+import { Clock, Plus, Star, MapPin, ChevronDown, Check, RotateCcw, Info, User, Hash, Lock } from 'lucide-react';
 
 const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
   const [selectedSubSections, setSelectedSubSections] = useState({});
   const [errors, setErrors] = useState({});
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRef = useRef(null);
+
+  // Destructure new fields
+  const { geCode, prerequisites } = course;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -27,6 +30,19 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
     const matches = daysStr.match(/Tu|Th|Sa|Su|M|W|F/g);
     if (!matches) return daysStr;
     return matches.map(d => map[d]).join(', ');
+  };
+
+  // --- NEW: Helper for GE Colors ---
+  const getGEColor = (ge) => {
+    if (!ge) return 'bg-slate-100 text-slate-500';
+    // Math/Science/Engineering -> Blues/Purples
+    if (['MF', 'SI', 'SR'].includes(ge)) return 'bg-blue-50 text-blue-700 border-blue-100';
+    // Arts/Humanities -> Yellows/Oranges
+    if (['CC', 'ER', 'IM', 'TA'].includes(ge)) return 'bg-amber-50 text-amber-700 border-amber-100';
+    // Social Sciences -> Emeralds/Teals
+    if (['PE-E', 'PE-H', 'PE-T'].includes(ge)) return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    // Default
+    return 'bg-slate-50 text-slate-600 border-slate-200';
   };
 
   const renderStars = (rating) => (
@@ -55,7 +71,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
     setOpenDropdownId(null);
   };
 
-  // FIX: Ensure selectedLab is passed correctly
   const handleAddClick = (section) => {
     const hasDiscussions = section.subSections?.length > 0;
     
@@ -66,23 +81,44 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
         return;
       }
       const discussion = section.subSections.find(s => String(s.id) === String(selectedId));
-      // Pass the main section PLUS the selected lab as a property
       onAdd(course, { ...section, selectedLab: discussion });
     } else {
-      // No labs, just pass the section
       onAdd(course, section);
     }
   };
 
   return (
     <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card">
-      <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <h3 className="text-xl font-[800] text-slate-900">{course.code}</h3>
-          <div className="h-6 w-px bg-slate-200 hidden sm:block" />
-          <p className="text-slate-500 font-bold text-sm hidden sm:block">{course.name}</p>
+      
+      {/* --- REVISED HEADER --- */}
+      <div className="px-6 py-4 border-b border-slate-50 bg-slate-50/30 flex flex-col gap-3">
+        <div className="flex justify-between items-start">
+            <div className="flex items-center gap-4">
+            <h3 className="text-xl font-[800] text-slate-900">{course.code}</h3>
+            <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+            <p className="text-slate-500 font-bold text-sm hidden sm:block">{course.name}</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+                {/* GE Badge */}
+                {geCode && (
+                    <span className={`px-3 py-1.5 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${getGEColor(geCode)}`}>
+                        <Hash className="w-3.5 h-3.5" /> {geCode}
+                    </span>
+                )}
+                <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-bold rounded-lg shadow-sm">{course.credits} Units</span>
+            </div>
         </div>
-        <span className="px-4 py-1.5 bg-[#003C6C] text-white text-xs font-bold rounded-lg shadow-sm">{course.credits} Units</span>
+
+        {/* Prerequisites Row */}
+        {prerequisites && (
+            <div className="flex items-start gap-2 text-xs font-medium text-slate-500 bg-white/50 p-2 rounded-lg border border-slate-100 max-w-full">
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                <span className="leading-tight">
+                    <span className="font-bold text-slate-600">Prerequisite:</span> {prerequisites.replace(/^Prerequisite\(s\):/i, '').trim()}
+                </span>
+            </div>
+        )}
       </div>
 
       <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1.2fr_180px] px-8 py-3 bg-white border-b border-slate-50 text-sm font-bold text-slate-800">
@@ -105,7 +141,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
           const fillRatio = enrolled / capacity;
           const fillPercentage = Math.min(fillRatio * 100, 100);
 
-          // FIX: Strict color logic. Only 'Closed' text triggers red.
           const statusText = section.status || 'Open';
           const isClosed = statusText === 'Closed'; 
           const isWaitlist = statusText.includes('Wait');
