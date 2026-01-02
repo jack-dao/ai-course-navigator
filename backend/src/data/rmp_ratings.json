@@ -52425,7 +52425,7 @@
     "name": "Eoin Mackall",
     "avgRating": 1.1,
     "avgDifficulty": 4.6,
-    "numRatings": 39,
+    "numRatings": 38,
     "wouldTakeAgain": 0,
     "reviews": [
       {
@@ -52480,15 +52480,6 @@
         "grade": "B",
         "rating": 1,
         "difficulty": 5,
-        "wouldTakeAgain": false
-      },
-      {
-        "comment": "eoin mackall is evil why am i doing python that you didn't teach in a calculus class. gives much higher difficulty work than the class level",
-        "date": "2025-12-11 23:25:56 +0000 UTC",
-        "course": "12423",
-        "grade": "",
-        "rating": 1,
-        "difficulty": 4,
         "wouldTakeAgain": false
       },
       {
@@ -52606,6 +52597,15 @@
         "grade": "Not sure yet",
         "rating": 1,
         "difficulty": 5,
+        "wouldTakeAgain": false
+      },
+      {
+        "comment": "Terrible teacher, what's supposed to be review was completely difficult to understand. His lectures are confusing and you pretty much have to teacher yourself. No curves on midterm and finals. He expects you to learn python that was not specified in the requirements for this course. You either know or don't and take a failing grade.",
+        "date": "2025-12-07 21:59:28 +0000 UTC",
+        "course": "12423",
+        "grade": "",
+        "rating": 1,
+        "difficulty": 4,
         "wouldTakeAgain": false
       }
     ]
