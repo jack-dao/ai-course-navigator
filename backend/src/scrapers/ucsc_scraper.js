@@ -116,8 +116,9 @@ async function processClass($, el, schoolId) {
     const rest = parts.slice(1).join('-').trim();
     const sectionMatch = rest.match(/^(\d+[A-Z]?)\s+(.*)/);
     const section = sectionMatch ? sectionMatch[1] : "01";
-    const title = sectionMatch ? sectionMatch[2] : rest;
+    let title = sectionMatch ? sectionMatch[2] : rest;
 
+    // Default Scrape from List View
     let instructor = $(el).find('.panel-body .row > div:nth-child(2)').text().split(':')[1]?.trim() || "Staff";
     let location = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(1)').text().replace("Location:", "").trim() || "TBA";
     let meeting = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(2)').text().replace("Day and Time:", "").trim() || "TBA";
@@ -133,7 +134,14 @@ async function processClass($, el, schoolId) {
     let discussions = [];
     let geCode = null;
     let prerequisites = null;
+    
+    // New Fields
+    let career = null;
+    let grading = null;
+    let classNumber = null;
+    let instructionMode = null;
 
+    // --- DEEP SCRAPE (Details Page) ---
     const detailsLinkHref = $(el).find('h2 a').attr('href');
     if (detailsLinkHref) {
         try {
@@ -141,28 +149,55 @@ async function processClass($, el, schoolId) {
             const detailsRes = await client.get(detailsUrl);
             const detail$ = cheerio.load(detailsRes.data);
 
-            // 1. Parse Discussions
             discussions = parseDiscussions(detail$);
 
-            // 2. Parse GEs and Prerequisites
-            const panelText = detail$('.panel-body').text();
-            
-            // Regex to find "General Education Code(s): IM"
-            const geMatch = panelText.match(/General Education Code\(s\):\s*([A-Z,\s]+)/i);
-            if (geMatch) geCode = geMatch[1].trim();
+            // 0. Get Full Title
+            const fullHeader = detail$('.panel-heading').first().text().trim();
+            const titleParts = fullHeader.split(/[–-]/); 
+            if (titleParts.length > 2) title = titleParts[2].trim(); 
+            else if (titleParts.length > 1) title = titleParts[1].trim(); 
 
-            // Regex to find "Prerequisite(s): ..."
-            const prereqMatch = panelText.match(/Prerequisite\(s\):\s*([^.\n]+)/i);
+            // 1. Clean Text
+            const panelText = detail$('.panel-body').text().replace(/\s+/g, ' '); 
+            
+            // 2. Class Number (Try two methods)
+            // Method A: Look for "Class Number XXXXX" explicitly
+            const classNumMatch = panelText.match(/Class Number\s+(\d{5})/i);
+            if (classNumMatch) {
+                classNumber = classNumMatch[1];
+            } else {
+                // Method B: Fallback - grab from the first row of the details table
+                const possibleNum = detail$('.panel-body .row:first-child .col-xs-6:last-child').text().trim();
+                if (possibleNum && /^\d{5}$/.test(possibleNum)) classNumber = possibleNum;
+            }
+
+            // 3. Other Metadata
+            const modeMatch = panelText.match(/Instruction Mode\s+(.+?)\s*(?:Credits|General)/i);
+            if (modeMatch) instructionMode = modeMatch[1].trim();
+
+            const careerMatch = panelText.match(/Career\s+([A-Za-z]+)/i);
+            if (careerMatch) career = careerMatch[1].trim();
+
+            const gradingMatch = panelText.match(/Grading\s+(.+?)\s*Class Number/i);
+            if (gradingMatch) grading = gradingMatch[1].trim();
+
+            const geMatch = panelText.match(/General Education(?:[:\s]*(?:Code\(s\))?[:\s]*)?([A-Z\s,-]+?)(?=\.?\s*Status)/i);
+            if (geMatch) {
+                const rawGe = geMatch[1].trim();
+                if (rawGe.length < 15 && rawGe !== '.') geCode = rawGe;
+            }
+
+            const prereqMatch = panelText.match(/Prerequisite\(s\):?\s*([^.]+)/i);
             if (prereqMatch) prerequisites = prereqMatch[1].trim();
 
         } catch (err) {
-            // If fetching details fails, we just continue without GE/Prereqs
+            // console.log(`Warning: Could not fetch details for ${code}`);
         }
     }
 
     await saveToDatabase({ 
         code, title, section, instructor, meeting, location, status, enrolled, capacity, discussions,
-        geCode, prerequisites // <--- Pass new data
+        geCode, prerequisites, career, grading, classNumber, instructionMode 
     }, schoolId);
 }
 
@@ -208,9 +243,10 @@ async function saveToDatabase(course, schoolId) {
           name: course.title,
           instructor: course.instructor,
           department: course.code.split(' ')[0],
-          // --- Update new fields ---
           geCode: course.geCode,
-          prerequisites: course.prerequisites
+          prerequisites: course.prerequisites,
+          career: course.career,
+          grading: course.grading
         },
         create: {
           code: course.code,
@@ -219,9 +255,10 @@ async function saveToDatabase(course, schoolId) {
           instructor: course.instructor,
           department: course.code.split(' ')[0],
           schoolId: schoolId,
-          // --- Create new fields ---
           geCode: course.geCode,
-          prerequisites: course.prerequisites
+          prerequisites: course.prerequisites,
+          career: course.career,
+          grading: course.grading
         }
       });
 
@@ -242,7 +279,9 @@ async function saveToDatabase(course, schoolId) {
         location: course.location,
         enrolled: course.enrolled,
         capacity: course.capacity,
-        status: course.status
+        status: course.status,
+        classNumber: course.classNumber,
+        instructionMode: course.instructionMode
       };
 
       let lectureId;

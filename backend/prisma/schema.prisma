@@ -20,8 +20,12 @@ model Course {
   name              String    // e.g. "Algorithms"
   credits           Int
   department        String
+
   geCode            String?
-  prerequisites   String?
+  prerequisites     String?
+
+  career            String?
+  grading           String?
   
   // Note: This field gets overwritten if multiple profs teach the same course.
   // The real instructor info lives in 'Section'.
@@ -37,14 +41,16 @@ model Course {
 
 model Section {
   id            Int      @id @default(autoincrement())
-  sectionCode   String   @unique // e.g. "CSE 101-01"
-  
   courseId      Int
   course        Course   @relation(fields: [courseId], references: [id])
 
   sectionNumber String   
+  sectionCode   String   @unique // e.g. "CSE 101-01"
   sectionType   String   // "LEC", "LAB", etc.
   
+  classNumber   String?
+  instructionMode String?
+
   parentId      Int?     
   parent        Section?  @relation("LinkedSections", fields: [parentId], references: [id])
   subSections   Section[] @relation("LinkedSections")
