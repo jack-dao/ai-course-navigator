@@ -21784,9 +21784,18 @@
     "name": "Anne Sizemore",
     "avgRating": 5,
     "avgDifficulty": 3.1,
-    "numRatings": 43,
+    "numRatings": 44,
     "wouldTakeAgain": 100,
     "reviews": [
+      {
+        "comment": "Anne Sizemore made me love chemistry. She deserves every 5/5 rating on here. Go to every single lecture if you want to succeed, and put in the time outside of class. Professor Sizemore makes it easy to succeed in her class if you put in the time and effort. The content comes at you fast, but Professor Sizemore makes it both digestible and fun.",
+        "date": "2026-01-02 15:58:05 +0000 UTC",
+        "course": "CHEM-8A",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Professor Sizemore deserves her 5/5 rating. Her class is so organized and the way she explains concepts is amazing. She made organic chemistry easy to understand and actually fun to learn. Also, if you study, her tests are relatively easy; there are no trick questions or weirdly worded problems. She's a great teacher and wants her students to pass.",
         "date": "2025-12-24 05:16:56 +0000 UTC",
@@ -21956,15 +21965,6 @@
         "grade": "Not sure yet",
         "rating": 5,
         "difficulty": 3,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "Dr. Sizemore is possibly hands down my favorite professor at UCSC. The lectures were amazing which motivated me to go and exams were extremely straightforward. The way she teaches is super effective and she held true to her word that \"everyone can learn Ochem\". ",
-        "date": "2024-09-29 03:07:23 +0000 UTC",
-        "course": "CHEM-8A",
-        "grade": "A+",
-        "rating": 5,
-        "difficulty": 1,
         "wouldTakeAgain": true
       }
     ]
@@ -26426,9 +26426,18 @@
     "name": "Addi Somekh",
     "avgRating": 5,
     "avgDifficulty": 1.8,
-    "numRatings": 25,
+    "numRatings": 26,
     "wouldTakeAgain": 100,
     "reviews": [
+      {
+        "comment": "I've taken two classes with Addi&#8212;Love, Meaning, and Paradox and Systems Theory&#8212;each providing useful skills on understanding the self and world. I would 100% recommend taking any class with Addi because of his captivating presence and relatable anecdotes, which frame very applicable life lessons. It's also an easy A.",
+        "date": "2026-01-02 05:27:01 +0000 UTC",
+        "course": "COWL65",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 2,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Literally one of my favorite instructors ever. Addi is a great lecturer and cool ass guy. This class really helps you take a moment to breath, think about your life, and gives you multiple avenues of coping with what life might throw at you. Class was always entertaining and easy to earn an A! def recommend if you r a thought daughter/son/child ",
         "date": "2025-12-17 05:16:25 +0000 UTC",
@@ -26596,15 +26605,6 @@
         "date": "2025-05-13 17:37:45 +0000 UTC",
         "course": "COWL65",
         "grade": "A",
-        "rating": 5,
-        "difficulty": 2,
-        "wouldTakeAgain": true
-      },
-      {
-        "comment": "COWL 65 - Paradox, Meaning, Love was an awesome class to take. The objective of this class is to provide a set of tools for you to navigate the turbulent nature of life itself. Professor Addi Somekh does an amazing job in guiding you along his lectures and has student become introspective of the life they have lived so far. ",
-        "date": "2024-12-12 21:50:58 +0000 UTC",
-        "course": "COWL65",
-        "grade": "A+",
         "rating": 5,
         "difficulty": 2,
         "wouldTakeAgain": true
@@ -46313,11 +46313,20 @@
   },
   "Landis,J.": {
     "name": "Joel Landis",
-    "avgRating": 4.4,
+    "avgRating": 4.5,
     "avgDifficulty": 3,
-    "numRatings": 7,
+    "numRatings": 8,
     "wouldTakeAgain": 100,
     "reviews": [
+      {
+        "comment": "do NOT buy the textbook you won't need it for the midterms or finals, it's mostly based on the lectures he covers in class. i did the readings at the beginning, but didn't find them too helpful). the final is 40%, and the midterm is 25% of your grade; spread the gospel and write a review for your prof so someone doesn't have to spend 80 on txtbooks",
+        "date": "2026-01-02 06:18:28 +0000 UTC",
+        "course": "POLI20",
+        "grade": "A",
+        "rating": 5,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "It's easy to get an A in his class if you attend (he posts the slides for each lecture; however, they don't make sense without his explanation of the content, as the slides are mainly pictures and short bullet points). DON'T FALL BEHIND! (Honestly, it's so hard to catch up if you fall behind because there is so much content.)",
         "date": "2025-12-18 06:41:44 +0000 UTC",
@@ -69608,9 +69617,18 @@
     "name": "Sandra Malone",
     "avgRating": 3.9,
     "avgDifficulty": 3.4,
-    "numRatings": 7,
-    "wouldTakeAgain": 71,
+    "numRatings": 8,
+    "wouldTakeAgain": 75,
     "reviews": [
+      {
+        "comment": "She is very kind and caring and helped me learn Spanish! My only problem was that sometimes I would have no clue that assignments were even happening so there were some communication issues.",
+        "date": "2026-01-02 21:52:09 +0000 UTC",
+        "course": "SPAN3",
+        "grade": "B+",
+        "rating": 4,
+        "difficulty": 3,
+        "wouldTakeAgain": true
+      },
       {
         "comment": "Don't do it. Why are you taking SPAN 5 in college. Anyone but her. Maybe she's less bad in the First-year classes, but she expects you to be essentially fluent by now. She does a lot of in class activities with small groups. Her class is very tedious and she claims to be very sympathetic, but she's not, she's literally just rude. ",
         "date": "2025-12-11 07:46:17 +0000 UTC",
