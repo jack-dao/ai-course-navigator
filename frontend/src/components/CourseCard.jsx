@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, Star, MapPin, ChevronDown, RotateCcw, User, Hash, Lock, BookOpen, GraduationCap, Monitor, AlertCircle, Hourglass } from 'lucide-react';
 
-const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
+const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActive }) => {
   const [selectedSubSections, setSelectedSubSections] = useState({});
   const [errors, setErrors] = useState({});
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -93,11 +93,23 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
     }
   };
 
+  // Helper handles abbreviations
+  const formatMetaValue = (type, value) => {
+      if (!value) return '---';
+      if (type === 'Career') {
+          return value === 'Undergraduate' ? 'Undergrad' : value;
+      }
+      if (type === 'Grading') {
+          return value === 'Student Option' ? 'Option' : value;
+      }
+      return value;
+  };
+
   return (
-    <div className="bg-white rounded-[20px] border border-slate-200 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card">
+    <div className={`bg-white rounded-[20px] border border-slate-200 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card ${isAiActive ? 'p-0' : ''}`}>
       
       {/* HEADER */}
-      <div className="px-6 py-5 bg-white rounded-t-[20px] border-t border-l border-r border-slate-200 border-b border-b-slate-100">
+      <div className={`${isAiActive ? 'px-4 py-4' : 'px-6 py-5'} bg-white rounded-t-[20px] border-t border-l border-r border-slate-200 border-b border-b-slate-100`}>
         <div className="flex justify-between items-start mb-3">
             <div>
                 <div className="flex items-center gap-3 mb-1">
@@ -146,60 +158,69 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
           const isLast = index === course.sections.length - 1;
 
           return (
-            <div key={section.id} className={`p-6 hover:bg-slate-50/50 transition-colors ${isLast ? 'rounded-b-[20px]' : ''}`}>
+            <div key={section.id} className={`${isAiActive ? 'p-4' : 'p-6'} hover:bg-slate-50/50 transition-colors ${isLast ? 'rounded-b-[20px]' : ''}`}>
               <div className="flex flex-col lg:flex-row gap-6">
                 
                 {/* LEFT: Metadata */}
-                <div className="flex-[2] min-w-0 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                    <div>
-                        <p className="text-xs font-bold text-[#003C6C] mb-1">Instructor</p>
-                        <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-center gap-2 group/prof text-left cursor-pointer">
-                            <div className="w-10 h-10 rounded-full bg-[#003C6C]/5 flex items-center justify-center text-[#003C6C]">
+                <div className={`flex-[2] min-w-0 flex flex-col md:flex-row ${isAiActive ? 'gap-4' : 'gap-6'}`}>
+                    
+                    {/* Instructor */}
+                    <div className={`shrink-0 ${isAiActive ? 'w-40' : 'md:w-48'}`}>
+                        <p className="text-[10px] font-bold text-[#003C6C] mb-1">Instructor</p>
+                        <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-start gap-2 group/prof text-left cursor-pointer w-full">
+                            <div className="w-10 h-10 rounded-full bg-[#003C6C]/5 flex items-center justify-center text-[#003C6C] shrink-0">
                                 <User className="w-5 h-5" />
                             </div>
-                            <div>
-                                <span className="block font-bold text-slate-900 group-hover/prof:text-[#003C6C] group-hover/prof:underline decoration-2 underline-offset-2 transition-colors">
+                            <div className="min-w-0 flex-1">
+                                <span className="block font-bold text-slate-900 group-hover/prof:text-[#003C6C] group-hover/prof:underline decoration-2 underline-offset-2 transition-colors leading-tight">
                                     {formatInstructor(section.instructor)}
                                 </span>
                                 {ratingData ? (
-                                    <div className="flex items-center gap-2 mt-0.5">
+                                    // FIXED: Stack vertically if AI is active, horizontal otherwise
+                                    <div className={`${isAiActive ? 'flex flex-col items-start gap-0.5' : 'flex items-center gap-2'} mt-0.5`}>
                                         <div className="flex">{renderStars(ratingData.avgRating)}</div>
-                                        <span className="text-xs font-bold text-slate-500">{ratingData.avgRating} ({ratingData.numRatings})</span>
+                                        <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
+                                            {ratingData.avgRating} ({ratingData.numRatings})
+                                        </span>
                                     </div>
                                 ) : (
-                                    <span className="text-xs font-medium text-slate-400">No ratings yet</span>
+                                    <span className="text-xs font-medium text-slate-400">No ratings</span>
                                 )}
                             </div>
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                    {/* Metadata Grid */}
+                    <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-2">
                         <div>
-                            <p className="text-xs font-bold text-[#003C6C] mb-0.5">Class Number</p>
-                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                                <Hash className="w-3.5 h-3.5 text-[#003C6C]" />
-                                {section.classNumber || '---'}
+                            <p className="text-[10px] font-bold text-[#003C6C] mb-0.5">Class Number</p>
+                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 min-w-0">
+                                <Hash className="w-3.5 h-3.5 text-[#003C6C] shrink-0" />
+                                <span className="truncate">{section.classNumber || '---'}</span>
                             </div>
                         </div>
+                        
                         <div>
-                            <p className="text-xs font-bold text-[#003C6C] mb-0.5">Instruction</p>
-                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                                <Monitor className="w-3.5 h-3.5 text-[#003C6C]" />
-                                {section.instructionMode || 'In Person'}
+                            <p className="text-[10px] font-bold text-[#003C6C] mb-0.5">Instruction</p>
+                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 min-w-0">
+                                <Monitor className="w-3.5 h-3.5 text-[#003C6C] shrink-0" />
+                                <span className="truncate">{section.instructionMode || 'In Person'}</span>
                             </div>
                         </div>
+
                         <div>
-                            <p className="text-xs font-bold text-[#003C6C] mb-0.5">Career</p>
-                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                                <GraduationCap className="w-3.5 h-3.5 text-[#003C6C]" />
-                                {career || 'Undergrad'}
+                            <p className="text-[10px] font-bold text-[#003C6C] mb-0.5">Career</p>
+                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 min-w-0">
+                                <GraduationCap className="w-3.5 h-3.5 text-[#003C6C] shrink-0" />
+                                <span className="truncate">{formatMetaValue('Career', career || 'Undergraduate')}</span>
                             </div>
                         </div>
+
                         <div>
-                            <p className="text-xs font-bold text-[#003C6C] mb-0.5">Grading</p>
-                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-                                <BookOpen className="w-3.5 h-3.5 text-[#003C6C]" />
-                                {grading ? 'Option' : 'Letter'}
+                            <p className="text-[10px] font-bold text-[#003C6C] mb-0.5">Grading</p>
+                            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 min-w-0">
+                                <BookOpen className="w-3.5 h-3.5 text-[#003C6C] shrink-0" />
+                                <span className="truncate">{formatMetaValue('Grading', grading ? 'Student Option' : 'Letter')}</span>
                             </div>
                         </div>
                     </div>
@@ -232,7 +253,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                             </div>
                         </div>
                         
-                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-slate-200 border border-slate-300 rounded-full overflow-hidden">
                             <div 
                                 className={`h-full ${isClosed ? 'bg-rose-500' : isWaitlist ? 'bg-orange-500' : 'bg-emerald-500'}`} 
                                 style={{ width: `${fillPercentage}%` }} 

@@ -545,7 +545,6 @@ const HomePage = ({ user, session }) => {
                     )}
                 </div>
               ) : (
-                // FIXED: Login Button matches Ask Sammy (text-sm)
                 <button onClick={() => setShowAuthModal(true)} className="px-6 py-2.5 bg-[#FDC700] text-[#003C6C] font-bold rounded-xl text-sm hover:bg-[#eec00e] transition-all cursor-pointer border-2 border-[#FDC700] flex items-center gap-2 shadow-lg active:shadow-inner active:translate-y-0.5">
                     <User className="w-4 h-4" /> Log in
                 </button>
@@ -569,7 +568,7 @@ const HomePage = ({ user, session }) => {
                         <RotateCcw className="w-3 h-3" /> Reset
                     </button>
                   </div>
-
+                  {/* Filters... (No changes) */}
                   <FilterSection title="Department">
                       <CustomDropdown 
                         value={filters.department !== 'All Departments' ? filters.department : ''}
@@ -684,14 +683,14 @@ const HomePage = ({ user, session }) => {
                         <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
                     </div>
                     <div className="p-8 grid grid-cols-1 gap-6">
-                        {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
+                        {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} isAiActive={showAIChat} />)}
                     </div>
+                    {/* Pagination (No changes) */}
                     {processedCourses.length > ITEMS_PER_PAGE && (
                         <div className="flex justify-between items-center mt-12 mb-8 px-8 border-t border-slate-200 pt-8">
                             <button 
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
                                 disabled={currentPage === 1} 
-                                // FIXED: No cursor pointer or hover styles when disabled (Page 1)
                                 className={`px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${
                                     currentPage === 1 
                                     ? 'opacity-50 cursor-default' 
@@ -718,6 +717,7 @@ const HomePage = ({ user, session }) => {
               </>
             )}
 
+            {/* Schedule View (No changes) */}
             {activeTab === 'schedule' && (
                 <div className="flex flex-1 h-[calc(100vh-80px)]">
                     <div className="w-[400px] shrink-0 border-r border-slate-100 flex flex-col z-10 bg-white">
