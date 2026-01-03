@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, Plus, Star, MapPin, ChevronDown, RotateCcw, User, Hash, Lock, BookOpen, GraduationCap, Monitor, AlertCircle, Hourglass } from 'lucide-react';
 
-const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActive }) => {
+const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
   const [selectedSubSections, setSelectedSubSections] = useState({});
   const [errors, setErrors] = useState({});
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -101,11 +101,11 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
   };
 
   return (
-    <div className={`bg-white rounded-[20px] border border-slate-200 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card ${isAiActive ? 'p-0' : ''}`}>
+    <div className="bg-white rounded-[20px] border border-slate-200 shadow-sm hover:shadow-md transition-all mb-6 overflow-hidden group/card w-full">
       
       {/* HEADER */}
-      <div className={`${isAiActive ? 'px-5 py-4' : 'px-6 py-5'} bg-white rounded-t-[20px] border-t border-l border-r border-slate-200 border-b border-b-slate-100`}>
-        <div className="flex justify-between items-start mb-3">
+      <div className="px-6 py-5 bg-white rounded-t-[20px] border-t border-l border-r border-slate-200 border-b border-b-slate-100">
+        <div className="flex justify-between items-start mb-3 flex-wrap gap-4">
             <div>
                 <div className="flex items-center gap-3 mb-1">
                     <h3 className="text-2xl font-[800] text-[#003C6C] tracking-tight">{course.code}</h3>
@@ -117,10 +117,10 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
             </div>
             
             {geCode && (
-                <div className="flex flex-col items-end justify-center">
+                <div className="flex flex-col items-end justify-center ml-auto">
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">General Education</span>
                     <div className="px-3 py-1.5 rounded-xl bg-[#003C6C]/5 border border-[#003C6C]/10 flex items-center gap-2">
-                        <span className="text-sm font-bold text-[#003C6C]">{getGEMapping(geCode)} ({geCode})</span>
+                        <span className="text-sm font-bold text-[#003C6C] whitespace-nowrap">{getGEMapping(geCode)} ({geCode})</span>
                     </div>
                 </div>
             )}
@@ -153,44 +153,40 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
           const isLast = index === course.sections.length - 1;
 
           return (
-            <div key={section.id} className={`${isAiActive ? 'p-5' : 'p-6'} hover:bg-slate-50/50 transition-colors ${isLast ? 'rounded-b-[20px]' : ''}`}>
+            <div key={section.id} className={`p-6 hover:bg-slate-50/50 transition-colors ${isLast ? 'rounded-b-[20px]' : ''}`}>
               
-              {/* FLUID LAYOUT: Use flex-wrap to allow natural stacking if space is tight */}
-              <div className="flex flex-wrap gap-6 items-start">
+              {/* RESPONSIVE LAYOUT: Use flex-wrap so content can flow naturally without being cut off */}
+              <div className="flex flex-wrap gap-x-6 gap-y-6">
                 
-                {/* 1. INFO SECTION (Instructor + Metadata) 
-                    - min-w-[340px]: Prevents crushing. If <340px space, this row wraps.
-                    - flex-grow: Expands to fill available width.
+                {/* 1. LEFT: Metadata (Instructor + Grid) 
+                    Basis: 350px. Allows growing.
                 */}
-                <div className="flex-grow basis-[340px] min-w-[300px] flex flex-col gap-5">
-                    
-                    {/* Instructor */}
-                    <div>
+                <div className="flex-[2_1_350px] flex flex-row gap-6 min-w-[300px]">
+                    <div className="w-[150px] shrink-0">
                         <p className="text-[10px] font-bold text-[#003C6C] mb-1">Instructor</p>
-                        <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-start gap-3 group/prof text-left cursor-pointer w-full">
+                        <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-start gap-2 group/prof text-left cursor-pointer w-full">
                             <div className="w-10 h-10 rounded-full bg-[#003C6C]/5 flex items-center justify-center text-[#003C6C] shrink-0">
                                 <User className="w-5 h-5" />
                             </div>
-                            <div className="min-w-0 flex-1 pt-0.5">
-                                <span className="block font-bold text-slate-900 text-sm group-hover/prof:text-[#003C6C] group-hover/prof:underline decoration-2 underline-offset-2 transition-colors leading-tight">
+                            <div className="min-w-0 flex-1">
+                                <span className="block font-bold text-slate-900 group-hover/prof:text-[#003C6C] group-hover/prof:underline decoration-2 underline-offset-2 transition-colors leading-tight">
                                     {formatInstructor(section.instructor)}
                                 </span>
                                 {ratingData ? (
-                                    <div className="flex items-center gap-2 mt-1">
+                                    <div className="flex items-center gap-2 mt-0.5">
                                         <div className="flex">{renderStars(ratingData.avgRating)}</div>
                                         <span className="text-xs font-bold text-slate-500 whitespace-nowrap">
                                             {ratingData.avgRating} ({ratingData.numRatings})
                                         </span>
                                     </div>
                                 ) : (
-                                    <span className="text-xs font-medium text-slate-400 mt-1 block">No ratings</span>
+                                    <span className="text-xs font-medium text-slate-400">No ratings</span>
                                 )}
                             </div>
                         </button>
                     </div>
 
-                    {/* Metadata Grid - Fixed to 2 columns for maximum safety */}
-                    <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                    <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-4 min-w-[200px]">
                         <div>
                             <p className="text-[10px] font-bold text-[#003C6C] mb-0.5">Class Number</p>
                             <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
@@ -222,11 +218,10 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
                     </div>
                 </div>
 
-                {/* 2. SCHEDULE SECTION 
-                    - min-w-[200px]: Keeps it readable.
-                    - flex-grow: Fills space.
+                {/* 2. MIDDLE: Schedule
+                    Basis: 220px. Grows slightly.
                 */}
-                <div className="flex-grow basis-[220px] min-w-[200px] flex flex-col justify-center">
+                <div className="flex-[1_1_220px] flex flex-col justify-center border-l border-slate-100 pl-6 border-dashed min-w-[200px]">
                     <div className="flex items-start gap-4 mb-4">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
                             <Clock className="w-5 h-5" />
@@ -241,7 +236,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
                         </div>
                     </div>
                     
-                    <div className="space-y-1.5 w-full max-w-[280px]">
+                    <div className="space-y-1.5 w-full">
                         <div className="flex justify-between items-end">
                             <span className={`text-[10px] font-bold uppercase tracking-wider ${isClosed ? 'text-rose-600' : isWaitlist ? 'text-orange-600' : 'text-[#003C6C]'}`}>
                                 {section.status || 'Open'}
@@ -252,8 +247,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
                             </div>
                         </div>
                         
-                        {/* High visibility bar */}
-                        <div className="h-2.5 w-full bg-slate-200 border border-slate-300 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
                             <div 
                                 className={`h-full ${isClosed ? 'bg-rose-500' : isWaitlist ? 'bg-orange-500' : 'bg-emerald-500'}`} 
                                 style={{ width: `${fillPercentage}%` }} 
@@ -262,11 +256,11 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, isAiActi
                     </div>
                 </div>
 
-                {/* 3. ACTIONS SECTION
-                    - w-full on wrapping (mobile style)
-                    - w-72 on large screens
+                {/* 3. RIGHT: Actions 
+                    Basis: 220px. 
+                    If this column + others > 100%, this one wraps to a new line automatically.
                 */}
-                <div className="flex-grow basis-[250px] min-w-[220px] sm:w-72 sm:flex-grow-0 flex flex-col gap-2 justify-center">
+                <div className="flex-[1_1_220px] flex flex-col gap-2 justify-center min-w-[220px]">
                     {hasDiscussions && (
                         <div className="relative" ref={openDropdownId === section.id ? dropdownRef : null}>
                             <button 

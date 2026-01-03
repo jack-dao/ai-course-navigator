@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, RotateCcw, MessageSquare, Tag, Flame, ThumbsUp, TrendingUp, X, ChevronDown, ChevronUp, Check, Star, User, LogIn } from 'lucide-react';
+import { Search, Calendar, GraduationCap, BookOpen, Save, CheckCircle, AlertCircle, LogOut, Bot, RotateCcw, MessageSquare, Tag, Flame, ThumbsUp, TrendingUp, X, ChevronDown, ChevronUp, Check, Star, User, LogIn, Filter } from 'lucide-react';
 import { supabase } from '../supabase'; 
 
 // COMPONENTS
@@ -153,6 +153,7 @@ const HomePage = ({ user, session }) => {
   const selectedSchool = UCSC_SCHOOL;
 
   const [activeTab, setActiveTab] = useState('search');
+  const [showFilters, setShowFilters] = useState(true); 
   const [notification, setNotification] = useState(null); 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -210,7 +211,6 @@ const HomePage = ({ user, session }) => {
       }).filter(Boolean); 
   };
 
-  // 1. LOAD PUBLIC DATA
   useEffect(() => {
     const fetchPublicData = async () => {
       try {
@@ -233,7 +233,6 @@ const HomePage = ({ user, session }) => {
     fetchPublicData();
   }, []);
 
-  // 2. LOAD USER SCHEDULE
   useEffect(() => {
     const fetchUserSchedule = async () => {
       if (user && session && availableCourses.length > 0) {
@@ -291,7 +290,6 @@ const HomePage = ({ user, session }) => {
     setSearchQuery('');
   };
 
-  // --- HELPER: Parse "5:20PM" to decimal (17.33) ---
   const parseTime = (timeStr) => {
     if (!timeStr) return null;
     const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
@@ -303,7 +301,6 @@ const HomePage = ({ user, session }) => {
     return h + (parseInt(m) / 60);
   };
 
-  // --- HELPER: Parse "Tu, Th" to ["Tu", "Th"] ---
   const getDaysArray = (dayStr) => {
     if (!dayStr || dayStr === 'TBA') return [];
     return dayStr.match(/Tu|Th|Sa|Su|M|W|F/g) || [];
@@ -359,49 +356,29 @@ const HomePage = ({ user, session }) => {
     setTimeout(() => { setNotification(prev => (prev?.message === message ? null : prev)); }, 3000);
   };
 
-  // --- UPDATED CONFLICT CHECKER (Includes Labs/Discussions) ---
   const checkForConflicts = (newSection, existingCourses, ignoreCode) => {
-    // Helper to get time segments from any section (Main or Lab)
     const getSegments = (sec) => {
         const segments = [];
         if (!sec) return segments;
-
-        // 1. Main Lecture Segment
         if (sec.days && sec.startTime && sec.endTime) {
-            segments.push({
-                days: getDaysArray(sec.days),
-                start: parseTime(sec.startTime),
-                end: parseTime(sec.endTime),
-            });
+            segments.push({ days: getDaysArray(sec.days), start: parseTime(sec.startTime), end: parseTime(sec.endTime) });
         }
-
-        // 2. Selected Discussion/Lab Segment
         if (sec.selectedLab && sec.selectedLab.days && sec.selectedLab.startTime && sec.selectedLab.endTime) {
-            segments.push({
-                days: getDaysArray(sec.selectedLab.days),
-                start: parseTime(sec.selectedLab.startTime),
-                end: parseTime(sec.selectedLab.endTime),
-            });
+            segments.push({ days: getDaysArray(sec.selectedLab.days), start: parseTime(sec.selectedLab.startTime), end: parseTime(sec.selectedLab.endTime) });
         }
         return segments;
     };
 
     const newSegments = getSegments(newSection);
-
     for (const existing of existingCourses) {
         if (existing.code === ignoreCode) continue;
-
         const existingSegments = getSegments(existing.selectedSection);
-
-        // Compare ALL new segments vs ALL existing segments
         for (const newSeg of newSegments) {
             for (const exSeg of existingSegments) {
-                // Check Day Overlap
                 const dayOverlap = newSeg.days.some(d => exSeg.days.includes(d));
                 if (dayOverlap) {
-                    // Check Time Overlap: (StartA < EndB) and (EndA > StartB)
                     if (newSeg.start < exSeg.end && newSeg.end > exSeg.start) {
-                        return existing.code; // Return the conflicting course code
+                        return existing.code;
                     }
                 }
             }
@@ -411,14 +388,11 @@ const HomePage = ({ user, session }) => {
   };
 
   const addCourse = (course, section) => {
-    // 1. Conflict Check
     const conflictingCourse = checkForConflicts(section, selectedCourses, course.code);
     if (conflictingCourse) {
         showNotification(`Time conflict with ${conflictingCourse}`, 'error');
         return;
     }
-
-    // 2. Add/Update if no conflict
     const existingIndex = selectedCourses.findIndex(c => c.code === course.code);
     const isUpdate = existingIndex !== -1;
     const newSchedule = isUpdate 
@@ -426,7 +400,6 @@ const HomePage = ({ user, session }) => {
         : [...selectedCourses, { ...course, selectedSection: section }];
     
     setSelectedCourses(newSchedule);
-    
     if (isUpdate) showNotification(`Updated ${course.code}`, 'success');
     else showNotification(`Added ${course.code}`, 'success');
   };
@@ -483,6 +456,7 @@ const HomePage = ({ user, session }) => {
   return (
     <div className="min-h-screen w-full bg-white flex flex-col font-sans selection:bg-[#003C6C] selection:text-white relative">
       
+      {/* Notifications and Modals */}
       {notification && (
           <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-4 border animate-in slide-in-from-bottom-10 ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-[#003C6C] border-[#FDC700]'}`}>
               {notification.type === 'error' ? <AlertCircle className="w-5 h-5"/> : <CheckCircle className="w-5 h-5 text-[#FDC700]"/>}
@@ -493,6 +467,7 @@ const HomePage = ({ user, session }) => {
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={handleLoginSuccess} selectedSchool={selectedSchool} />
 
+      {/* HEADER */}
       <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[80px]">
         <div className="w-full h-full px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <div className="flex items-center gap-6 justify-self-start">
@@ -553,120 +528,100 @@ const HomePage = ({ user, session }) => {
         </div>
       </header>
 
-      <div className="flex w-full min-h-[calc(100vh-80px)]">
+      {/* MAIN CONTAINER: Standard flex layout. No forced huge widths. */}
+      <div className="flex flex-row w-full min-h-[calc(100vh-80px)]">
         
-        <div className="flex flex-1 min-w-0 transition-all duration-300" style={{ marginRight: showAIChat ? '400px' : '0' }}>
+        {/* LEFT CONTENT AREA */}
+        <div className="flex flex-1 min-w-0 transition-all duration-300">
             {activeTab === 'search' && (
               <>
-                <aside className="w-[260px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar border-r border-slate-100 bg-white p-6 z-40">
-                  <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-slate-100">
-                    <h3 className="font-bold text-2xl text-[#003C6C]">Filters</h3>
-                    <button 
-                        onClick={resetFilters} 
-                        className="text-sm font-bold text-slate-500 hover:text-rose-500 hover:underline transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                        <RotateCcw className="w-3 h-3" /> Reset
-                    </button>
-                  </div>
-                  {/* Filters... (No changes) */}
-                  <FilterSection title="Department">
-                      <CustomDropdown 
-                        value={filters.department !== 'All Departments' ? filters.department : ''}
-                        placeholder="All Departments"
-                        options={['All Departments', 'Computer Science', 'Mathematics', 'Psychology']}
-                        onChange={(val) => setFilters({...filters, department: val})}
-                      />
-                  </FilterSection>
-
-                  <FilterSection title="Units">
-                      <div className="px-2 py-4">
-                        <div className="relative h-4 flex items-center">
-                            <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
-                                <div 
-                                    className="absolute h-full bg-[#FDC700] opacity-60 rounded-full left-0" 
-                                    style={{ width: `${(filters.minUnits / 10) * 100}%` }} 
-                                />
+                {/* FILTERS */}
+                {showFilters && (
+                    <aside className="w-[260px] shrink-0 sticky top-[80px] h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar border-r border-slate-100 bg-white p-6 z-40">
+                        <div className="flex items-baseline justify-between mb-6 pb-4 border-b border-slate-100">
+                            <h3 className="font-bold text-2xl text-[#003C6C]">Filters</h3>
+                            <button onClick={resetFilters} className="text-sm font-bold text-slate-500 hover:text-rose-500 hover:underline transition-colors flex items-center gap-1 cursor-pointer">
+                                <RotateCcw className="w-3 h-3" /> Reset
+                            </button>
+                        </div>
+                        {/* ... Filters content ... */}
+                        <FilterSection title="Department">
+                            <CustomDropdown 
+                                value={filters.department !== 'All Departments' ? filters.department : ''}
+                                placeholder="All Departments"
+                                options={['All Departments', 'Computer Science', 'Mathematics', 'Psychology']}
+                                onChange={(val) => setFilters({...filters, department: val})}
+                            />
+                        </FilterSection>
+                        <FilterSection title="Units">
+                            <div className="px-2 py-4">
+                                <div className="relative h-4 flex items-center">
+                                    <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
+                                        <div className="absolute h-full bg-[#FDC700] opacity-60 rounded-full left-0" style={{ width: `${(filters.minUnits / 10) * 100}%` }} />
+                                    </div>
+                                    <input type="range" min="0" max="10" step="1" value={filters.minUnits} onChange={(e) => setFilters({ ...filters, minUnits: parseInt(e.target.value) })} className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"/>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
+                                    <span>0</span>
+                                    <span>{filters.minUnits > 0 ? `${filters.minUnits} Units` : 'Any'}</span>
+                                    <span>10</span>
+                                </div>
                             </div>
-                            <input 
-                                type="range" 
-                                min="0" max="10" step="1"
-                                value={filters.minUnits} 
-                                onChange={(e) => setFilters({ ...filters, minUnits: parseInt(e.target.value) })} 
-                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
-                            />
-                        </div>
-                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
-                            <span>0</span>
-                            <span>{filters.minUnits > 0 ? `${filters.minUnits} Units` : 'Any'}</span>
-                            <span>10</span>
-                        </div>
-                      </div>
-                  </FilterSection>
-
-                  <FilterSection title="Days">
-                      <div className="flex justify-between gap-1">
-                        {['M', 'Tu', 'W', 'Th', 'F'].map(day => (
-                            <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-bold transition-all border-2 shadow-sm cursor-pointer ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
-                        ))}
-                      </div>
-                  </FilterSection>
-
-                  <FilterSection title="Time Range">
-                      <div className="px-2 py-4">
-                        <div className="relative h-4 flex items-center">
-                            <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
-                                <div 
-                                    className="absolute h-full bg-[#FDC700] opacity-60 rounded-full" 
-                                    style={{ 
-                                        left: `${(filters.timeRange[0] - 7) / 16 * 100}%`, 
-                                        right: `${100 - ((filters.timeRange[1] - 7) / 16 * 100)}%` 
-                                    }} 
-                                />
+                        </FilterSection>
+                        <FilterSection title="Days">
+                            <div className="flex justify-between gap-1">
+                                {['M', 'Tu', 'W', 'Th', 'F'].map(day => (
+                                    <button key={day} onClick={() => toggleDay(day)} className={`w-10 h-10 rounded-xl text-[10px] font-bold transition-all border-2 shadow-sm cursor-pointer ${filters.days.includes(day) ? 'bg-[#003C6C] text-white border-[#003C6C] shadow-md scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-[#FDC700] hover:text-[#003C6C]'}`}>{day}</button>
+                                ))}
                             </div>
-                            <input 
-                                type="range" 
-                                min="7" max="23" step="1"
-                                value={filters.timeRange[0]} 
-                                onChange={(e) => handleTimeChange(0, e.target.value)} 
-                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
-                            />
-                            <input 
-                                type="range" 
-                                min="7" max="23" step="1"
-                                value={filters.timeRange[1]} 
-                                onChange={(e) => handleTimeChange(1, e.target.value)} 
-                                className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
-                            />
-                        </div>
-                        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
-                            <span>{formatHour(filters.timeRange[0])}</span>
-                            <span>{formatHour(filters.timeRange[1])}</span>
-                        </div>
-                      </div>
-                  </FilterSection>
+                        </FilterSection>
+                        <FilterSection title="Time Range">
+                            <div className="px-2 py-4">
+                                <div className="relative h-4 flex items-center">
+                                    <div className="absolute w-full h-1.5 bg-slate-200 rounded-full">
+                                        <div className="absolute h-full bg-[#FDC700] opacity-60 rounded-full" style={{ left: `${(filters.timeRange[0] - 7) / 16 * 100}%`, right: `${100 - ((filters.timeRange[1] - 7) / 16 * 100)}%` }} />
+                                    </div>
+                                    <input type="range" min="7" max="23" step="1" value={filters.timeRange[0]} onChange={(e) => handleTimeChange(0, e.target.value)} className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"/>
+                                    <input type="range" min="7" max="23" step="1" value={filters.timeRange[1]} onChange={(e) => handleTimeChange(1, e.target.value)} className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#003C6C] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"/>
+                                </div>
+                                <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-4">
+                                    <span>{formatHour(filters.timeRange[0])}</span>
+                                    <span>{formatHour(filters.timeRange[1])}</span>
+                                </div>
+                            </div>
+                        </FilterSection>
+                        <FilterSection title="Availability">
+                            <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#FDC700] transition-all">
+                                <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C] cursor-pointer w-4 h-4" />
+                                <span className="text-xs font-bold text-slate-700">Open Classes Only</span>
+                            </label>
+                        </FilterSection>
+                        <FilterSection title="Instructor Rating">
+                            <div className="px-2 py-2">
+                                <input type="range" min="0" max="5" step="0.5" value={filters.minRating} onChange={(e) => setFilters({...filters, minRating: parseFloat(e.target.value)})} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#003C6C]" />
+                                <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-500">
+                                    <span className="opacity-50">Any</span>
+                                    <div className="flex items-center gap-1 text-[#003C6C]"><span className="text-lg font-black">{filters.minRating}+</span><Star className="w-3 h-3 fill-[#FDC700] text-[#FDC700]" /></div>
+                                    <span className="opacity-50">5.0</span>
+                                </div>
+                            </div>
+                        </FilterSection>
+                    </aside>
+                )}
 
-                  <FilterSection title="Availability">
-                      <label className="flex items-center gap-3 cursor-pointer group p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-[#FDC700] transition-all">
-                        <input type="checkbox" checked={filters.openOnly} onChange={() => setFilters({...filters, openOnly: !filters.openOnly})} className="accent-[#003C6C] cursor-pointer w-4 h-4" />
-                        <span className="text-xs font-bold text-slate-700">Open Classes Only</span>
-                      </label>
-                  </FilterSection>
-
-                  <FilterSection title="Instructor Rating">
-                      <div className="px-2 py-2">
-                        <input type="range" min="0" max="5" step="0.5" value={filters.minRating} onChange={(e) => setFilters({...filters, minRating: parseFloat(e.target.value)})} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#003C6C]" />
-                        <div className="flex justify-between mt-3 text-[10px] font-bold text-slate-500">
-                            <span className="opacity-50">Any</span>
-                            <div className="flex items-center gap-1 text-[#003C6C]"><span className="text-lg font-black">{filters.minRating}+</span><Star className="w-3 h-3 fill-[#FDC700] text-[#FDC700]" /></div>
-                            <span className="opacity-50">5.0</span>
-                        </div>
-                      </div>
-                  </FilterSection>
-                </aside>
-
-                <main className="flex-1 min-w-0 bg-white">
+                {/* MAIN CONTENT AREA */}
+                <main className="flex-1 min-w-0 bg-white relative z-0">
                     <div className="px-8 py-6 border-b border-slate-100 bg-white sticky top-[80px] z-30">
                         <div className="flex gap-4 mb-4">
+                            {/* Toggle Button */}
+                            <button 
+                                onClick={() => setShowFilters(!showFilters)} 
+                                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-center ${showFilters ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-white border-slate-200 text-[#003C6C] hover:border-[#003C6C]'}`}
+                                title={showFilters ? "Hide Filters" : "Show Filters"}
+                            >
+                                <Filter className="w-5 h-5" />
+                            </button>
+
                             <div className="relative flex-1 group">
                                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
                                 <input type="text" placeholder="Search courses and instructors..." className="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner text-slate-700 placeholder:text-slate-400" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
@@ -683,9 +638,9 @@ const HomePage = ({ user, session }) => {
                         <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
                     </div>
                     <div className="p-8 grid grid-cols-1 gap-6">
-                        {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} isAiActive={showAIChat} />)}
+                        {currentCourses.map(course => <CourseCard key={course.id} course={course} professorRatings={professorRatings} onAdd={addCourse} onShowProfessor={viewProfessorDetails} />)}
                     </div>
-                    {/* Pagination (No changes) */}
+                    {/* ... (Pagination) ... */}
                     {processedCourses.length > ITEMS_PER_PAGE && (
                         <div className="flex justify-between items-center mt-12 mb-8 px-8 border-t border-slate-200 pt-8">
                             <button 
@@ -717,7 +672,7 @@ const HomePage = ({ user, session }) => {
               </>
             )}
 
-            {/* Schedule View (No changes) */}
+            {/* Schedule View */}
             {activeTab === 'schedule' && (
                 <div className="flex flex-1 h-[calc(100vh-80px)]">
                     <div className="w-[400px] shrink-0 border-r border-slate-100 flex flex-col z-10 bg-white">
@@ -740,13 +695,21 @@ const HomePage = ({ user, session }) => {
             )}
         </div>
 
-        <div 
-            className={`fixed top-[80px] bottom-0 right-0 w-[400px] bg-white z-50 transition-transform duration-300 ease-in-out border-l border-[#FDC700] shadow-xl ${showAIChat ? 'translate-x-0' : 'translate-x-full'}`}
-        >
-             <div className="w-full h-full">
-                <ChatSidebar isOpen={true} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
-             </div>
-        </div>
+        {/* AI SIDEBAR - STICKY AND VISIBLE
+            - sticky: Sticks to top of viewport when scrolling main content
+            - top-[80px]: Offsets it by header height
+            - h-[calc(100vh-80px)]: Fills the rest of the height
+            - flex-shrink-0: prevents squashing
+        */}
+        {showAIChat && (
+            <div 
+                className="w-[400px] bg-white border-l border-[#FDC700] shadow-xl shrink-0 h-[calc(100vh-80px)] sticky top-[80px] z-50"
+            >
+                 <div className="w-full h-full">
+                    <ChatSidebar isOpen={true} onClose={() => setShowAIChat(false)} messages={chatMessages} onSendMessage={(text) => setChatMessages([...chatMessages, {role: 'user', text}, {role: 'assistant', text: 'How can I help?'}])} schoolName={selectedSchool.shortName} />
+                 </div>
+            </div>
+        )}
 
       </div>
     </div>
