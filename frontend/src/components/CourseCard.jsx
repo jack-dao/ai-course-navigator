@@ -267,7 +267,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor }) => {
                 */}
                 <div className="flex-[1_1_220px] flex flex-col gap-2 justify-center">
                     {hasDiscussions && (
-                        <div className="relative" ref={openDropdownId === section.id ? dropdownRef : null}>
+                        <div className={`relative ${openDropdownId === section.id ? 'z-50' : 'z-0'}`} ref={openDropdownId === section.id ? dropdownRef : null}>
                             <button 
                                 onClick={() => toggleDropdown(section.id)} 
                                 className={`w-full flex items-center justify-between text-xs font-bold border rounded-xl px-3 py-4 transition-all cursor-pointer ${
