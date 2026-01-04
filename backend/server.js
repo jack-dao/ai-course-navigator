@@ -9,6 +9,7 @@ const courseRoutes = require('./src/routes/courseRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const scheduleRoutes = require('./src/routes/scheduleRoutes');
 const ratingsRoutes = require('./src/routes/ratingsRoutes'); 
+const chatRoutes = require('./src/routes/chatRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -17,6 +18,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/ratings', ratingsRoutes);
+app.use('/api/chat', chatRoutes);
 
 
 app.listen(PORT, () => {
