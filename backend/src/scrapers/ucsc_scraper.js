@@ -205,7 +205,7 @@ async function processClass($, el, schoolId) {
                 if (rawGe.length < 15 && rawGe !== '.') geCode = rawGe;
             }
 
-            const prereqMatch = panelText.match(/(?:Prerequisite\(s\)|Prerequisites?):?\s*(.+?)(?=\.?\s*(?:General Education|Status|Credits|Career|Enrollment|Class Notes|$))/i);
+            const prereqMatch = panelText.match(/Enrollment Requirements\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Description|$))/i);
             if (prereqMatch) prerequisites = prereqMatch[1].trim();
 
         } catch (err) {
