@@ -18,6 +18,7 @@ model Course {
   id                Int       @id @default(autoincrement())
   code              String    // e.g. "CSE 101"
   name              String    // e.g. "Algorithms"
+  description       String?
   credits           Int
   department        String
 

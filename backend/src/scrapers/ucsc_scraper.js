@@ -130,7 +130,7 @@ async function processClass($, el, schoolId) {
         enrolled = parseInt(enrollMatch[1]);
         capacity = parseInt(enrollMatch[2]);
     }
-
+    let description = null;
     let discussions = [];
     let geCode = null;
     let prerequisites = null;
@@ -205,6 +205,9 @@ async function processClass($, el, schoolId) {
                 if (rawGe.length < 15 && rawGe !== '.') geCode = rawGe;
             }
 
+            const descMatch = panelText.match(/Description\s*([\s\S]+?)(?=\s*(?:Enrollment Requirements|Class Notes|Meeting Information|$))/i);
+            if (descMatch) description = descMatch[1].trim();
+
             const prereqMatch = panelText.match(/Enrollment Requirements\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Description|$))/i);
             if (prereqMatch) prerequisites = prereqMatch[1].trim();
 
@@ -214,7 +217,7 @@ async function processClass($, el, schoolId) {
     }
 
     await saveToDatabase({ 
-        code, title, section, instructor, meeting, location, status, enrolled, capacity, discussions,
+        code, title, description, section, instructor, meeting, location, status, enrolled, capacity, discussions,
         geCode, prerequisites, career, grading, classNumber, instructionMode, credits
     }, schoolId);
 }
@@ -261,6 +264,7 @@ async function saveToDatabase(course, schoolId) {
         where: { schoolId_code: { schoolId: schoolId, code: course.code } },
         update: { 
           name: course.title,
+          description: course.description,
           instructor: course.instructor,
           department: course.code.split(' ')[0],
           geCode: course.geCode,
@@ -272,6 +276,7 @@ async function saveToDatabase(course, schoolId) {
         create: {
           code: course.code,
           name: course.title,
+          description: course.description,
           credits: course.credits, 
           instructor: course.instructor,
           department: course.code.split(' ')[0],
