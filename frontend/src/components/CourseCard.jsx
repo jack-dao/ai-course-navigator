@@ -7,7 +7,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRef = useRef(null);
 
-  // Destructure description here
   const { geCode, prerequisites, career, grading, description } = course;
 
   useEffect(() => {
@@ -117,7 +116,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
   const formatMetaValue = (type, value) => {
       if (!value) return '---';
       if (type === 'Career') return value === 'Undergraduate' ? 'Undergrad' : value;
-      if (type === 'Grading') return value === 'Student Option' ? 'Option' : value;
       return value;
   };
 
@@ -147,19 +145,19 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
             )}
         </div>
         
-        {/* ✅ COMBINED INFO BOX: Description + Prerequisites */}
         {(description || prerequisites) && (
           <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm space-y-3">
               
-              {/* 1. Description Section */}
+              {/* 1. Description Section (Updated Layout) */}
               {description && (
-                  <div>
-                      <h4 className="font-bold text-[#003C6C] mb-1 flex items-center gap-2">
-                          📖 Course Description
-                      </h4>
-                      <p className="text-slate-600 leading-relaxed">
+                  <div className="flex gap-2 items-start">
+                      <div className="flex items-center gap-1.5 font-bold text-[#003C6C] whitespace-nowrap shrink-0">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          <span>Course Description:</span>
+                      </div>
+                      <span className="text-slate-700 font-medium">
                           {description}
-                      </p>
+                      </span>
                   </div>
               )}
 
@@ -167,8 +165,13 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
               {prerequisites && (
                   <div className={`${description ? 'pt-3 border-t border-slate-200' : ''}`}>
                       <div className="flex gap-2 items-start">
-                          <span className="font-bold text-rose-500 whitespace-nowrap">Prerequisites:</span>
-                          <span className="text-slate-700 font-medium">{prerequisites.replace(/^Prerequisite\(s\):/i, '').trim()}</span>
+                          <div className="flex items-center gap-1.5 font-bold text-[#003C6C] whitespace-nowrap shrink-0">
+                              <Lock className="w-3.5 h-3.5" />
+                              <span>Prerequisites:</span>
+                          </div>
+                          <span className="text-slate-700 font-medium">
+                              {prerequisites.replace(/^Prerequisite\(s\):/i, '').trim()}
+                          </span>
                       </div>
                   </div>
               )}
