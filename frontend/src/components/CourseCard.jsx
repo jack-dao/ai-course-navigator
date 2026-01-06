@@ -7,7 +7,8 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const dropdownRef = useRef(null);
 
-  const { geCode, prerequisites, career, grading } = course;
+  // Destructure description here
+  const { geCode, prerequisites, career, grading, description } = course;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -21,25 +22,21 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
 
   // --- INTERNAL SORTING LOGIC ---
   const sortedSections = useMemo(() => {
-    // Clone array to avoid mutating props
     let sections = [...(course.sections || [])];
 
     if (sortOption === 'Rating') {
         sections.sort((a, b) => {
-            // Get ratings (default to -1 if no rating so they go to bottom)
             const ratingA = professorRatings?.[a.instructor]?.avgRating || -1;
             const ratingB = professorRatings?.[b.instructor]?.avgRating || -1;
-            return ratingB - ratingA; // Descending (Higher is better)
+            return ratingB - ratingA; 
         });
     } else if (sortOption === 'Difficulty') {
         sections.sort((a, b) => {
-            // Get difficulty (default to 10 if no rating so they go to bottom)
             const diffA = professorRatings?.[a.instructor]?.avgDifficulty || 10;
             const diffB = professorRatings?.[b.instructor]?.avgDifficulty || 10;
-            return diffA - diffB; // Ascending (Lower is easier)
+            return diffA - diffB;
         });
     }
-    // Default ('Best Match') keeps original order (usually Section Number)
     return sections;
   }, [course.sections, professorRatings, sortOption]);
 
@@ -150,19 +147,37 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
             )}
         </div>
         
-        {prerequisites && (
-            <div className="mt-4 flex items-start gap-2 text-xs text-slate-500 bg-slate-50/80 p-2.5 rounded-lg border border-slate-100">
-                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                <span className="leading-snug">
-                    <span className="font-bold text-slate-700">Prerequisite:</span> {prerequisites.replace(/^Prerequisite\(s\):/i, '').trim()}
-                </span>
-            </div>
+        {/* ✅ COMBINED INFO BOX: Description + Prerequisites */}
+        {(description || prerequisites) && (
+          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm space-y-3">
+              
+              {/* 1. Description Section */}
+              {description && (
+                  <div>
+                      <h4 className="font-bold text-[#003C6C] mb-1 flex items-center gap-2">
+                          📖 Course Description
+                      </h4>
+                      <p className="text-slate-600 leading-relaxed">
+                          {description}
+                      </p>
+                  </div>
+              )}
+
+              {/* 2. Prerequisites Section */}
+              {prerequisites && (
+                  <div className={`${description ? 'pt-3 border-t border-slate-200' : ''}`}>
+                      <div className="flex gap-2 items-start">
+                          <span className="font-bold text-rose-500 whitespace-nowrap">Prerequisites:</span>
+                          <span className="text-slate-700 font-medium">{prerequisites.replace(/^Prerequisite\(s\):/i, '').trim()}</span>
+                      </div>
+                  </div>
+              )}
+          </div>
         )}
       </div>
 
       {/* SECTIONS */}
       <div className="divide-y divide-slate-200 border-l border-r border-b border-slate-200 rounded-b-[20px]">
-        {/* FIX: Map over sortedSections instead of course.sections */}
         {sortedSections.map((section, index) => {
           const hasDiscussions = section.subSections?.length > 0;
           const ratingData = professorRatings?.[section.instructor];
@@ -279,7 +294,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                 {/* 3. RIGHT: Actions */}
                 <div className="flex-[1_1_220px] flex flex-col gap-2 justify-center min-w-[220px]">
                     {hasDiscussions && (
-                        /* FIX: Dynamic z-index for stacking context */
                         <div className={`relative ${openDropdownId === section.id ? 'z-50' : 'z-0'}`} ref={openDropdownId === section.id ? dropdownRef : null}>
                             <button 
                                 onClick={() => toggleDropdown(section.id)} 
@@ -331,7 +345,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                         </div>
                     )}
                     
-                    {/* BUTTON STATE */}
                     <button 
                         onClick={() => handleAddClick(section)} 
                         className={`w-full py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer ${
