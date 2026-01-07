@@ -35,20 +35,21 @@ const Header = ({
 
   return (
     <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[80px]">
-      <div className="w-full h-full px-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <div className="w-full h-full px-8 grid grid-cols-[auto_1fr_auto] items-center gap-8">
           
           {/* LEFT: Logo Area */}
-          <div className="flex items-center gap-3 justify-self-start relative">
-            {/* ✅ UPDATED: Massive Logo with Negative Margins (Doesn't affect header height) */}
+          <div className="flex items-center gap-4">
+            {/* ✅ FIXED: Logo is h-24 (96px) with negative margins (-my-4). 
+                It visually exceeds the 80px header but stays perfectly aligned. */}
             <img 
               src={compassLogo} 
               alt="AI Slug Navigator" 
-              className="w-24 h-24 object-contain drop-shadow-lg hover:scale-105 transition-transform -my-6 z-50 relative" 
+              className="h-24 w-auto object-contain drop-shadow-md -my-4 relative z-10" 
             />
             <div>
-              <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">AI Slug Navigator</h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight leading-none">AI Slug Navigator</h1>
               <div className="flex items-center gap-2 text-[10px] font-bold text-blue-100 mt-1">
-                  <GraduationCap className="w-4 h-4 text-[#FDC700]" /> {selectedSchool.term}
+                  <GraduationCap className="w-3 h-3 text-[#FDC700]" /> {selectedSchool.term}
               </div>
             </div>
           </div>
@@ -75,18 +76,18 @@ const Header = ({
           {/* RIGHT: Actions */}
           <div className="flex items-center gap-4 justify-self-end">
             
-            {/* ✅ UPDATED: Button stays small, Image hangs off the side */}
+            {/* ✅ FIXED: Button padding reduced (py-1). Image scaled up (w-14 scale-110). 
+                The image is now bigger than the button! */}
             <button 
               onClick={onToggleChat} 
-              className={`pl-10 pr-6 py-2.5 text-sm font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:shadow-inner active:translate-y-0.5 relative overflow-visible`}
+              className={`flex items-center gap-3 pl-2 pr-5 py-1 rounded-xl transition-all cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:translate-y-0.5 group overflow-visible`}
             >
-              {/* Massive Sammy Image positioned absolutely to hang off the button */}
               <img 
                 src={sammyChat} 
                 alt="Sammy" 
-                className="absolute -left-6 top-1/2 -translate-y-1/2 w-16 h-16 object-contain drop-shadow-md hover:scale-110 transition-transform" 
+                className="w-14 h-14 object-contain drop-shadow-sm scale-125 group-hover:scale-135 transition-transform" 
               />
-              {showAIChat ? 'Hide Assistant' : 'Ask Sammy AI'}
+              <span className="text-sm font-bold leading-none">{showAIChat ? 'Hide Assistant' : 'Ask Sammy AI'}</span>
             </button>
 
             {user ? (
@@ -115,6 +116,6 @@ const Header = ({
       </div>
     </header>
   );
-};
+}; 
 
 export default Header;
