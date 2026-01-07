@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Save, AlertCircle, CheckCircle, Search, Filter, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, AlertCircle, CheckCircle, Search, Filter, BookOpen, Download } from 'lucide-react';
 
 import Header from '../components/Header'; 
 import FilterSidebar from '../components/FilterSidebar';
@@ -17,7 +17,17 @@ import { useSchedule } from '../hooks/useSchedule';
 const HomePage = ({ user, session }) => {
   const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
   
-  const [activeTab, setActiveTab] = useState('search');
+  // --- PERSISTENT STATE ---
+
+  // 1. Active Tab
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('activeTab') || 'search';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+
   const [showFilters, setShowFilters] = useState(true);
   const [showAIChat, setShowAIChat] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -32,13 +42,42 @@ const HomePage = ({ user, session }) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
-  const [currentPage, setCurrentPage] = useState(1);
+  // 2. Pagination
+  const [currentPage, setCurrentPage] = useState(() => {
+    return parseInt(sessionStorage.getItem('currentPage')) || 1;
+  });
+  
   const ITEMS_PER_PAGE = 20;
+
+  // --- SCROLL TO TOP ON PAGE CHANGE ---
+  useEffect(() => {
+    // Standard scroll to top
+    window.scrollTo(0, 0);
+    sessionStorage.setItem('currentPage', currentPage);
+  }, [currentPage]);
 
   const { 
       filters, setFilters, searchQuery, setSearchQuery, resetFilters, processedCourses 
   } = useCourseFilters(availableCourses, professorRatings);
   
+  // ✅ FIX: Robust Reset Logic
+  // We store the initial values in refs. We only reset pagination if the values ACTUALLY change.
+  const prevSearchRef = useRef(searchQuery);
+  const prevFiltersRef = useRef(JSON.stringify(filters));
+
+  useEffect(() => {
+    const filtersStr = JSON.stringify(filters);
+    const searchChanged = prevSearchRef.current !== searchQuery;
+    const filtersChanged = prevFiltersRef.current !== filtersStr;
+
+    if (searchChanged || filtersChanged) {
+      setCurrentPage(1);
+      // Update refs to current values
+      prevSearchRef.current = searchQuery;
+      prevFiltersRef.current = filtersStr;
+    }
+  }, [searchQuery, filters]);
+
   const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses);
   const MAX_UNITS = 22;
 
@@ -53,8 +92,6 @@ const HomePage = ({ user, session }) => {
     };
     fetchData();
   }, []);
-
-  useEffect(() => { setCurrentPage(1); }, [searchQuery, filters]);
 
   const showNotification = (message, type = 'success') => {
     setNotification(null);
@@ -129,23 +166,26 @@ const HomePage = ({ user, session }) => {
     setIsChatLoading(true);
     const newMessages = [...chatMessages, { role: 'user', text }];
     setChatMessages(newMessages);
-    setChatMessages([...newMessages, { role: 'assistant', text: "Thinking... 🐌" }]);
+    setChatMessages(prev => [...prev, { role: 'assistant', text: "Thinking... 🐌" }]);
 
     try {
-      const contextSlice = availableCourses.slice(0, 100).map(c => ({ code: c.code, name: c.name, description: c.description })); 
       const response = await fetch('http://localhost:3000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          contextCourses: contextSlice,
-          userSchedule: selectedCourses.map(c => ({ code: c.code, name: c.name }))
+          userSchedule: selectedCourses.map(c => ({ 
+              code: c.code, 
+              name: c.name,
+              days: c.selectedSection?.days,
+              times: c.selectedSection ? `${c.selectedSection.startTime}-${c.selectedSection.endTime}` : 'TBA'
+          }))
         })
       });
       const data = await response.json();
-      setChatMessages([...newMessages, { role: 'assistant', text: data.reply }]);
+      setChatMessages(prev => [...prev.slice(0, -1), { role: 'assistant', text: data.reply }]);
     } catch (err) {
-      setChatMessages([...newMessages, { role: 'assistant', text: "Sorry, I lost connection to the server. 🧠🚫" }]);
+      setChatMessages(prev => [...prev.slice(0, -1), { role: 'assistant', text: "Sorry, I lost connection to the server. 🧠🚫" }]);
     } finally {
       setIsChatLoading(false);
     }

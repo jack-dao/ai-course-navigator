@@ -1,24 +1,42 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { DEPARTMENTS } from '../utils/departments';
 
 export const useCourseFilters = (availableCourses, professorRatings) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
-    openOnly: false,
-    minRating: 0,
-    minUnits: 0,
-    days: [],
-    department: 'All Departments',
-    sort: 'Best Match',
-    timeRange: [7, 23]
+  // 1. Initialize State from SessionStorage (so it survives refresh)
+  const [searchQuery, setSearchQuery] = useState(() => {
+    return sessionStorage.getItem('searchQuery') || '';
   });
 
+  const [filters, setFilters] = useState(() => {
+    const saved = sessionStorage.getItem('courseFilters');
+    return saved ? JSON.parse(saved) : {
+      openOnly: false,
+      minRating: 0,
+      minUnits: 0,
+      days: [],
+      department: 'All Departments',
+      sort: 'Best Match',
+      timeRange: [7, 23]
+    };
+  });
+
+  // 2. Save State to SessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('searchQuery', searchQuery);
+    sessionStorage.setItem('courseFilters', JSON.stringify(filters));
+  }, [searchQuery, filters]);
+
   const resetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       openOnly: false, minRating: 0, minUnits: 0, days: [],
       department: 'All Departments', sort: 'Best Match', timeRange: [7, 23]
-    });
+    };
+    setFilters(defaultFilters);
     setSearchQuery('');
+    
+    // Clear storage
+    sessionStorage.removeItem('searchQuery');
+    sessionStorage.setItem('courseFilters', JSON.stringify(defaultFilters));
   };
 
   const parseTime = (timeStr) => {
