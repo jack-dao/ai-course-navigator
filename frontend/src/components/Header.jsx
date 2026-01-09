@@ -48,16 +48,12 @@ const Header = ({
             <h1 className="text-2xl font-bold text-white tracking-tight leading-none">
               AI Slug Navigator
             </h1>
-
-            {/* UC Santa Cruz + Term (no container, with divider) */}
             <div className="mt-1.5 flex items-center gap-2 text-[11px] font-extrabold text-blue-100">
               <span className="inline-flex items-center gap-1.5">
                 <GraduationCap className="w-3.5 h-3.5 text-[#FDC700]" />
                 <span>UC Santa Cruz</span>
               </span>
-
               <span className="h-3 w-px bg-white/25" />
-
               <span className="tracking-wide text-blue-50/95">{selectedSchool.term}</span>
             </div>
           </div>
@@ -66,7 +62,8 @@ const Header = ({
         {/* CENTER: Tabs */}
         <div className="flex justify-center">
           <div className="flex bg-[#002a4d]/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden">
-            {['search', 'schedule'].map((tab) => (
+            {/* ✅ UPDATED: Added 'about' tab */}
+            {['search', 'schedule', 'about'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -76,7 +73,8 @@ const Header = ({
                     : 'text-blue-200 hover:text-white hover:bg-white/5'
                 }`}
               >
-                {tab === 'schedule' ? 'My Schedule' : 'Search'}
+                {/* ✅ UPDATED: Label logic */}
+                {tab === 'schedule' ? 'My Schedule' : tab === 'about' ? 'About' : 'Search'}
               </button>
             ))}
           </div>
@@ -84,7 +82,6 @@ const Header = ({
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-4 justify-self-end">
-          {/* Sammy AI Button */}
           <button
             onClick={onToggleChat}
             className="h-12 flex items-center gap-3 pl-3 pr-5 rounded-xl transition-all cursor-pointer shadow-lg border-2 border-[#FDC700] bg-[#FDC700] text-[#003C6C] hover:bg-[#eec00e] active:translate-y-0.5 group overflow-visible"
@@ -96,7 +93,6 @@ const Header = ({
                 className="absolute inset-0 w-full h-full object-contain drop-shadow-sm scale-[3.65] -translate-y-[1px] transition-transform group-hover:scale-[3.9]"
               />
             </span>
-
             <span className="text-sm font-bold leading-none">
               {showAIChat ? 'Hide Assistant' : 'Ask Sammy AI'}
             </span>
@@ -119,7 +115,6 @@ const Header = ({
                     </p>
                     <p className="text-xs text-slate-500 truncate">{user.email}</p>
                   </div>
-
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-3 py-3.5 bg-rose-50 text-rose-600 rounded-xl font-bold text-[11px] hover:bg-rose-600 hover:text-white transition-all cursor-pointer"

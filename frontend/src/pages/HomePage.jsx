@@ -10,6 +10,8 @@ import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
 import ProfessorModal from '../components/ProfessorModal';
+// ✅ IMPORT
+import AboutTab from '../components/AboutTab';
 
 import { useCourseFilters } from '../hooks/useCourseFilters';
 import { useSchedule } from '../hooks/useSchedule';
@@ -18,8 +20,6 @@ const HomePage = ({ user, session }) => {
   const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
   
   // --- PERSISTENT STATE ---
-
-  // 1. Active Tab
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'search';
   });
@@ -32,9 +32,8 @@ const HomePage = ({ user, session }) => {
   const [showAIChat, setShowAIChat] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  // 2. Data State (With Instant Load Logic)
+  // Data State (Instant Load)
   const [availableCourses, setAvailableCourses] = useState(() => {
-      // ✅ INSTANT LOAD: Try to get courses from cache immediately
       try {
           const cached = localStorage.getItem('cachedCourses');
           return cached ? JSON.parse(cached) : [];
@@ -42,7 +41,6 @@ const HomePage = ({ user, session }) => {
   });
 
   const [professorRatings, setProfessorRatings] = useState(() => {
-      // ✅ INSTANT LOAD: Try to get ratings from cache immediately
       try {
           const cached = localStorage.getItem('cachedRatings');
           return cached ? JSON.parse(cached) : {};
@@ -50,7 +48,6 @@ const HomePage = ({ user, session }) => {
   });
 
   const [notification, setNotification] = useState(null);
-  
   const [selectedProfessor, setSelectedProfessor] = useState(null);
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
 
@@ -87,28 +84,23 @@ const HomePage = ({ user, session }) => {
   const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses);
   const MAX_UNITS = 22;
 
-  // --- DATA FETCHING (BACKGROUND UPDATE) ---
+  // Background Fetch
   useEffect(() => {
     const fetchData = async () => {
         try {
-            // 1. Fetch Courses
             const cRes = await fetch('http://localhost:3000/api/courses');
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
-                // ✅ UPDATE CACHE: Save fresh data for next time
                 localStorage.setItem('cachedCourses', JSON.stringify(courses));
             }
-
-            // 2. Fetch Ratings
             const rRes = await fetch('http://localhost:3000/api/ratings');
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
-                // ✅ UPDATE CACHE
                 localStorage.setItem('cachedRatings', JSON.stringify(ratings));
             }
-        } catch (e) { console.error("Background Fetch Error:", e); }
+        } catch (e) { console.error(e); }
     };
     fetchData();
   }, []);
@@ -125,22 +117,18 @@ const HomePage = ({ user, session }) => {
         showNotification(`Time conflict with ${conflictingCourse}`, 'error');
         return;
     }
-
     const courseUnits = parseInt(course.credits || 0);
     const existingIndex = selectedCourses.findIndex(c => c.code === course.code);
-    
     if (existingIndex === -1) {
         if (totalUnits + courseUnits > MAX_UNITS) {
             showNotification(`Cannot add ${course.code}. Exceeds ${MAX_UNITS} unit limit.`, 'error');
             return;
         }
     }
-
     const isUpdate = existingIndex !== -1;
     const newSchedule = isUpdate 
         ? selectedCourses.map(c => c.code === course.code ? { ...course, selectedSection: section } : c)
         : [...selectedCourses, { ...course, selectedSection: section }];
-    
     setSelectedCourses(newSchedule);
     showNotification(isUpdate ? `Updated ${course.code}` : `Added ${course.code}`, 'success');
   };
@@ -216,6 +204,7 @@ const HomePage = ({ user, session }) => {
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col font-sans selection:bg-[#FDC700] selection:text-white relative">
+      
       <Header 
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -228,6 +217,7 @@ const HomePage = ({ user, session }) => {
       />
 
       <div className="flex flex-row w-full min-h-[calc(100vh-80px)]">
+        
         <div className="flex flex-1 min-w-0 transition-all duration-300">
             {activeTab === 'search' && (
               <>
@@ -264,7 +254,6 @@ const HomePage = ({ user, session }) => {
                         </div>
                         <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
                     </div>
-
                     <div className="p-8 grid grid-cols-1 gap-6">
                         {currentCourses.map(course => (
                             <CourseCard 
@@ -277,7 +266,6 @@ const HomePage = ({ user, session }) => {
                             />
                         ))}
                     </div>
-
                     {processedCourses.length > ITEMS_PER_PAGE && (
                         <div className="flex justify-between items-center mt-12 mb-8 px-8 border-t border-slate-200 pt-8">
                             <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className={`px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-default' : 'hover:border-[#003C6C] hover:text-[#003C6C] cursor-pointer'}`}>Prev</button>
@@ -308,6 +296,11 @@ const HomePage = ({ user, session }) => {
                         <CalendarView selectedCourses={selectedCourses} />
                     </div>
                 </div>
+            )}
+
+            {/* ✅ NEW: ABOUT TAB */}
+            {activeTab === 'about' && (
+                <AboutTab />
             )}
         </div>
 
