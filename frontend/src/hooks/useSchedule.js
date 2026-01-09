@@ -1,15 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 
 export const useSchedule = (user, session, availableCourses) => {
-  // ✅ INSTANT LOAD: Try to get schedule from cache
   const [selectedCourses, setSelectedCourses] = useState(() => {
     try {
         const cached = localStorage.getItem('cachedSchedule');
-        // We can only fully restore if we have the course objects, but
-        // for now, we return empty [] until availableCourses is populated.
-        // NOTE: Since we cached availableCourses in HomePage, this might actually work fast!
         return cached ? JSON.parse(cached) : [];
-    } catch (e) { return []; }
+    } catch { 
+        return []; 
+    }
   });
 
   const totalUnits = useMemo(() => {
@@ -19,7 +17,6 @@ export const useSchedule = (user, session, availableCourses) => {
     }, 0);
   }, [selectedCourses]);
 
-  // Helper functions
   const parseTime = (timeStr) => {
     if (!timeStr) return null;
     const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
@@ -95,14 +92,11 @@ export const useSchedule = (user, session, availableCourses) => {
               if (data.courses) {
                   const restored = restoreScheduleFromData(data.courses, availableCourses);
                   setSelectedCourses(restored);
-                  // ✅ UPDATE CACHE: Save full objects so we can load instantly next time
                   localStorage.setItem('cachedSchedule', JSON.stringify(restored));
               }
             }
         } catch (err) { console.error("Schedule Fetch Error:", err); }
       } else if (!user) {
-          // If logged out, maybe check local storage for a "guest" schedule?
-          // For now, we just clear it or keep what was in state.
       }
     };
     fetchUserSchedule();

@@ -10,7 +10,6 @@ import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
 import ProfessorModal from '../components/ProfessorModal';
-// ✅ IMPORT
 import AboutTab from '../components/AboutTab';
 
 import { useCourseFilters } from '../hooks/useCourseFilters';
@@ -19,7 +18,6 @@ import { useSchedule } from '../hooks/useSchedule';
 const HomePage = ({ user, session }) => {
   const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
   
-  // --- PERSISTENT STATE ---
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'search';
   });
@@ -32,19 +30,18 @@ const HomePage = ({ user, session }) => {
   const [showAIChat, setShowAIChat] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
-  // Data State (Instant Load)
   const [availableCourses, setAvailableCourses] = useState(() => {
       try {
           const cached = localStorage.getItem('cachedCourses');
           return cached ? JSON.parse(cached) : [];
-      } catch (e) { return []; }
+      } catch { return []; } 
   });
 
   const [professorRatings, setProfessorRatings] = useState(() => {
       try {
           const cached = localStorage.getItem('cachedRatings');
           return cached ? JSON.parse(cached) : {};
-      } catch (e) { return {}; }
+      } catch { return {}; } 
   });
 
   const [notification, setNotification] = useState(null);
@@ -84,7 +81,6 @@ const HomePage = ({ user, session }) => {
   const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses);
   const MAX_UNITS = 22;
 
-  // Background Fetch
   useEffect(() => {
     const fetchData = async () => {
         try {
@@ -161,7 +157,7 @@ const HomePage = ({ user, session }) => {
       });
       if (response.ok) showNotification("Schedule saved successfully!", 'success');
       else showNotification("Failed to save schedule", 'error');
-    } catch (err) { showNotification("Server error", 'error'); }
+    } catch { showNotification("Server error", 'error'); } 
   };
 
   const viewProfessorDetails = (name) => {
@@ -192,7 +188,7 @@ const HomePage = ({ user, session }) => {
       });
       const data = await response.json();
       setChatMessages(prev => [...prev.slice(0, -1), { role: 'assistant', text: data.reply }]);
-    } catch (err) {
+    } catch { 
       setChatMessages(prev => [...prev.slice(0, -1), { role: 'assistant', text: "Sorry, I lost connection to the server. 🧠🚫" }]);
     } finally {
       setIsChatLoading(false);
@@ -298,7 +294,6 @@ const HomePage = ({ user, session }) => {
                 </div>
             )}
 
-            {/* ✅ NEW: ABOUT TAB */}
             {activeTab === 'about' && (
                 <AboutTab />
             )}

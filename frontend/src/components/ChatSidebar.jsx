@@ -3,7 +3,7 @@ import { X, Send, Sparkles, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import sammyChat from '../assets/sammy-chat.png';
 
-const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName, isLoading }) => {
+const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading }) => {
   const [input, setInput] = React.useState('');
   const chatContainerRef = useRef(null);
 
@@ -21,10 +21,8 @@ const ChatSidebar = ({ isOpen, onClose, messages, onSendMessage, schoolName, isL
 
   return (
     <div className="w-full h-full bg-slate-50 flex flex-col">
-      {/* HEADER SECTION */}
       <div className="p-6 border-b border-[#FDC700] bg-gradient-to-r from-[#003C6C] to-[#00508c] flex items-center justify-between shrink-0 shadow-sm relative z-10 overflow-visible h-[88px]">
         <div className="flex items-center pl-32 relative w-full">
-          {/* Bigger Sammy (176px) */}
           <img
             src={sammyChat}
             alt="Sammy"
