@@ -178,6 +178,7 @@ const HomePage = ({ user, session }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
+          contextCourses: availableCourses,
           userSchedule: selectedCourses.map(c => ({ 
               code: c.code, 
               name: c.name,

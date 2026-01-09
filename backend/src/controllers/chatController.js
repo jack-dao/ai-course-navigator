@@ -2,7 +2,6 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@googl
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 1. CONFIGURATION
 const model = genAI.getGenerativeModel({ 
     model: "gemini-2.5-flash", 
     safetySettings: [
@@ -17,10 +16,8 @@ const handleChat = async (req, res) => {
   try {
     const { message, contextCourses, userSchedule } = req.body;
     
-    // Debug: Check if schedule is arriving
     console.log("📝 User Schedule:", userSchedule?.length > 0 ? userSchedule.length + " classes" : "Empty");
 
-    // 2. FORMAT DATA
     const scheduleString = userSchedule && userSchedule.length > 0
       ? userSchedule.map(c => 
           `• ${c.code} (${c.name}): ${c.days} @ ${c.times}`
@@ -28,14 +25,14 @@ const handleChat = async (req, res) => {
       : "No classes enrolled yet.";
 
     const relevantCourses = Array.isArray(contextCourses) ? contextCourses : [];
+    
     const courseContextString = relevantCourses.map(c => 
       `- ${c.code}: ${c.name} (${c.credits} units). GE: ${c.geCode || "None"}. Prereqs: ${c.prerequisites || "None"}.\n` + 
       `  Sections: ${c.sections?.map(s => 
-          `[${s.instructor} | ${s.days} ${s.startTime}-${s.endTime}]`
+          `[${s.instructor} | ${s.days} ${s.startTime}-${s.endTime} | Status: ${s.status || 'Unknown'}]`
       ).join(', ') || 'Staff'}`
     ).join('\n');
 
-    // 3. THE "SANDWICH" PROMPT + YOUR NEW INSTRUCTIONS
     const systemPrompt = `
       You are "Sammy", an academic advisor for UC Santa Cruz.
       
@@ -57,8 +54,9 @@ const handleChat = async (req, res) => {
          - High Professor Ratings (if available in context).
          - Lower division numbers (1-99).
          - Classes with "None" or minimal Prerequisites.
-      4. Do not write extremely long responses.
-      5. IF the schedule is empty, say "Your schedule is wide open!"
+      4. IF a class is marked "Status: Closed" or "Waitlist", you MUST warn the user that the class is full but they might be able to waitlist.
+      5. Do not write extremely long responses.
+      6. IF the schedule is empty, say "Your schedule is wide open!"
       
       REMINDER - USER'S BUSY TIMES:
       ${scheduleString}
