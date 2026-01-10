@@ -9,7 +9,6 @@ jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
     
-    # 🛡️ Safety: Prevents multiple scrapers from running at the same time
     concurrency: 
       group: scraper-group
       cancel-in-progress: true
@@ -29,7 +28,6 @@ jobs:
         working-directory: ./backend
         run: npm ci
 
-      # ✅ CRITICAL NEW STEP: Generates the Prisma Client for Linux
       - name: Generate Prisma Client
         working-directory: ./backend
         run: npx prisma generate
