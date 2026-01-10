@@ -1,4 +1,4 @@
-# <img src="./frontend/public/logo.png" alt="AI Slug Navigator logo" width="28" style="vertical-align:middle; margin-right:8px;" /> AI Slug Navigator
+# <img src="./frontend/public/logo.png" alt="AI Slug Navigator logo" width="30" style="vertical-align:middle margin-right:8px;" /> AI Slug Navigator
 
 
 > **The smartest way for UC Santa Cruz students to build their class schedule.**
