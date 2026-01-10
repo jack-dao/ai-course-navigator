@@ -3,7 +3,7 @@ import { X, Send, Sparkles, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import sammyChat from '../assets/sammy-chat.png';
 
-const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading }) => {
+const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading, schoolName }) => {
   const [input, setInput] = React.useState('');
   const chatContainerRef = useRef(null);
 
@@ -31,7 +31,7 @@ const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading }) => {
 
           <div className="relative z-10">
             <h3 className="font-bold text-white text-xl tracking-tight">Sammy AI</h3>
-            <p className="text-xs font-bold text-blue-200">Academic Advisor</p>
+            <p className="text-xs font-bold text-blue-200">{schoolName} Academic Advisor</p>
           </div>
         </div>
 

@@ -25,19 +25,24 @@ async function scrapeFast() {
   console.log("🚀 Launching PARALLEL Scraper (Optimized Mode)...");
 
   try {
-    const ucsc = await prisma.school.upsert({
-      where: { name: "UCSC" },
-      update: {},
-      create: { name: "UCSC" }
-    });
-    console.log(`🏫 Linked to School: ${ucsc.name}`);
     console.log("📡 Connecting to UCSC PISA...");
     const initRes = await client.get(BASE_URL);
     let $ = cheerio.load(initRes.data);
-    
+
+    const termName = $('#term_dropdown option[selected]').text().trim() || "Winter 2026";
     const termId = $('#term_dropdown option[selected]').val() || $('#term_dropdown option').eq(0).val();
-    console.log(`📅 Active Term ID: ${termId}`);
+
+    console.log(`📅 Detected Term: ${termName} (ID: ${termId})`);
+
+    const ucsc = await prisma.school.upsert({
+      where: { name: "UCSC" },
+      update: { currentTerm: termName },
+      create: { name: "UCSC", currentTerm: termName }
+    });
+
+    console.log(`🏫 Linked to School: ${ucsc.name}`);
     console.log("⚡️ Executing Mega-Fetch...");
+    
     const baseParams = {
         'action': 'results',
         'binds[:term]': termId,
@@ -118,7 +123,6 @@ async function processClass($, el, schoolId) {
     const section = sectionMatch ? sectionMatch[1] : "01";
     let title = sectionMatch ? sectionMatch[2] : rest;
 
-    // Default Scrape from List View
     let instructor = $(el).find('.panel-body .row > div:nth-child(2)').text().split(':')[1]?.trim() || "Staff";
     let location = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(1)').text().replace("Location:", "").trim() || "TBA";
     let meeting = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(2)').text().replace("Day and Time:", "").trim() || "TBA";
@@ -134,12 +138,11 @@ async function processClass($, el, schoolId) {
     let discussions = [];
     let geCode = null;
     let prerequisites = null;
-    
     let career = null;
     let grading = null;
     let classNumber = null;
     let instructionMode = null;
-    let credits = 5; // Default fallback
+    let credits = 5; 
 
     let detailsLinkHref = $(el).find('h2 a').attr('href');
     if (!detailsLinkHref) detailsLinkHref = $(el).find('.panel-heading a').attr('href');
@@ -154,41 +157,32 @@ async function processClass($, el, schoolId) {
             discussions = parseDiscussions(detail$);
 
             let fullHeader = '';
-            
             detail$('h2').each((i, h2) => {
                 const text = detail$(h2).text().replace(/\u00A0/g, ' ').trim();
                 if (text.startsWith(code)) {
                     fullHeader = text;
-                    return false; // Break loop
+                    return false; 
                 }
             });
 
             if (fullHeader) {
                 let remaining = fullHeader.substring(code.length).trim();
-                
                 remaining = remaining.replace(/^[-–\s]+/, '').trim();
-                
                 remaining = remaining.replace(/^\d+[A-Z]?\s+/, '').trim();
-
-                if (remaining.length > 0) {
-                    title = remaining;
-                }
+                if (remaining.length > 0) title = remaining;
             }
 
             const panelText = detail$('.panel-body').text().replace(/\s+/g, ' '); 
             
             const classNumMatch = panelText.match(/Class Number\s*:?\s*(\d{5})/i);
-            if (classNumMatch) {
-                classNumber = classNumMatch[1];
-            } else {
+            if (classNumMatch) classNumber = classNumMatch[1];
+            else {
                 const possibleNum = detail$('.panel-body .row:first-child .col-xs-6:last-child').text().trim();
                 if (possibleNum && /^\d{5}$/.test(possibleNum)) classNumber = possibleNum;
             }
 
             const creditsMatch = panelText.match(/Credits\s*:?\s*(\d+)\s*units?/i);
-            if (creditsMatch) {
-                credits = parseInt(creditsMatch[1]);
-            }
+            if (creditsMatch) credits = parseInt(creditsMatch[1]);
 
             const modeMatch = panelText.match(/Instruction Mode\s*:?\s*(.+?)\s*(?:Credits|General)/i);
             if (modeMatch) instructionMode = modeMatch[1].trim();
@@ -209,7 +203,7 @@ async function processClass($, el, schoolId) {
             if (prereqMatch) prerequisites = prereqMatch[1].trim();
 
         } catch (err) {
-            // console.log(`[ERROR] Could not fetch details for ${code}: ${err.message}`);
+             // Silently fail on details to keep speed up
         }
     }
 

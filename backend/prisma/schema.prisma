@@ -9,9 +9,10 @@ datasource db {
 }
 
 model School {
-  id      Int      @id @default(autoincrement())
-  name    String   @unique
-  courses Course[]
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  currentTerm   String?
+  courses       Course[]
 }
 
 model Course {

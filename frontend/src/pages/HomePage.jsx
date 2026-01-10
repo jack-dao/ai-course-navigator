@@ -10,14 +10,20 @@ import AuthModal from '../components/AuthModal';
 import CalendarView from '../components/CalendarView';
 import ScheduleList from '../components/ScheduleList';
 import ProfessorModal from '../components/ProfessorModal';
-import PrivacyModal from '../components/PrivacyModal'; // ✅ 1. Import Privacy Modal
+import PrivacyModal from '../components/PrivacyModal'; 
 import AboutTab from '../components/AboutTab';
 
 import { useCourseFilters } from '../hooks/useCourseFilters';
 import { useSchedule } from '../hooks/useSchedule';
 
 const HomePage = ({ user, session }) => {
-  const UCSC_SCHOOL = { id: 'ucsc', name: 'UC Santa Cruz', shortName: 'UCSC', term: 'Winter 2026', status: 'active' };
+  const [ucscSchool, setUcscSchool] = useState({ 
+    id: 'ucsc', 
+    name: 'UC Santa Cruz', 
+    shortName: 'UCSC', 
+    term: 'Loading...', 
+    status: 'active' 
+  });
   
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'search';
@@ -30,8 +36,6 @@ const HomePage = ({ user, session }) => {
   const [showFilters, setShowFilters] = useState(true);
   const [showAIChat, setShowAIChat] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  
-  // ✅ 2. Add State for Privacy Modal
   const [showPrivacy, setShowPrivacy] = useState(false);
   
   const [availableCourses, setAvailableCourses] = useState(() => {
@@ -88,7 +92,14 @@ const HomePage = ({ user, session }) => {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            const cRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/courses`);
+            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const infoRes = await fetch(`${apiBase}/api/courses/info`);
+            if (infoRes.ok) {
+                const info = await infoRes.json();
+                setUcscSchool(info);
+            }
+
+            const cRes = await fetch(`${apiBase}/api/courses`);
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
@@ -100,7 +111,7 @@ const HomePage = ({ user, session }) => {
                 }
             }
 
-            const rRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/ratings`);
+            const rRes = await fetch(`${apiBase}/api/ratings`);
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
@@ -228,7 +239,7 @@ const HomePage = ({ user, session }) => {
         onLoginClick={() => setShowAuthModal(true)}
         showAIChat={showAIChat}
         onToggleChat={() => setShowAIChat(!showAIChat)}
-        selectedSchool={UCSC_SCHOOL}
+        selectedSchool={ucscSchool} 
       />
 
       <div className="flex flex-row w-full min-h-[calc(100vh-80px)]">
@@ -314,7 +325,6 @@ const HomePage = ({ user, session }) => {
             )}
 
             {activeTab === 'about' && (
-                // ✅ 3. Pass function to open modal
                 <AboutTab onOpenPrivacy={() => setShowPrivacy(true)} />
             )}
         </div>
@@ -327,7 +337,7 @@ const HomePage = ({ user, session }) => {
                         onClose={() => setShowAIChat(false)} 
                         messages={chatMessages} 
                         onSendMessage={handleSendMessage} 
-                        schoolName={UCSC_SCHOOL.shortName} 
+                        schoolName={ucscSchool.shortName} 
                         isLoading={isChatLoading}
                     />
                  </div>
@@ -343,11 +353,10 @@ const HomePage = ({ user, session }) => {
           </div>
       )}
 
-      {/* ✅ 4. Render the Privacy Modal */}
       <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
       
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={() => setShowAuthModal(false)} selectedSchool={UCSC_SCHOOL} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={() => setShowAuthModal(false)} selectedSchool={ucscSchool} /> // ✅ Updated to state
     </div>
   );
 };

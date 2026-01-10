@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Loader, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react'; 
 import { supabase } from '../supabase';
 
-const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
+const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }) => {
   const [isLogin, setIsLogin] = useState(true); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -103,7 +103,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">AI Slug Navigator</h2>
                 <p className="text-blue-100 font-medium text-sm leading-relaxed">
-                    Build the perfect schedule in minutes. Join thousands of UCSC students planning smarter.
+                    Build the perfect schedule in minutes. Join thousands of {selectedSchool?.shortName} students planning smarter.
                 </p>
             </div>
             <div className="relative z-10 space-y-4">

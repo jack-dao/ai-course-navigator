@@ -1,16 +1,26 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+
+function getSmartTerm() {
+  const now = new Date();
+  const month = now.getMonth(); 
+  const year = now.getFullYear();
+
+  if (month <= 2) return `Winter ${year}`;
+  if (month <= 5) return `Spring ${year}`;
+  if (month <= 8) return `Summer ${year}`;
+  return `Fall ${year}`;
+}
+
 const getCourses = async (req, res) => {
   try {
     const courses = await prisma.course.findMany({
       include: {
         school: true,
-
         sections: {
           where: { 
-            // only show the lectures
-            parentId: null   
+            parentId: null // Only show lectures (parents), hide sections/labs from top level
           },
           orderBy: { 
             sectionNumber: 'asc' 
@@ -45,6 +55,28 @@ const getCourses = async (req, res) => {
   }
 };
 
+const getSchoolInfo = async (req, res) => {
+  try {
+    const school = await prisma.school.findFirst({
+      where: { name: "UCSC" }
+    });
+
+    const dynamicTerm = school?.currentTerm || getSmartTerm();
+
+    res.json({
+      id: 'ucsc',
+      name: 'UC Santa Cruz',
+      shortName: 'UCSC',
+      term: dynamicTerm, 
+      status: 'active'
+    });
+  } catch (error) {
+    console.error("Metadata Error:", error);
+    res.status(500).json({ error: 'Failed to fetch school info' });
+  }
+};
+
 module.exports = {
-  getCourses
+  getCourses,
+  getSchoolInfo 
 };
