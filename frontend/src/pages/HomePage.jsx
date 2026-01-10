@@ -93,13 +93,18 @@ const HomePage = ({ user, session }) => {
     const fetchData = async () => {
         try {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-            const infoRes = await fetch(`${apiBase}/api/courses/info`);
+
+            const [infoRes, cRes, rRes] = await Promise.all([
+                fetch(`${apiBase}/api/courses/info`),
+                fetch(`${apiBase}/api/courses`),
+                fetch(`${apiBase}/api/ratings`)
+            ]);
+
             if (infoRes.ok) {
                 const info = await infoRes.json();
                 setUcscSchool(info);
             }
 
-            const cRes = await fetch(`${apiBase}/api/courses`);
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
@@ -111,7 +116,6 @@ const HomePage = ({ user, session }) => {
                 }
             }
 
-            const rRes = await fetch(`${apiBase}/api/ratings`);
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
@@ -356,7 +360,7 @@ const HomePage = ({ user, session }) => {
       <PrivacyModal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
       
       <ProfessorModal professor={selectedProfessor} isOpen={isProfModalOpen} onClose={() => setIsProfModalOpen(false)} />
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={() => setShowAuthModal(false)} selectedSchool={ucscSchool} /> // ✅ Updated to state
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} onLoginSuccess={() => setShowAuthModal(false)} selectedSchool={ucscSchool} /> 
     </div>
   );
 };
