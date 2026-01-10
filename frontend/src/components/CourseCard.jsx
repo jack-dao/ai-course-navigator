@@ -202,7 +202,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                 
                 {/* 1. LEFT: Metadata */}
                 <div className="flex-[10_1_380px] flex flex-row gap-6">
-                    <div className="w-[150px] shrink-0">
+                    <div className="w-[180px] shrink-0">
                         <p className="text-[10px] font-bold text-[#003C6C] mb-1">Instructor</p>
                         <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-start gap-2 group/prof text-left cursor-pointer w-full">
                             <div className="w-10 h-10 rounded-full bg-[#003C6C]/5 flex items-center justify-center text-[#003C6C] shrink-0">
