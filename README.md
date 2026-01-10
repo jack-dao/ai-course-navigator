@@ -1,4 +1,4 @@
-# 🐌 AI Slug Navigator
+# <img src="./frontend/public/logo.png" width="45" alt="AI Slug Navigator Logo" /> AI Slug Navigator
 
 > **The smartest way for UC Santa Cruz students to build their class schedule.**
 

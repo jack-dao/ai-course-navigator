@@ -92,20 +92,30 @@ const HomePage = ({ user, session }) => {
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
+                
                 try {
                     localStorage.setItem('cachedCourses', JSON.stringify(courses));
                 } catch {
                     console.warn("Course data too large for Local Storage. Skipping cache.");
                 }
             }
+
             const rRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/ratings`);
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
-                localStorage.setItem('cachedRatings', JSON.stringify(ratings));
+
+                try {
+                    localStorage.setItem('cachedRatings', JSON.stringify(ratings));
+                } catch {
+                      console.warn("Ratings too big to save. Skipping cache.");
+                }
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error("Network error:", e); 
+        }
     };
+    
     fetchData();
   }, []);
 
