@@ -2,12 +2,17 @@ name: Daily Data Update
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  workflow_dispatch:
+    - cron: '0 0 * * *' # Runs at midnight UTC
+  workflow_dispatch: # Allows manual trigger
 
 jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
+    
+    # 🛡️ Safety: Prevents multiple scrapers from running at the same time
+    concurrency: 
+      group: scraper-group
+      cancel-in-progress: true
 
     steps:
       - name: Checkout Code
@@ -23,6 +28,11 @@ jobs:
       - name: Install Dependencies
         working-directory: ./backend
         run: npm ci
+
+      # ✅ CRITICAL NEW STEP: Generates the Prisma Client for Linux
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        run: npx prisma generate
 
       - name: Run Course Scraper
         working-directory: ./backend
