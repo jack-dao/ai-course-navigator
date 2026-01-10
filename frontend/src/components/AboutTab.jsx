@@ -4,9 +4,7 @@ import { Shield, Info, Database, Github, AlertTriangle, Users, Cpu, RefreshCw, S
 const AboutTab = ({ onOpenPrivacy }) => {
   return (
     <div className="flex-1 h-full overflow-y-auto bg-white p-8 md:p-12 flex flex-col">
-      <div className="max-w-3xl mx-auto space-y-12 pb-10 flex-1">
-        
-        {/* 1. HEADER */}
+      <div className="max-w-3xl mx-auto space-y-12 pb-10 flex-1">        
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-black text-[#003C6C] tracking-tight">
             AI Slug Navigator
@@ -27,7 +25,6 @@ const AboutTab = ({ onOpenPrivacy }) => {
           </div>
         </div>
 
-        {/* 2. HOW SAMMY WORKS (Rewritten & Improved) */}
         <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-[#FDC700] text-[#003C6C] rounded-xl flex items-center justify-center">
@@ -36,7 +33,6 @@ const AboutTab = ({ onOpenPrivacy }) => {
             <h2 className="text-xl font-bold text-[#003C6C]">How Sammy AI Works</h2>
           </div>
           
-          {/* ✅ UPDATED COPY: Smoother flow + RMP Mention */}
           <p className="text-slate-700 font-medium leading-relaxed mb-6">
             Sammy acts as your personal academic assistant. It scans the entire UCSC catalog to find classes that fit your needs, checks for time conflicts with your current schedule, and pulls in <strong>RateMyProfessors</strong> data to help you find the best instructors.
           </p>
@@ -44,12 +40,11 @@ const AboutTab = ({ onOpenPrivacy }) => {
           <div className="flex gap-3 p-4 bg-white rounded-xl border border-slate-200 text-sm text-slate-600 shadow-sm">
             <AlertTriangle className="w-5 h-5 text-[#FDC700] shrink-0" />
             <p>
-              <strong>Heads up:</strong> Course availability and waitlist counts are updated nightly. Always verify the live status in MyUCSC before attempting to enroll.
+              <strong>Heads up:</strong> Course availability is updated nightly. Additionally, Sammy is an AI and can occasionally make mistakes. Always verify the live status and details in MyUCSC before enrolling.
             </p>
           </div>
         </div>
 
-        {/* 3. TECH STACK */}
         <div className="space-y-4">
             <h3 className="font-black text-slate-900 text-lg flex items-center gap-2">
                 <Cpu className="w-5 h-5 text-slate-400" />
@@ -70,7 +65,6 @@ const AboutTab = ({ onOpenPrivacy }) => {
             </div>
         </div>
 
-        {/* 4. DATA & PRIVACY CARDS */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="p-6 rounded-3xl border border-slate-200 hover:border-emerald-200 transition-colors bg-white">
             <div className="mb-4 text-emerald-600">
@@ -93,7 +87,6 @@ const AboutTab = ({ onOpenPrivacy }) => {
           </div>
         </div>
 
-        {/* 5. GITHUB BUTTON */}
         <div className="pt-6 text-center">
           <a 
             href="https://github.com/jack-dao/ai-course-navigator" 
@@ -108,7 +101,6 @@ const AboutTab = ({ onOpenPrivacy }) => {
 
       </div>
 
-      {/* ✅ REFINED FOOTER: Centered and Clean */}
       <div className="border-t border-slate-100 pt-8 mt-4 flex flex-col items-center justify-center gap-3 text-xs font-bold text-slate-400">
          <span>© 2026 Jack Dao. All rights reserved.</span>
          <button 
