@@ -35,7 +35,7 @@ const HomePage = ({ user, session }) => {
 
   const [showFilters, setShowFilters] = useState(() => window.innerWidth >= 768);
   
-  // ⚡️ FIX: Persist Chat State so reload keeps you in AI Chat
+  // Persist Chat State
   const [showAIChat, setShowAIChat] = useState(() => {
     try {
       return localStorage.getItem('showAIChat') === 'true';
@@ -44,7 +44,7 @@ const HomePage = ({ user, session }) => {
     }
   });
 
-  // ⚡️ FIX: Save Chat State on change
+  // Save Chat State on change
   useEffect(() => {
     localStorage.setItem('showAIChat', showAIChat);
   }, [showAIChat]);
@@ -309,7 +309,6 @@ const HomePage = ({ user, session }) => {
                 )}
                 
                 <main className="flex-1 min-w-0 bg-white relative z-0">
-                    {/* ⚡️ FIX: Sticky top-[70px] to sit under fixed header on scroll */}
                     <div className="px-4 md:px-8 py-6 border-b border-slate-100 bg-white sticky top-[70px] md:top-[80px] z-30 transition-all duration-200 shadow-sm">
                         <div className="flex flex-row gap-3 md:gap-4 mb-4">
                             <button 
@@ -431,15 +430,13 @@ const HomePage = ({ user, session }) => {
               <span className="text-[10px] font-bold">Schedule</span>
           </button>
 
-          {/* ⚡️ FIX: Sammy AI Button (No toggle logic, just open) */}
+          {/* ⚡️ FIX: Flat Tab Style for Sammy AI */}
           <button 
              onClick={() => { setShowAIChat(true); }} 
              className={`flex flex-col items-center gap-1 p-2 w-16 ${showAIChat ? 'text-[#003C6C]' : 'text-slate-400'}`}
           >
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white ${showAIChat ? 'bg-[#003C6C] text-[#FDC700]' : 'bg-[#FDC700] text-[#003C6C]'}`}>
-                  <MessageSquare className="w-7 h-7 fill-current" />
-              </div>
-              <span className={`text-[10px] font-bold ${showAIChat ? 'text-[#003C6C]' : 'text-slate-400'}`}>Sammy AI</span>
+              <MessageSquare className={`w-6 h-6 ${showAIChat ? 'stroke-[3px] fill-[#FDC700]' : ''}`} />
+              <span className="text-[10px] font-bold whitespace-nowrap">Sammy AI</span>
           </button>
 
           <button 
