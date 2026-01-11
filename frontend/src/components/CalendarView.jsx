@@ -1,5 +1,4 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
 
 const COLOR_PALETTES = [
   { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-900' },
@@ -99,15 +98,6 @@ const CalendarView = ({ selectedCourses }) => {
             ))}
             
             <div className="absolute w-full border-t border-gray-100" style={{ top: '100%', left: 0 }}></div>
-
-            {selectedCourses.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                 <div className="bg-white px-4 py-2 rounded-full border border-gray-200 shadow-sm flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500 font-medium">Add courses to see your schedule</span>
-                 </div>
-              </div>
-            )}
 
             <div className="absolute inset-0 left-14 right-0 top-0 bottom-0 grid grid-cols-5 pointer-events-none">
                {[1,2,3,4,5].forEach(i => <div key={i} className="relative h-full"></div>)}

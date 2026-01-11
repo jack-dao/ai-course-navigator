@@ -91,7 +91,8 @@ export const useCourseFilters = (availableCourses, professorRatings) => {
         results = results.filter(course => course.sections?.some(sec => {
             const start = parseTime(sec.startTime);
             const end = parseTime(sec.endTime);
-            if (start === null || end === null) return true;
+            // ⚡️ FIX: If time is NULL (TBA), exclude it when a specific range is requested
+            if (start === null || end === null) return false;
             return start >= filters.timeRange[0] && end <= filters.timeRange[1];
         }));
     }
