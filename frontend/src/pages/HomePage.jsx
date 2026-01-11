@@ -74,7 +74,7 @@ const HomePage = ({ user, session }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        if (showAIChat || showFilters) {
+        if (showAIChat || (showFilters && activeTab === 'search')) {
             document.body.style.overflow = 'hidden';
             document.documentElement.style.overflow = 'hidden';
         } else {
@@ -88,8 +88,7 @@ const HomePage = ({ user, session }) => {
       }
     };
     
-    // Initial check
-    if (window.innerWidth < 768 && (showAIChat || showFilters)) {
+    if (window.innerWidth < 768 && (showAIChat || (showFilters && activeTab === 'search'))) {
         document.body.style.overflow = 'hidden';
         document.documentElement.style.overflow = 'hidden';
     } else {
@@ -103,7 +102,7 @@ const HomePage = ({ user, session }) => {
         document.body.style.overflow = '';
         document.documentElement.style.overflow = '';
     };
-  }, [showAIChat, showFilters]);
+  }, [showAIChat, showFilters, activeTab]);
 
   const { 
       filters, setFilters, searchQuery, setSearchQuery, resetFilters, processedCourses 
@@ -247,10 +246,11 @@ const HomePage = ({ user, session }) => {
   const currentCourses = processedCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col font-sans relative pb-24 md:pb-0">
+    // ⚡️ FIX: Removed 'overflow-x-hidden' from main wrapper to allow 'sticky' to work
+    <div className="min-h-screen w-full bg-white flex flex-col font-sans relative pb-[90px] md:pb-0">
       
-      {/* ⚡️ HEADER (Sticky on desktop, fixed behavior on mobile via logic) */}
-      <div className="sticky top-0 z-[60] w-full bg-white">
+      {/* ⚡️ FIX: Header is sticky top-0 and z-60 to sit above filters/chat */}
+      <div className="sticky top-0 z-[60] w-full bg-white border-b border-slate-200">
         <Header 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -283,7 +283,7 @@ const HomePage = ({ user, session }) => {
                     </div>
                 )}
 
-                {/* ⚡️ Desktop Filter Sidebar */}
+                {/* ⚡️ Desktop Filter Sidebar - Sticky logic works now because parent overflow is visible */}
                 {showFilters && (
                     <div className="hidden md:block h-full">
                         <FilterSidebar 
@@ -296,7 +296,10 @@ const HomePage = ({ user, session }) => {
                 )}
                 
                 <main className="flex-1 min-w-0 bg-white relative z-0">
-                    <div className="px-4 md:px-8 py-6 border-b border-slate-100 bg-white sticky top-[70px] md:top-[80px] z-30">
+                    {/* ⚡️ Search Bar - sticky top-0 relative to main container, but since header is sticky, this will stick below it if offset correctly. */}
+                    {/* Since Header is sticky in the DOM flow above, we can just use sticky top-0 here if we want it to hit the top of the viewport under the header, or stick to the top of 'main'. */}
+                    {/* Actually, if Header is 70px/80px tall and sticky, we need top-[70px]/top-[80px] here. */}
+                    <div className="px-4 md:px-8 py-6 border-b border-slate-100 bg-white sticky top-[0px] md:top-[0px] z-30 transition-all duration-200 shadow-sm">
                         <div className="flex flex-row gap-3 md:gap-4 mb-4">
                             <button 
                                 onClick={() => setShowFilters(!showFilters)} 
@@ -383,7 +386,7 @@ const HomePage = ({ user, session }) => {
 
         {/* ⚡️ AI Chat Sidebar */}
         {showAIChat && (
-            <div className="fixed top-[70px] bottom-[80px] left-0 right-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:w-[400px] md:bottom-auto">
+            <div className="fixed top-[70px] bottom-[80px] left-0 right-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:w-[400px] md:bottom-auto md:pt-0 md:pb-0">
                  <div className="w-full h-full overflow-hidden">
                     <ChatSidebar 
                         isOpen={true} 

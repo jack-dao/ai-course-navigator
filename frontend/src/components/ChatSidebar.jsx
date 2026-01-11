@@ -20,38 +20,39 @@ const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading, schoolName }
   };
 
   return (
-    <div className="w-full h-full bg-slate-50 flex flex-col">
-      <div className="p-6 border-b border-[#FDC700] bg-gradient-to-r from-[#003C6C] to-[#00508c] flex items-center justify-between shrink-0 shadow-sm relative z-10 overflow-visible h-[88px]">
-        <div className="flex items-center pl-32 relative w-full">
-          <img
-            src={sammyChat}
-            alt="Sammy"
-            className="absolute -left-8 top-1/2 -translate-y-1/2 w-48 h-48 object-contain drop-shadow-2xl hover:scale-105 transition-transform z-20 pointer-events-none"
-          />
+    <div className="w-full h-full bg-slate-50 flex flex-col relative">
+      
+      {/* ⚡️ FIX: Floating Close Button (Visible only on mobile) */}
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 z-20 p-2 bg-white/80 backdrop-blur-sm rounded-full text-slate-400 hover:text-slate-600 shadow-sm border border-slate-100 md:hidden"
+      >
+        <X className="w-5 h-5" />
+      </button>
 
-          <div className="relative z-10">
-            <h3 className="font-bold text-white text-xl tracking-tight">Sammy AI</h3>
-            <p className="text-xs font-bold text-blue-200">{schoolName} Academic Advisor</p>
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-[#F8FAFC]">
+        
+        {/* ⚡️ FIX: Integrated Branding (Sammy Image inside chat) */}
+        {messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center pt-8 pb-4">
+             <div className="relative w-32 h-32 md:w-40 md:h-40 mb-4">
+                {/* Yellow Glow Effect behind Sammy */}
+                <div className="absolute inset-0 bg-[#FDC700]/20 blur-2xl rounded-full" />
+                <img
+                  src={sammyChat}
+                  alt="Sammy"
+                  className="relative w-full h-full object-contain drop-shadow-xl z-10"
+                />
+             </div>
+             <h3 className="font-black text-[#003C6C] text-2xl tracking-tight mb-1">Sammy AI</h3>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-8">{schoolName || 'UCSC'} Academic Advisor</p>
           </div>
-        </div>
+        )}
 
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer text-white/70 hover:text-white z-30"
-        >
-          <X className="w-6 h-6" />
-        </button>
-      </div>
-
-      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-[#F8FAFC]">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col justify-center px-2">
+          <div className="h-full flex flex-col justify-start px-2">
             <div className="text-center mb-8 opacity-80">
-              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-blue-200">
-                <Sparkles className="w-8 h-8 text-[#003C6C]" />
-              </div>
-              <h4 className="font-black text-slate-700 text-lg mb-2">How can I help you?</h4>
-              <p className="text-xs font-bold text-slate-400 max-w-[240px] mx-auto leading-relaxed">
+              <p className="text-sm font-medium text-slate-500 max-w-[260px] mx-auto leading-relaxed">
                 I can help you find easy classes, build the perfect schedule, or avoid 8am lectures.
               </p>
             </div>
@@ -107,7 +108,7 @@ const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading, schoolName }
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 pt-4">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -131,7 +132,7 @@ const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading, schoolName }
         )}
       </div>
 
-      <div className="p-5 bg-white border-t border-slate-100 shrink-0">
+      <div className="p-4 md:p-5 bg-white border-t border-slate-100 shrink-0">
         <div className="flex gap-2 relative group">
           <input
             type="text"
