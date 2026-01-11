@@ -9,6 +9,9 @@
 
 It acts as a centralized dashboard that unifies **UCSC course data**, **RateMyProfessors ratings**, and **Google Gemini AI** into a single interface. Instead of juggling multiple tabs to cross reference class times and professor reviews, students can search and filter courses, visualize their weekly schedule, and ask an **AI Academic Advisor** for recommendations.
 
+## 💡 Inspiration
+UCSC course planning is stressful because students have to switch between multiple tabs, including the official UCSC course catalog and RateMyProfessors, while piecing together a weekly schedule. **AI Slug Navigator** brings everything into one place so students can search classes, compare professors, and build a conflict-free schedule faster.
+
 ## 🚀 Key Features
 * **🤖 AI Academic Advisor:** Chat with **Sammy AI** (powered by Gemini 2.5) to find classes based on your interests (for example, “Find me an easy GE for Arts credit”).
 * **📅 Smart Schedule Builder:** Add and drop classes with automatic time conflict blocking and unit total calculation.
