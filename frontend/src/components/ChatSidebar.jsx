@@ -30,11 +30,12 @@ const ChatSidebar = ({ onClose, messages, onSendMessage, isLoading, schoolName }
         <X className="w-5 h-5" />
       </button>
 
+      {/* ⚡️ FIX: Reduced top padding to p-4 (was p-5 or pt-8) to reduce gap */}
       <div ref={chatContainerRef} className="flex-1 overflow-y-auto custom-scrollbar bg-[#F8FAFC] p-4 md:p-5">
         
         {/* Unified Hero Header (Inside scroll view) */}
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-full py-8">
+          <div className="flex flex-col items-center justify-center min-h-full py-4 md:py-8">
              
              {/* Sammy Hero */}
              <div className="relative w-32 h-32 md:w-40 md:h-40 mb-6">

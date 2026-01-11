@@ -248,8 +248,8 @@ const HomePage = ({ user, session }) => {
   return (
     <div className="min-h-screen w-full bg-white flex flex-col font-sans relative">
       
-      {/* ⚡️ FIX: Fixed Header (Never moves) */}
-      <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-slate-200 h-[80px]">
+      {/* ⚡️ FIX: Fixed Header with 70px height for mobile */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-slate-200 h-[70px] md:h-[80px]">
         <Header 
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -262,20 +262,17 @@ const HomePage = ({ user, session }) => {
         />
       </div>
 
-      {/* ⚡️ FIX: pt-[80px] pushes ALL content below the fixed header */}
-      <div className="flex flex-row w-full min-h-screen pt-[80px] pb-[80px] md:pb-0 relative">
+      {/* ⚡️ FIX: pt-[70px] for mobile content spacing */}
+      <div className="flex flex-row w-full min-h-screen pt-[70px] md:pt-[80px] pb-[80px] md:pb-0 relative">
         <div className="flex flex-1 min-w-0 transition-all duration-300 relative">
             
             {activeTab === 'search' && (
               <>
                 {/* ⚡️ FIX: Mobile Filter Modal 
-                    - fixed inset-0: Full screen coverage
-                    - pt-[80px]: Starts exactly below Header
-                    - pb-[80px]: Ends exactly above Footer
-                    - z-50: Sits under the z-60 Header
+                    - pt-[70px] matches header height exactly.
                 */}
                 {showFilters && (
-                    <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-in slide-in-from-bottom-5 overflow-hidden pt-[80px] pb-[80px]">
+                    <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-in slide-in-from-bottom-5 overflow-hidden pt-[70px] pb-[80px]">
                         <div className="flex-1 overflow-y-auto">
                             <FilterSidebar 
                                 filters={filters}
@@ -386,14 +383,11 @@ const HomePage = ({ user, session }) => {
             )}
         </div>
 
-        {/* ⚡️ FIX: AI Chat Sidebar (Mobile Position)
-           - fixed inset-0: Full coverage (hides background)
-           - pt-[80px]: Starts below fixed header
-           - pb-[80px]: Ends above fixed footer
-           - md:static: Resets on desktop
+        {/* ⚡️ FIX: AI Chat Sidebar
+           - pt-[70px]: Starts immediately below 70px header
         */}
         {showAIChat && (
-            <div className="fixed inset-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:w-[400px] md:bottom-auto pt-[80px] pb-[80px] md:pt-0 md:pb-0">
+            <div className="fixed inset-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:w-[400px] md:bottom-auto pt-[70px] pb-[80px] md:pt-0 md:pb-0">
                  <div className="w-full h-full overflow-hidden">
                     <ChatSidebar 
                         isOpen={true} 
