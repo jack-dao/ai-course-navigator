@@ -21,6 +21,7 @@ model Course {
   name              String    // e.g. "Algorithms"
   credits           Int
   department        String
+  description       String?
 
   geCode            String?
   prerequisites     String?

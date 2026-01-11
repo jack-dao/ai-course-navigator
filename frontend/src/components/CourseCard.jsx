@@ -19,7 +19,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- INTERNAL SORTING LOGIC ---
   const sortedSections = useMemo(() => {
     let sections = [...(course.sections || [])];
 
@@ -121,8 +120,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
 
   return (
     <div className="bg-white rounded-[20px] border border-slate-200 shadow-sm hover:shadow-md transition-all mb-6 overflow-visible group/card w-full">
-      
-      {/* HEADER */}
       <div className="px-6 py-5 bg-white rounded-t-[20px] border-t border-l border-r border-slate-200 border-b border-b-slate-100">
         <div className="flex justify-between items-start mb-3 flex-wrap gap-4">
             <div>
@@ -147,13 +144,11 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
         
         {(description || prerequisites) && (
           <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm space-y-3">
-              
-              {/* 1. Description Section (Updated Layout) */}
               {description && (
                   <div className="flex gap-2 items-start">
                       <div className="flex items-center gap-1.5 font-bold text-[#003C6C] whitespace-nowrap shrink-0">
                           <BookOpen className="w-3.5 h-3.5" />
-                          <span>Course Description:</span>
+                          <span>Description:</span>
                       </div>
                       <span className="text-slate-700 font-medium">
                           {description}
@@ -161,7 +156,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                   </div>
               )}
 
-              {/* 2. Prerequisites Section */}
               {prerequisites && (
                   <div className={`${description ? 'pt-3 border-t border-slate-200' : ''}`}>
                       <div className="flex gap-2 items-start">
@@ -179,7 +173,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
         )}
       </div>
 
-      {/* SECTIONS */}
       <div className="divide-y divide-slate-200 border-l border-r border-b border-slate-200 rounded-b-[20px]">
         {sortedSections.map((section, index) => {
           const hasDiscussions = section.subSections?.length > 0;
@@ -197,10 +190,8 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
 
           return (
             <div key={section.id} className={`p-6 hover:bg-slate-50/50 transition-colors ${isLast ? 'rounded-b-[20px]' : ''}`}>
-              
               <div className="flex flex-wrap gap-6">
                 
-                {/* 1. LEFT: Metadata */}
                 <div className="flex-[10_1_380px] flex flex-row gap-6">
                     <div className="w-[180px] shrink-0">
                         <p className="text-[10px] font-bold text-[#003C6C] mb-1">Instructor</p>
@@ -258,7 +249,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                     </div>
                 </div>
 
-                {/* 2. MIDDLE: Schedule */}
                 <div className="flex-[1_1_220px] flex flex-col justify-center border-l border-slate-100 pl-6 border-dashed min-w-[200px]">
                     <div className="flex items-start gap-4 mb-4">
                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
@@ -294,7 +284,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                     </div>
                 </div>
 
-                {/* 3. RIGHT: Actions */}
                 <div className="flex-[1_1_220px] flex flex-col gap-2 justify-center min-w-[220px]">
                     {hasDiscussions && (
                         <div className={`relative ${openDropdownId === section.id ? 'z-50' : 'z-0'}`} ref={openDropdownId === section.id ? dropdownRef : null}>
