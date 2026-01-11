@@ -248,7 +248,7 @@ const HomePage = ({ user, session }) => {
   return (
     <div className="min-h-screen w-full bg-white flex flex-col font-sans relative">
       
-      {/* ⚡️ FIX: Fixed Header with 70px height for mobile */}
+      {/* ⚡️ HEADER (Fixed) */}
       <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-slate-200 h-[70px] md:h-[80px]">
         <Header 
             activeTab={activeTab}
@@ -262,15 +262,12 @@ const HomePage = ({ user, session }) => {
         />
       </div>
 
-      {/* ⚡️ FIX: pt-[70px] for mobile content spacing */}
       <div className="flex flex-row w-full min-h-screen pt-[70px] md:pt-[80px] pb-[80px] md:pb-0 relative">
         <div className="flex flex-1 min-w-0 transition-all duration-300 relative">
             
             {activeTab === 'search' && (
               <>
-                {/* ⚡️ FIX: Mobile Filter Modal 
-                    - pt-[70px] matches header height exactly.
-                */}
+                {/* ⚡️ Mobile Filter Modal */}
                 {showFilters && (
                     <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-in slide-in-from-bottom-5 overflow-hidden pt-[70px] pb-[80px]">
                         <div className="flex-1 overflow-y-auto">
@@ -383,9 +380,7 @@ const HomePage = ({ user, session }) => {
             )}
         </div>
 
-        {/* ⚡️ FIX: AI Chat Sidebar
-           - pt-[70px]: Starts immediately below 70px header
-        */}
+        {/* ⚡️ AI Chat Sidebar */}
         {showAIChat && (
             <div className="fixed inset-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:sticky md:top-[80px] md:h-[calc(100vh-80px)] md:w-[400px] md:bottom-auto pt-[70px] pb-[80px] md:pt-0 md:pb-0">
                  <div className="w-full h-full overflow-hidden">
@@ -421,15 +416,13 @@ const HomePage = ({ user, session }) => {
               <span className="text-[10px] font-bold">Schedule</span>
           </button>
 
-          {/* SAMMY BUTTON */}
+          {/* ⚡️ FIX: Sammy Button (Flattened to match other tabs) */}
           <button 
              onClick={() => { setShowAIChat(!showAIChat); }} 
-             className="flex flex-col items-center gap-1 -mt-8 relative z-50"
+             className={`flex flex-col items-center gap-1 p-2 w-16 ${showAIChat ? 'text-[#003C6C]' : 'text-slate-400'}`}
           >
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg border-4 border-white ${showAIChat ? 'bg-[#003C6C] text-[#FDC700]' : 'bg-[#FDC700] text-[#003C6C]'}`}>
-                  <MessageSquare className="w-7 h-7 fill-current" />
-              </div>
-              <span className={`text-[10px] font-bold ${showAIChat ? 'text-[#003C6C]' : 'text-slate-400'}`}>Sammy</span>
+              <MessageSquare className={`w-6 h-6 ${showAIChat ? 'stroke-[3px] fill-[#FDC700]' : ''}`} />
+              <span className="text-[10px] font-bold">Sammy</span>
           </button>
 
           <button 
