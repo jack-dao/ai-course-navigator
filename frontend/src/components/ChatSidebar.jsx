@@ -44,7 +44,9 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
       {/* Scroll area */}
       <div
         ref={chatContainerRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-4 md:px-5 py-5"
+        className={`flex-1 min-h-0 overscroll-contain custom-scrollbar px-4 md:px-5 py-5 ${
+          messages.length === 0 ? 'overflow-y-auto md:overflow-hidden' : 'overflow-y-auto'
+        }`}
       >
         {messages.length === 0 ? (
           <div className="min-h-full flex flex-col justify-center md:justify-start">
@@ -142,7 +144,8 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
 
       {/* Input */}
       <div className="bg-white border-t border-slate-100 px-4 md:px-5 py-4 shrink-0">
-        <div className="relative">
+        {/* The input pill is now the container, so the button is always perfectly centered */}
+        <div className="w-full min-h-[54px] flex items-center gap-3 px-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus-within:bg-white focus-within:border-[#003C6C] transition-all">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -154,13 +157,13 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
             }}
             rows={1}
             placeholder={isLoading ? 'Sammy is thinking...' : 'Ask a question...'}
-            className="w-full min-h-[54px] resize-none pr-16 pl-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none transition-all text-sm font-bold text-slate-700 placeholder:text-slate-400"
+            className="flex-1 min-h-[40px] max-h-[120px] resize-none bg-transparent outline-none text-sm font-bold text-slate-700 placeholder:text-slate-400 py-3 leading-5"
           />
 
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-[#FDC700] text-[#003C6C] flex items-center justify-center shadow-sm hover:bg-[#e5b600] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-10 h-10 shrink-0 rounded-xl bg-[#FDC700] text-[#003C6C] flex items-center justify-center shadow-sm hover:bg-[#e5b600] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
             <Send className="w-4 h-4" />
