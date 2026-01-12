@@ -21,9 +21,7 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
 
   return (
     <div className="w-full h-full flex flex-col bg-[#F8FAFC]">
-      {/* Desktop only header */}
       <div className="hidden md:flex items-center gap-4 px-5 py-4 bg-[#003C6C] border-b border-[#FDC700]">
-        {/* Bigger logo */}
         <div className="w-20 h-20 shrink-0 flex items-center justify-center overflow-visible">
           <img
             src={sammyChat}
@@ -41,7 +39,6 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
         </div>
       </div>
 
-      {/* Scroll area */}
       <div
         ref={chatContainerRef}
         className={`flex-1 min-h-0 overscroll-contain custom-scrollbar px-4 md:px-5 py-5 ${
@@ -142,9 +139,7 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
         )}
       </div>
 
-      {/* Input */}
       <div className="bg-white border-t border-slate-100 px-4 md:px-5 py-4 shrink-0">
-        {/* The input pill is now the container, so the button is always perfectly centered */}
         <div className="w-full min-h-[54px] flex items-center gap-3 px-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus-within:bg-white focus-within:border-[#003C6C] transition-all">
           <textarea
             value={input}
