@@ -266,7 +266,6 @@ const HomePage = ({ user, session }) => {
   return (
     <div className="h-[100dvh] w-full max-w-[100vw] bg-white flex flex-col font-sans relative overflow-hidden">
       
-      {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-slate-200 h-[70px] md:h-[80px]">
         <Header 
             activeTab={activeTab}
@@ -282,7 +281,6 @@ const HomePage = ({ user, session }) => {
 
       <div className="flex flex-row w-full h-full pt-[70px] md:pt-[80px] pb-[80px] md:pb-0 relative">
         
-        {/* Desktop Filter Sidebar */}
         {showFilters && activeTab === 'search' && (
             <div className="hidden md:block w-72 shrink-0 border-r border-slate-100 bg-white h-full overflow-y-auto z-20 custom-scrollbar">
                 <FilterSidebar 
@@ -294,12 +292,10 @@ const HomePage = ({ user, session }) => {
             </div>
         )}
 
-        {/* Content Scroll Container */}
         <div className="flex flex-1 min-w-0 transition-all duration-300 relative overflow-y-auto h-full custom-scrollbar">
             
             {activeTab === 'search' && (
               <>
-                {/* Mobile Filter Modal */}
                 {showFilters && (
                     <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-in slide-in-from-bottom-5 overflow-hidden pt-[70px] pb-[80px]">
                         <div className="flex-1 overflow-y-auto">
@@ -374,7 +370,6 @@ const HomePage = ({ user, session }) => {
             {activeTab === 'schedule' && (
                 <div className="flex flex-col md:flex-row flex-1 h-full overflow-hidden">
                     
-                    {/* Mobile Toggle */}
                     <div className="md:hidden px-4 py-3 bg-white border-b border-slate-100 shrink-0 sticky top-0 z-30">
                         <div className="flex p-1 bg-slate-100 rounded-xl">
                             <button
@@ -400,7 +395,6 @@ const HomePage = ({ user, session }) => {
                         </div>
                     </div>
 
-                    {/* Left Column: Schedule List */}
                     <div className={`${
                         mobileScheduleView === 'list' ? 'flex' : 'hidden'
                     } md:flex w-full md:w-[400px] shrink-0 border-b md:border-r border-slate-100 flex-col z-10 bg-white h-full md:max-h-full overflow-hidden`}>
@@ -415,7 +409,6 @@ const HomePage = ({ user, session }) => {
                         <div className="p-4 md:p-6 border-t border-slate-100 shrink-0 bg-white pb-24 md:pb-6 flex flex-col gap-2">
                             <button onClick={handleSaveSchedule} className="w-full py-4 bg-[#003C6C] text-white font-bold rounded-2xl hover:bg-[#002a4d] shadow-xl transition-all cursor-pointer active:scale-95 text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> Save Schedule</button>
                             
-                            {/* ⚡️ FIX: w-fit + mx-auto centers the pill and keeps it small */}
                             {notification && (
                                 <div className={`md:hidden w-fit mx-auto mt-2 px-6 py-3 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-2 text-white shadow-sm ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-[#003C6C] border-[#FDC700]'}`}>
                                     {notification.type === 'error' ? <AlertCircle className="w-4 h-4 shrink-0"/> : <CheckCircle className="w-4 h-4 shrink-0 text-[#FDC700]"/>}
@@ -425,7 +418,6 @@ const HomePage = ({ user, session }) => {
                         </div>
                     </div>
 
-                    {/* Right Column: Calendar View */}
                     <div className={`${
                         mobileScheduleView === 'calendar' ? 'flex' : 'hidden'
                     } md:flex flex-1 overflow-hidden relative h-full`}>
@@ -443,7 +435,6 @@ const HomePage = ({ user, session }) => {
             )}
         </div>
 
-        {/* AI Chat Sidebar */}
         {showAIChat && (
             <div className="fixed inset-0 z-50 bg-white border-l border-[#FDC700] shadow-xl shrink-0 flex flex-col md:relative md:h-full md:w-[400px] md:bottom-auto pt-[70px] pb-[80px] md:pt-0 md:pb-0">
                  <div className="w-full h-full overflow-hidden">
@@ -497,8 +488,6 @@ const HomePage = ({ user, session }) => {
       </div>
 
       {notification && (
-          // ⚡️ Desktop Notification (Bottom) + Mobile Search Notification
-          // Hidden on Mobile IF we are in the Schedule tab (to avoid duplicates)
           <div className={`${activeTab === 'schedule' ? 'hidden md:flex' : 'flex'} fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] items-center gap-4 border animate-in slide-in-from-bottom-10 ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-[#003C6C] border-[#FDC700]'}`}>
               {notification.type === 'error' ? <AlertCircle className="w-5 h-5"/> : <CheckCircle className="w-5 h-5 text-[#FDC700]"/>}
               <span className="font-bold text-xs tracking-tight">{notification.message}</span>
