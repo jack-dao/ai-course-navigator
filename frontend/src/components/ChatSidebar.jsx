@@ -47,7 +47,6 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar px-4 md:px-5 py-5"
       >
         {messages.length === 0 ? (
-          /* Mobile fix: center the whole empty state vertically */
           <div className="min-h-full flex flex-col justify-center md:justify-start">
             <div className="w-full max-w-[420px] mx-auto pt-4 md:pt-3 pb-6 md:pb-16">
               <div className="flex flex-col items-center text-center">
@@ -155,14 +154,13 @@ const ChatSidebar = ({ onClose, messages = [], onSendMessage, isLoading, schoolN
             }}
             rows={1}
             placeholder={isLoading ? 'Sammy is thinking...' : 'Ask a question...'}
-            className="w-full resize-none pr-14 pl-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none transition-all text-sm font-bold text-slate-700 placeholder:text-slate-400"
+            className="w-full min-h-[54px] resize-none pr-16 pl-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none transition-all text-sm font-bold text-slate-700 placeholder:text-slate-400"
           />
 
-          {/* Centered properly: top-0 bottom-0 my-auto */}
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 top-0 bottom-0 my-auto w-11 h-11 rounded-xl bg-[#FDC700] text-[#003C6C] flex items-center justify-center shadow-sm hover:bg-[#e5b600] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-[#FDC700] text-[#003C6C] flex items-center justify-center shadow-sm hover:bg-[#e5b600] active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Send message"
           >
             <Send className="w-4 h-4" />
