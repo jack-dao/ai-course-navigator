@@ -145,7 +145,7 @@ const HomePage = ({ user, session }) => {
                 setAvailableCourses(courses);
                 try { localStorage.setItem('cachedCourses', JSON.stringify(courses)); 
 
-                } catch (e) {
+                } catch {
                     // ignore cache errors
                 }
             }
@@ -154,7 +154,7 @@ const HomePage = ({ user, session }) => {
                 setProfessorRatings(ratings);
                 try { localStorage.setItem('cachedRatings', JSON.stringify(ratings)); 
 
-                } catch (e) {
+                } catch {
                     // ignore cache errors
                 }
             }
