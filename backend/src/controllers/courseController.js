@@ -15,7 +15,13 @@ function getSmartTerm() {
 
 const getCourses = async (req, res) => {
   try {
+    // ⚡️ FIX: Get the term from the request query
+    const { term } = req.query;
+
     const courses = await prisma.course.findMany({
+      // ⚡️ FIX: Filter by term if provided
+      where: term ? { term: term } : {}, 
+      
       include: {
         school: true,
         sections: {

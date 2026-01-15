@@ -90,7 +90,7 @@ async function scrapeFast() {
     console.log(`🔥 Starting Batch Processing (${batches.length} batches)...`);
 
     for (const batch of batches) {
-        const promises = batch.map(el => processClass($, el, ucsc.id));
+        const promises = batch.map(el => processClass($, el, ucsc.id, termName));
         await Promise.all(promises);
 
         processedCount += batch.length;
@@ -108,7 +108,7 @@ async function scrapeFast() {
   }
 }
 
-async function processClass($, el, schoolId) {
+async function processClass($, el, schoolId, termName) {
     const header = $(el).find('.panel-heading').text().trim();
     if (header.includes('Search Results')) return;
 
@@ -215,7 +215,7 @@ async function processClass($, el, schoolId) {
     await saveToDatabase({ 
         code, title, section, instructor, meeting, location, status, enrolled, capacity, discussions,
         geCode, prerequisites, description, career, grading, classNumber, instructionMode, credits
-    }, schoolId);
+    }, schoolId, termName);
 }
 
 function parseDiscussions(detail$) {
@@ -254,10 +254,16 @@ function parseDiscussions(detail$) {
     return results;
 }
 
-async function saveToDatabase(course, schoolId) {
+async function saveToDatabase(course, schoolId, termName) {
     try {
       const dbCourse = await prisma.course.upsert({
-        where: { schoolId_code: { schoolId: schoolId, code: course.code } },
+        where: { 
+            schoolId_code_term: { 
+                schoolId: schoolId, 
+                code: course.code,
+                term: termName 
+            } 
+        },
         update: { 
           name: course.title,
           instructor: course.instructor,
@@ -272,6 +278,7 @@ async function saveToDatabase(course, schoolId) {
         create: {
           code: course.code,
           name: course.title,
+          term: termName,
           credits: course.credits, 
           instructor: course.instructor,
           department: course.code.split(' ')[0],
@@ -286,7 +293,8 @@ async function saveToDatabase(course, schoolId) {
 
       const days = course.meeting.split(' ')[0] || "TBA"; 
       const timeRange = course.meeting.split(' ').slice(1).join(' ') || "TBA";
-      const uniqueSectionCode = `${course.code}-${course.section}`; 
+      
+      const uniqueSectionCode = `${course.code}-${course.section}-${termName}`; 
 
       const lectureData = {
         courseId: dbCourse.id,
@@ -306,8 +314,9 @@ async function saveToDatabase(course, schoolId) {
         instructionMode: course.instructionMode
       };
 
-      let lectureId;
       const existingSection = await prisma.section.findUnique({ where: { sectionCode: uniqueSectionCode } });
+      let lectureId;
+      
       if (existingSection) {
         const updated = await prisma.section.update({ where: { id: existingSection.id }, data: lectureData });
         lectureId = updated.id;
@@ -318,7 +327,8 @@ async function saveToDatabase(course, schoolId) {
 
       if (course.discussions && course.discussions.length > 0) {
           for (const dis of course.discussions) {
-              const uniqueDisCode = `${course.code}-${dis.sectionNumber}`;
+              // ⚡️ MAKE Discussion Code Unique per term
+              const uniqueDisCode = `${course.code}-${dis.sectionNumber}-${termName}`;
               const disData = {
                   courseId: dbCourse.id,
                   parentId: lectureId,

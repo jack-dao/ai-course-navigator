@@ -19,6 +19,7 @@ model Course {
   id                Int       @id @default(autoincrement())
   code              String    // e.g. "CSE 101"
   name              String    // e.g. "Algorithms"
+  term              String    @default("Winter 2026")
   credits           Int
   department        String
   description       String?
@@ -38,7 +39,7 @@ model Course {
 
   sections    Section[]
 
-  @@unique([schoolId, code])
+  @@unique([schoolId, code, term])
 }
 
 model Section {
