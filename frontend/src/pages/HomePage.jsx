@@ -25,9 +25,25 @@ const HomePage = ({ user, session }) => {
     status: 'active' 
   });
   
-  const [selectedTerm, setSelectedTerm] = useState('Winter 2026');
-  
-  // ⚡️ NEW: Loading state for data fetching
+  const sortTerms = (terms) => {
+    const seasons = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
+    return terms.sort((a, b) => {
+      const partsA = a.split(' ');
+      const partsB = b.split(' ');
+      const yearA = parseInt(partsA[0]);
+      const seasonA = partsA[1];
+      const yearB = parseInt(partsB[0]);
+      const seasonB = partsB[1];
+
+      if (yearA !== yearB) return yearB - yearA; 
+      return (seasons[seasonB] || 0) - (seasons[seasonA] || 0);
+    });
+  };
+
+  const formatTermForDb = (term) => term; 
+
+  const [selectedTerm, setSelectedTerm] = useState(''); 
+  const [availableTerms, setAvailableTerms] = useState([]);
   const [isCoursesLoading, setIsCoursesLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -132,56 +148,73 @@ const HomePage = ({ user, session }) => {
     }
   }, [searchQuery, filters]);
 
-  const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses);
+  const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses, selectedTerm);
   const MAX_UNITS = 22;
 
-  // ⚡️ FIX: Map User-Friendly Terms to Database Terms
-  const termMapping = {
-    'Winter 2026': '2026 Winter Quarter',
-    'Spring 2026': '2026 Spring Quarter',
-    'Fall 2025': '2025 Fall Quarter'
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
-        setIsCoursesLoading(true); // Start loading
+    const fetchMetadata = async () => {
         try {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-            
-            // ⚡️ FIX: Use the mapping to send the correct string to the DB
-            const dbTerm = termMapping[selectedTerm] || selectedTerm;
-
-            const [infoRes, cRes, rRes] = await Promise.all([
+            const [infoRes, termsRes] = await Promise.all([
                 fetch(`${apiBase}/api/courses/info`),
+                fetch(`${apiBase}/api/courses/terms`)
+            ]);
+
+            if (infoRes.ok) setUcscSchool(await infoRes.json());
+            
+            if (termsRes.ok) {
+                const dbTerms = await termsRes.json();
+                if (dbTerms.length > 0) {
+                    const sortedTerms = sortTerms(dbTerms);
+                    setAvailableTerms(sortedTerms);
+                    setSelectedTerm(sortedTerms[0]);
+                } else {
+                    const fallback = '2026 Winter Quarter';
+                    setAvailableTerms([fallback]);
+                    setSelectedTerm(fallback);
+                }
+            }
+        } catch (e) {
+            console.error("Metadata Load Error:", e);
+            setSelectedTerm('2026 Winter Quarter');
+        }
+    };
+    fetchMetadata();
+  }, []); 
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+        if (!selectedTerm) return;
+        
+        setIsCoursesLoading(true);
+        try {
+            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const dbTerm = formatTermForDb(selectedTerm);
+
+            const [cRes, rRes] = await Promise.all([
                 fetch(`${apiBase}/api/courses?term=${encodeURIComponent(dbTerm)}`),
                 fetch(`${apiBase}/api/ratings`)
             ]);
 
-            if (infoRes.ok) setUcscSchool(await infoRes.json());
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
-                
-                // Only cache if we actually got data (prevents overwriting cache with 0 results if fetch fails)
                 if (courses.length > 0) {
-                    try { 
-                        localStorage.setItem('cachedCourses', JSON.stringify(courses)); 
-                    } catch {}
+                    try { localStorage.setItem('cachedCourses', JSON.stringify(courses)); } catch {}
                 }
             }
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
-                try { 
-                    localStorage.setItem('cachedRatings', JSON.stringify(ratings)); 
-                } catch {}
+                try { localStorage.setItem('cachedRatings', JSON.stringify(ratings)); } catch {}
             }
-        } catch (e) { console.error("Network error:", e); }
+        } catch (e) { console.error("Course Load Error:", e); }
         finally {
-            setIsCoursesLoading(false); // Stop loading
+            setIsCoursesLoading(false);
         }
     };
-    fetchData();
+
+    fetchCourses();
   }, [selectedTerm]);
 
   const showNotification = (message, type = 'success') => {
@@ -224,7 +257,7 @@ const HomePage = ({ user, session }) => {
     showNotification("Saving schedule...", 'info');
     try {
       const payload = { 
-          name: `My Schedule`, 
+          name: selectedTerm, 
           courses: selectedCourses.map(course => ({ 
               code: course.code, 
               sectionCode: course.selectedSection?.sectionCode || '', 
@@ -307,6 +340,7 @@ const HomePage = ({ user, session }) => {
             selectedSchool={ucscSchool} 
             selectedTerm={selectedTerm}
             setSelectedTerm={setSelectedTerm}
+            availableTerms={availableTerms}
         />
       </div>
 
@@ -375,7 +409,6 @@ const HomePage = ({ user, session }) => {
                 </div>
 
                 <main id="search-results-container" className="flex-1 overflow-y-auto custom-scrollbar bg-white relative z-0">
-                    {/* ⚡️ FIX: Show loading spinner if fetching */}
                     {isCoursesLoading ? (
                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
                             <Loader2 className="w-10 h-10 animate-spin mb-4 text-[#FDC700]" />

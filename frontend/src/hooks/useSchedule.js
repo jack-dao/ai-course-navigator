@@ -1,14 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
-export const useSchedule = (user, session, availableCourses) => {
-  const [selectedCourses, setSelectedCourses] = useState(() => {
-    try {
-        const cached = localStorage.getItem('cachedSchedule');
-        return cached ? JSON.parse(cached) : [];
-    } catch { 
-        return []; 
-    }
-  });
+export const useSchedule = (user, session, availableCourses, selectedTerm) => {
+  const [selectedCourses, setSelectedCourses] = useState([]);
 
   const totalUnits = useMemo(() => {
     return selectedCourses.reduce((acc, course) => {
@@ -82,27 +75,31 @@ export const useSchedule = (user, session, availableCourses) => {
 
   useEffect(() => {
     const fetchUserSchedule = async () => {
-      if (user && session && availableCourses.length > 0) {
+      if (user && session && availableCourses.length > 0 && selectedTerm) {
         try {
-            const response = await fetch('http://localhost:3000/api/schedules', { 
+            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const response = await fetch(`${apiBase}/api/schedules?term=${encodeURIComponent(selectedTerm)}`, { 
               headers: { 'Authorization': `Bearer ${session.access_token}` } 
             });
+
             if (response.ok) {
               const data = await response.json();
               if (data.courses) {
                   const restored = restoreScheduleFromData(data.courses, availableCourses);
                   setSelectedCourses(restored);
-                  localStorage.setItem('cachedSchedule', JSON.stringify(restored));
+              } else {
+                  setSelectedCourses([]);
               }
             }
-        } catch (err) { console.error("Schedule Fetch Error:", err); }
+        } catch (err) { 
+            console.error("Schedule Fetch Error:", err); 
+        }
       } else if (!user) {
           setSelectedCourses([]);
-          localStorage.removeItem('cachedSchedule');
       }
     };
     fetchUserSchedule();
-  }, [user, session, availableCourses]);
+  }, [user, session, availableCourses, selectedTerm]); 
 
   return { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits };
 };

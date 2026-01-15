@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 
 const saveSchedule = async (req, res) => {
     try {
-        const { name, courses } = req.body;
+        const { name, courses } = req.body; 
         const userId = req.user.userId;
         const email = req.user.email; 
         const userName = req.user.user_metadata?.full_name || email?.split('@')[0] || 'User';
@@ -23,19 +23,31 @@ const saveSchedule = async (req, res) => {
             },
         });
 
-        await prisma.schedule.deleteMany({
-            where: { userId: userId }
+        const existingSchedule = await prisma.schedule.findFirst({
+            where: {
+                userId: userId,
+                name: name 
+            }
         });
 
-        const schedule = await prisma.schedule.create({
-            data: {
-                name: name || 'My Schedule',
-                courses, 
-                userId
-            },
-        });
+        let schedule;
+        if (existingSchedule) {
+            schedule = await prisma.schedule.update({
+                where: { id: existingSchedule.id },
+                data: { courses }
+            });
+            console.log(`Updated schedule "${name}" for user ${userId}`);
+        } else {
+            schedule = await prisma.schedule.create({
+                data: {
+                    userId,
+                    name: name || 'My Schedule',
+                    courses
+                },
+            });
+            console.log(`Created new schedule "${name}" for user ${userId}`);
+        }
 
-        console.log(`Schedule saved for user ${userId}`);
         res.status(200).json(schedule);
     }
     catch (error) {
@@ -47,9 +59,13 @@ const saveSchedule = async (req, res) => {
 const getSchedules = async (req, res) => {
     try {
         const userId = req.user.userId;
+        const { term } = req.query; 
+
         const schedule = await prisma.schedule.findFirst({
-            where: { userId: userId },
-            orderBy: { createdAt: 'desc'}
+            where: { 
+                userId: userId,
+                name: term
+            }
         });
         
         if (!schedule) {

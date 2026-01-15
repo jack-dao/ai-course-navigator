@@ -15,18 +15,15 @@ function getSmartTerm() {
 
 const getCourses = async (req, res) => {
   try {
-    // ⚡️ FIX: Get the term from the request query
     const { term } = req.query;
 
     const courses = await prisma.course.findMany({
-      // ⚡️ FIX: Filter by term if provided
       where: term ? { term: term } : {}, 
-      
       include: {
         school: true,
         sections: {
           where: { 
-            parentId: null // Only show lectures (parents), hide sections/labs from top level
+            parentId: null 
           },
           orderBy: { 
             sectionNumber: 'asc' 
@@ -82,7 +79,22 @@ const getSchoolInfo = async (req, res) => {
   }
 };
 
+const getTerms = async (req, res) => {
+  try {
+    const terms = await prisma.course.findMany({
+      select: { term: true },
+      distinct: ['term'], 
+      orderBy: { term: 'desc' }
+    });
+    res.json(terms.map(t => t.term));
+  } catch (error) {
+    console.error("Terms Error:", error);
+    res.status(500).json({ error: 'Failed to fetch terms' });
+  }
+};
+
 module.exports = {
   getCourses,
-  getSchoolInfo 
+  getSchoolInfo,
+  getTerms 
 };
