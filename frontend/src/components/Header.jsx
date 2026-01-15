@@ -12,7 +12,6 @@ const Header = ({
   onLoginClick,
   showAIChat,
   onToggleChat,
-  selectedSchool,
   selectedTerm,
   setSelectedTerm,
   availableTerms = []

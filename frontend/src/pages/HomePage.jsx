@@ -200,13 +200,22 @@ const HomePage = ({ user, session }) => {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
                 if (courses.length > 0) {
-                    try { localStorage.setItem('cachedCourses', JSON.stringify(courses)); } catch {}
+                    try { 
+                      localStorage.setItem('cachedCourses', JSON.stringify(courses)); 
+                    } catch (e) {
+                      // ⚡️ FIX: Added console.warn to satisfy linter (Empty block statement)
+                      console.warn('Failed to cache courses', e);
+                    }
                 }
             }
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
-                try { localStorage.setItem('cachedRatings', JSON.stringify(ratings)); } catch {}
+                try { 
+                  localStorage.setItem('cachedRatings', JSON.stringify(ratings)); 
+                } catch (e) {
+                  console.warn('Failed to cache ratings', e);
+                }
             }
         } catch (e) { console.error("Course Load Error:", e); }
         finally {
@@ -337,7 +346,6 @@ const HomePage = ({ user, session }) => {
             onLoginClick={() => setShowAuthModal(true)}
             showAIChat={showAIChat}
             onToggleChat={() => setShowAIChat(!showAIChat)}
-            selectedSchool={ucscSchool} 
             selectedTerm={selectedTerm}
             setSelectedTerm={setSelectedTerm}
             availableTerms={availableTerms}
