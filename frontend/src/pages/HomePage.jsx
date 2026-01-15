@@ -43,7 +43,6 @@ const HomePage = ({ user, session }) => {
 
   const formatTermForDb = (term) => term; 
 
-  // ⚡️ FIX 1: Initialize Term from LocalStorage (Instant, no network wait)
   const [availableTerms, setAvailableTerms] = useState(() => {
     try {
         const saved = localStorage.getItem('cachedTerms');
@@ -52,11 +51,9 @@ const HomePage = ({ user, session }) => {
   });
 
   const [selectedTerm, setSelectedTerm] = useState(() => {
-      // Priority: 1. LocalStorage 2. First cached term 3. Empty (wait for fetch)
       return localStorage.getItem('lastSelectedTerm') || (availableTerms.length > 0 ? availableTerms[0] : '');
   });
 
-  // Save selected term preference instantly
   useEffect(() => {
       if (selectedTerm) localStorage.setItem('lastSelectedTerm', selectedTerm);
   }, [selectedTerm]);
@@ -158,8 +155,6 @@ const HomePage = ({ user, session }) => {
   const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses, selectedTerm);
   const MAX_UNITS = 22;
 
-  // ⚡️ FIX 2: Metadata Load (Background Update)
-  // We don't rely on this for the initial render anymore!
   useEffect(() => {
     const fetchMetadata = async () => {
         try {
@@ -176,10 +171,8 @@ const HomePage = ({ user, session }) => {
                 if (dbTerms.length > 0) {
                     const sorted = sortTerms(dbTerms);
                     setAvailableTerms(sorted);
-                    // Cache terms list for next time
                     localStorage.setItem('cachedTerms', JSON.stringify(sorted));
                     
-                    // Only auto-select if we have NO selection (First visit ever)
                     if (!selectedTerm) {
                         setSelectedTerm(sorted[0]);
                     }
@@ -190,10 +183,11 @@ const HomePage = ({ user, session }) => {
         }
     };
     fetchMetadata();
-  }, []); // Runs once on mount
+  }, []); 
 
-  // ⚡️ FIX 3: SWR Course Loading (Now runs instantly on mount)
   useEffect(() => {
+    let isActive = true; 
+
     const fetchCourses = async () => {
         if (!selectedTerm) return;
 
@@ -201,26 +195,23 @@ const HomePage = ({ user, session }) => {
         const cacheKeyCourses = `courses_${dbTerm}`;
         const cacheKeyRatings = `ratings`; 
 
-        // 1. FAST: Load from disk
         try {
             const cachedCourses = await get(cacheKeyCourses);
             const cachedRatings = await get(cacheKeyRatings);
             
-            if (cachedCourses && cachedCourses.length > 0) {
+            if (isActive && cachedCourses && cachedCourses.length > 0) {
                 setAvailableCourses(cachedCourses);
                 if (cachedRatings) setProfessorRatings(cachedRatings);
                 setIsCoursesLoading(false);
                 setIsBackgroundFetching(true); 
-            } else {
-                // Only blocking loader if we have NO data
+            } else if (isActive) {
                 setIsCoursesLoading(true);
             }
         } catch (e) {
             console.warn("Cache read failed", e);
-            setIsCoursesLoading(true);
+            if (isActive) setIsCoursesLoading(true);
         }
 
-        // 2. SLOW: Network Update
         try {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -229,12 +220,12 @@ const HomePage = ({ user, session }) => {
                 fetch(`${apiBase}/api/ratings`)
             ]);
 
-            if (cRes.ok) {
+            if (isActive && cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
                 set(cacheKeyCourses, courses).catch(err => console.warn('Cache failed', err));
             }
-            if (rRes.ok) {
+            if (isActive && rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
                 set(cacheKeyRatings, ratings).catch(err => console.warn('Cache failed', err));
@@ -242,12 +233,18 @@ const HomePage = ({ user, session }) => {
         } catch (e) { 
             console.error("Network Load Error:", e); 
         } finally {
-            setIsCoursesLoading(false);
-            setIsBackgroundFetching(false);
+            if (isActive) {
+                setIsCoursesLoading(false);
+                setIsBackgroundFetching(false);
+            }
         }
     };
 
     fetchCourses();
+
+    return () => {
+        isActive = false;
+    };
   }, [selectedTerm]);
 
   const showNotification = (message, type = 'success') => {
