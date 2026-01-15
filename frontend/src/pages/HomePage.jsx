@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, AlertCircle, CheckCircle, Search, Filter, BookOpen, MessageSquare, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle, Search, Filter, BookOpen, MessageSquare, Calendar as CalendarIcon, Info, Loader2 } from 'lucide-react';
 
 import Header from '../components/Header'; 
 import FilterSidebar from '../components/FilterSidebar';
@@ -25,6 +25,11 @@ const HomePage = ({ user, session }) => {
     status: 'active' 
   });
   
+  const [selectedTerm, setSelectedTerm] = useState('Winter 2026');
+  
+  // ⚡️ NEW: Loading state for data fetching
+  const [isCoursesLoading, setIsCoursesLoading] = useState(true);
+
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('activeTab') || 'search';
   });
@@ -85,7 +90,8 @@ const HomePage = ({ user, session }) => {
   const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const scrollContainer = document.getElementById('search-results-container');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
     sessionStorage.setItem('currentPage', currentPage);
   }, [currentPage]);
 
@@ -129,13 +135,25 @@ const HomePage = ({ user, session }) => {
   const { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits } = useSchedule(user, session, availableCourses);
   const MAX_UNITS = 22;
 
+  // ⚡️ FIX: Map User-Friendly Terms to Database Terms
+  const termMapping = {
+    'Winter 2026': '2026 Winter Quarter',
+    'Spring 2026': '2026 Spring Quarter',
+    'Fall 2025': '2025 Fall Quarter'
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+        setIsCoursesLoading(true); // Start loading
         try {
             const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            
+            // ⚡️ FIX: Use the mapping to send the correct string to the DB
+            const dbTerm = termMapping[selectedTerm] || selectedTerm;
+
             const [infoRes, cRes, rRes] = await Promise.all([
                 fetch(`${apiBase}/api/courses/info`),
-                fetch(`${apiBase}/api/courses`),
+                fetch(`${apiBase}/api/courses?term=${encodeURIComponent(dbTerm)}`),
                 fetch(`${apiBase}/api/ratings`)
             ]);
 
@@ -143,25 +161,28 @@ const HomePage = ({ user, session }) => {
             if (cRes.ok) {
                 const courses = await cRes.json();
                 setAvailableCourses(courses);
-                try { localStorage.setItem('cachedCourses', JSON.stringify(courses)); 
-
-                } catch {
-                    // ignore cache errors
+                
+                // Only cache if we actually got data (prevents overwriting cache with 0 results if fetch fails)
+                if (courses.length > 0) {
+                    try { 
+                        localStorage.setItem('cachedCourses', JSON.stringify(courses)); 
+                    } catch {}
                 }
             }
             if (rRes.ok) {
                 const ratings = await rRes.json();
                 setProfessorRatings(ratings);
-                try { localStorage.setItem('cachedRatings', JSON.stringify(ratings)); 
-
-                } catch {
-                    // ignore cache errors
-                }
+                try { 
+                    localStorage.setItem('cachedRatings', JSON.stringify(ratings)); 
+                } catch {}
             }
         } catch (e) { console.error("Network error:", e); }
+        finally {
+            setIsCoursesLoading(false); // Stop loading
+        }
     };
     fetchData();
-  }, []);
+  }, [selectedTerm]);
 
   const showNotification = (message, type = 'success') => {
     setNotification(null);
@@ -284,6 +305,8 @@ const HomePage = ({ user, session }) => {
             showAIChat={showAIChat}
             onToggleChat={() => setShowAIChat(!showAIChat)}
             selectedSchool={ucscSchool} 
+            selectedTerm={selectedTerm}
+            setSelectedTerm={setSelectedTerm}
         />
       </div>
 
@@ -300,7 +323,7 @@ const HomePage = ({ user, session }) => {
             </div>
         )}
 
-        <div className="flex flex-1 min-w-0 transition-all duration-300 relative overflow-y-auto h-full custom-scrollbar">
+        <div className="flex flex-col flex-1 min-w-0 relative h-full overflow-hidden">
             
             {activeTab === 'search' && (
               <>
@@ -318,58 +341,75 @@ const HomePage = ({ user, session }) => {
                     </div>
                 )}
                 
-                <main className="flex-1 min-w-0 bg-white relative z-0">
-                    <div className="px-4 md:px-8 py-6 border-b border-slate-100 bg-white sticky top-0 z-30 transition-all duration-200 shadow-sm">
-                        <div className="flex flex-row gap-3 md:gap-4 mb-4">
-                            <button 
-                                onClick={() => setShowFilters(!showFilters)} 
-                                className={`px-4 py-3 md:py-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-center shrink-0 gap-2 group ${showFilters ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-white border-slate-200 text-[#003C6C] hover:border-[#003C6C]'}`}
-                            >
-                                <Filter className="w-5 h-5" />
-                                <span className="font-bold text-sm">Filters</span>
-                            </button>
+                <div className="px-4 md:px-8 py-6 border-b border-slate-100 bg-white z-30 shadow-sm shrink-0">
+                    <div className="flex flex-row gap-3 md:gap-4 mb-4">
+                        <button 
+                            onClick={() => setShowFilters(!showFilters)} 
+                            className={`px-4 py-3 md:py-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-center shrink-0 gap-2 group ${showFilters ? 'bg-slate-100 border-slate-200 text-slate-500' : 'bg-white border-slate-200 text-[#003C6C] hover:border-[#003C6C]'}`}
+                        >
+                            <Filter className="w-5 h-5" />
+                            <span className="font-bold text-sm">Filters</span>
+                        </button>
 
-                            <div className="relative flex-1 group min-w-0">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
-                                <input 
-                                    type="text" 
-                                    placeholder="Search courses..." 
-                                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner text-slate-700 placeholder:text-slate-400" 
-                                    value={searchQuery} 
-                                    onChange={(e) => setSearchQuery(e.target.value)} 
-                                />
-                            </div>
-                            
-                            <div className="relative w-64 hidden md:block">
-                                <CustomDropdown 
-                                    prefix="Sort by: "
-                                    value={filters.sort}
-                                    options={['Best Match', 'Rating', 'Difficulty']}
-                                    onChange={(val) => setFilters({...filters, sort: val})}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
-                    </div>
-
-                    <div className="p-4 md:p-8 grid grid-cols-1 gap-6">
-                        {currentCourses.map(course => (
-                            <CourseCard 
-                                key={course.id} 
-                                course={course} 
-                                professorRatings={professorRatings} 
-                                onAdd={addCourse} 
-                                onShowProfessor={viewProfessorDetails} 
-                                sortOption={filters.sort} 
+                        <div className="relative flex-1 group min-w-0">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003C6C] w-5 h-5 transition-colors" />
+                            <input 
+                                type="text" 
+                                placeholder="Search courses..." 
+                                className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:bg-white focus:border-[#003C6C] outline-none text-sm font-bold shadow-inner text-slate-700 placeholder:text-slate-400" 
+                                value={searchQuery} 
+                                onChange={(e) => setSearchQuery(e.target.value)} 
                             />
-                        ))}
-                    </div>
-                    {processedCourses.length > ITEMS_PER_PAGE && (
-                        <div className="flex justify-between items-center mt-12 mb-8 px-4 md:px-8 border-t border-slate-200 pt-8">
-                            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className={`px-4 md:px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-default' : 'hover:border-[#003C6C] hover:text-[#003C6C] cursor-pointer'}`}>Prev</button>
-                            <span className="font-bold text-slate-500 text-sm">Page {currentPage} of {totalPages}</span>
-                            <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className={`px-4 md:px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-default' : 'hover:border-[#003C6C] hover:text-[#003C6C] cursor-pointer'}`}>Next</button>
                         </div>
+                        
+                        <div className="relative w-64 hidden md:block">
+                            <CustomDropdown 
+                                prefix="Sort by: "
+                                value={filters.sort}
+                                options={['Best Match', 'Rating', 'Difficulty']}
+                                onChange={(val) => setFilters({...filters, sort: val})}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between"><span className="font-bold text-sm text-slate-800">{processedCourses.length} Results</span></div>
+                </div>
+
+                <main id="search-results-container" className="flex-1 overflow-y-auto custom-scrollbar bg-white relative z-0">
+                    {/* ⚡️ FIX: Show loading spinner if fetching */}
+                    {isCoursesLoading ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                            <Loader2 className="w-10 h-10 animate-spin mb-4 text-[#FDC700]" />
+                            <p className="font-bold text-sm">Loading {selectedTerm}...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="p-4 md:p-8 grid grid-cols-1 gap-6">
+                                {currentCourses.length > 0 ? (
+                                    currentCourses.map(course => (
+                                        <CourseCard 
+                                            key={course.id} 
+                                            course={course} 
+                                            professorRatings={professorRatings} 
+                                            onAdd={addCourse} 
+                                            onShowProfessor={viewProfessorDetails} 
+                                            sortOption={filters.sort} 
+                                        />
+                                    ))
+                                ) : (
+                                    <div className="col-span-1 flex flex-col items-center justify-center py-20 text-slate-400">
+                                        <BookOpen className="w-12 h-12 mb-4 opacity-20" />
+                                        <p className="font-bold">No courses found for {selectedTerm}</p>
+                                    </div>
+                                )}
+                            </div>
+                            {processedCourses.length > ITEMS_PER_PAGE && (
+                                <div className="flex justify-between items-center mt-12 mb-8 px-4 md:px-8 border-t border-slate-200 pt-8">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className={`px-4 md:px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${currentPage === 1 ? 'opacity-50 cursor-default' : 'hover:border-[#003C6C] hover:text-[#003C6C] cursor-pointer'}`}>Prev</button>
+                                    <span className="font-bold text-slate-500 text-sm">Page {currentPage} of {totalPages}</span>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className={`px-4 md:px-6 py-2 border border-slate-200 bg-white rounded-lg font-bold text-sm text-slate-700 transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-default' : 'hover:border-[#003C6C] hover:text-[#003C6C] cursor-pointer'}`}>Next</button>
+                                </div>
+                            )}
+                        </>
                     )}
                 </main>
               </>
@@ -439,7 +479,9 @@ const HomePage = ({ user, session }) => {
             )}
 
             {activeTab === 'about' && (
-                <AboutTab onOpenPrivacy={() => setShowPrivacy(true)} />
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                    <AboutTab onOpenPrivacy={() => setShowPrivacy(true)} />
+                </div>
             )}
         </div>
 

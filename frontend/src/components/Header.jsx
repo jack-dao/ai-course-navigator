@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GraduationCap, LogOut, User, Search, CalendarDays, Info } from 'lucide-react';
+import { GraduationCap, LogOut, User, Search, CalendarDays, Info, ChevronDown } from 'lucide-react';
 import { supabase } from '../supabase';
 
 import compassLogo from '../assets/logo-compass.png';
@@ -12,15 +12,28 @@ const Header = ({
   onLoginClick,
   showAIChat,
   onToggleChat,
-  selectedSchool
+  selectedSchool,
+  selectedTerm,
+  setSelectedTerm
 }) => {
+  // Profile dropdown state
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef(null);
 
+  // ⚡️ NEW: Term dropdown state
+  const [showTermDropdown, setShowTermDropdown] = useState(false);
+  const termDropdownRef = useRef(null);
+
+  // Handle clicking outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close Profile Dropdown
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
         setShowProfileDropdown(false);
+      }
+      // Close Term Dropdown
+      if (termDropdownRef.current && !termDropdownRef.current.contains(event.target)) {
+        setShowTermDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -32,8 +45,9 @@ const Header = ({
     window.location.reload();
   };
 
+  const terms = ['Winter 2026', 'Spring 2026'];
+
   return (
-    // ⚡️ FIX: Changed 'overflow-hidden' to 'overflow-visible' so the dropdown can appear below
     <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[70px] md:h-[80px] overflow-visible select-none">
       <div className="w-full h-full px-4 md:px-8 flex items-center justify-between">
         
@@ -56,7 +70,40 @@ const Header = ({
                 <span className="md:hidden">UCSC</span>
               </span>
               <span className="h-3 w-px bg-white/25 shrink-0" />
-              <span className="tracking-wide text-blue-50/95 leading-tight">{selectedSchool.term}</span>
+              
+              {/* ⚡️ REVERTED STYLE: Looks like text, acts like a dropdown */}
+              <div className="relative" ref={termDropdownRef}>
+                <button 
+                  onClick={() => setShowTermDropdown(!showTermDropdown)}
+                  className="tracking-wide text-blue-50/95 leading-tight hover:text-white transition-colors cursor-pointer flex items-center gap-1 group"
+                >
+                  {selectedTerm}
+                  {/* Subtle chevron that only appears on hover to hint it's clickable */}
+                  <ChevronDown className="w-3 h-3 opacity-0 -ml-1 group-hover:opacity-50 transition-opacity" />
+                </button>
+
+                {showTermDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-36 bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] border border-slate-100 py-1.5 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-left">
+                    {terms.map((term) => (
+                      <button
+                        key={term}
+                        onClick={() => {
+                          setSelectedTerm(term);
+                          setShowTermDropdown(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-[11px] font-bold transition-all ${
+                          selectedTerm === term 
+                            ? 'text-[#003C6C] bg-blue-50' 
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                         {term}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         </div>
