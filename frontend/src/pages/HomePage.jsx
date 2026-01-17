@@ -158,7 +158,7 @@ const HomePage = ({ user, session }) => {
   useEffect(() => {
     const fetchMetadata = async () => {
         try {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const apiBase = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
             const [infoRes, termsRes] = await Promise.all([
                 fetch(`${apiBase}/api/courses/info`),
                 fetch(`${apiBase}/api/courses/terms`)
@@ -213,7 +213,7 @@ const HomePage = ({ user, session }) => {
         }
 
         try {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+            const apiBase = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:3000' : '');
 
             const [cRes, rRes] = await Promise.all([
                 fetch(`${apiBase}/api/courses?term=${encodeURIComponent(dbTerm)}`),
