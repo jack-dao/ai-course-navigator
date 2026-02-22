@@ -1,7 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 export const useSchedule = (user, session, availableCourses, selectedTerm) => {
-  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [selectedCourses, setSelectedCourses] = useState(() => {
+    try {
+      const savedDraft = localStorage.getItem(`draft_${selectedTerm}`);
+      return savedDraft ? JSON.parse(savedDraft) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const fetchedTerms = useRef(new Set());
 
   const totalUnits = useMemo(() => {
     return selectedCourses.reduce((acc, course) => {
@@ -74,32 +83,50 @@ export const useSchedule = (user, session, availableCourses, selectedTerm) => {
   };
 
   useEffect(() => {
-    const fetchUserSchedule = async () => {
-      if (user && session && availableCourses.length > 0 && selectedTerm) {
-        try {
-            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-            const response = await fetch(`${apiBase}/api/schedules?term=${encodeURIComponent(selectedTerm)}`, { 
-              headers: { 'Authorization': `Bearer ${session.access_token}` } 
-            });
+    if (!selectedTerm) return;
+    try {
+      const savedDraft = localStorage.getItem(`draft_${selectedTerm}`);
+      setSelectedCourses(savedDraft ? JSON.parse(savedDraft) : []);
+    } catch {
+      setSelectedCourses([]);
+    }
+  }, [selectedTerm]);
 
-            if (response.ok) {
-              const data = await response.json();
-              if (data.courses) {
-                  const restored = restoreScheduleFromData(data.courses, availableCourses);
-                  setSelectedCourses(restored);
-              } else {
-                  setSelectedCourses([]);
-              }
+  useEffect(() => {
+    if (!selectedTerm || selectedCourses.length === 0) return; 
+    localStorage.setItem(`draft_${selectedTerm}`, JSON.stringify(selectedCourses));
+  }, [selectedCourses, selectedTerm]);
+
+  useEffect(() => {
+    const fetchUserSchedule = async () => {
+      if (!user || !session || availableCourses.length === 0 || !selectedTerm) return;
+      if (fetchedTerms.current.has(selectedTerm)) return;
+
+      try {
+          const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+          const response = await fetch(`${apiBase}/api/schedules?term=${encodeURIComponent(selectedTerm)}`, { 
+            headers: { 'Authorization': `Bearer ${session.access_token}` } 
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.courses) {
+                const restored = restoreScheduleFromData(data.courses, availableCourses);
+                
+                const localDraft = localStorage.getItem(`draft_${selectedTerm}`);
+                if (!localDraft || JSON.parse(localDraft).length === 0) {
+                    setSelectedCourses(restored);
+                }
             }
-        } catch (err) { 
-            console.error("Schedule Fetch Error:", err); 
-        }
-      } else if (!user) {
-          setSelectedCourses([]);
+            fetchedTerms.current.add(selectedTerm);
+          }
+      } catch (err) { 
+          console.error(err); 
       }
     };
+
     fetchUserSchedule();
-  }, [user, session, availableCourses, selectedTerm]); 
+  }, [user, session, availableCourses.length, selectedTerm]); 
 
   return { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits };
 };
