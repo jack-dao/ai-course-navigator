@@ -10,6 +10,18 @@ export const useSchedule = (user, session, availableCourses, selectedTerm) => {
     }
   });
 
+  const [prevTerm, setPrevTerm] = useState(selectedTerm);
+  
+  if (selectedTerm !== prevTerm) {
+    setPrevTerm(selectedTerm);
+    try {
+      const savedDraft = localStorage.getItem(`draft_${selectedTerm}`);
+      setSelectedCourses(savedDraft ? JSON.parse(savedDraft) : []);
+    } catch {
+      setSelectedCourses([]);
+    }
+  }
+
   const fetchedTerms = useRef(new Set());
 
   const totalUnits = useMemo(() => {
@@ -83,16 +95,6 @@ export const useSchedule = (user, session, availableCourses, selectedTerm) => {
   };
 
   useEffect(() => {
-    if (!selectedTerm) return;
-    try {
-      const savedDraft = localStorage.getItem(`draft_${selectedTerm}`);
-      setSelectedCourses(savedDraft ? JSON.parse(savedDraft) : []);
-    } catch {
-      setSelectedCourses([]);
-    }
-  }, [selectedTerm]);
-
-  useEffect(() => {
     if (!selectedTerm || selectedCourses.length === 0) return; 
     localStorage.setItem(`draft_${selectedTerm}`, JSON.stringify(selectedCourses));
   }, [selectedCourses, selectedTerm]);
@@ -126,7 +128,7 @@ export const useSchedule = (user, session, availableCourses, selectedTerm) => {
     };
 
     fetchUserSchedule();
-  }, [user, session, availableCourses.length, selectedTerm]); 
+  }, [user, session, availableCourses, selectedTerm]); 
 
   return { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits };
 };
