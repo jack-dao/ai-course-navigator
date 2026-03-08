@@ -198,10 +198,10 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
             </div>
             
             {geCode && (
-                <div className="flex flex-col items-end justify-center ml-auto shrink-0">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 whitespace-nowrap">General Education</span>
-                    <div className="px-3 py-1.5 rounded-xl bg-[#003C6C]/5 border border-[#003C6C]/10 flex items-center gap-2">
-                        <span className="text-sm font-bold text-[#003C6C] whitespace-nowrap">{getGEMapping(geCode)} ({geCode})</span>
+                <div className="flex flex-col sm:items-end justify-center sm:ml-auto shrink-0 mt-2 sm:mt-0 max-w-full">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">General Education</span>
+                    <div className="px-3 py-1.5 rounded-xl bg-[#003C6C]/5 border border-[#003C6C]/10 flex items-center gap-2 max-w-full">
+                        <span className="text-sm font-bold text-[#003C6C] break-words whitespace-normal">{getGEMapping(geCode)} ({geCode})</span>
                     </div>
                 </div>
             )}
@@ -293,8 +293,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                 
                 <div className="flex flex-wrap gap-6">
                     
-                    {/* COL 1: Instructor */}
-                    <div className="flex-[1_0_300px] flex flex-col gap-4 min-w-[300px]">
+                    <div className="flex-[1_1_100%] md:flex-[1_0_300px] flex flex-col gap-4 min-w-0 md:min-w-[300px]">
                         <div className="w-full shrink-0">
                             <p className="text-[10px] font-bold text-[#003C6C] mb-1 uppercase tracking-wider">Instructor</p>
                             <button onClick={() => onShowProfessor(section.instructor, ratingData)} className="flex items-start gap-2 group/prof text-left cursor-pointer w-full min-w-0">
@@ -319,8 +318,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                             </button>
                         </div>
 
-                        {/* 🟢 FIX: Reverted to Grid-cols-2 to enforce 2x2 layout, relied on parent min-w-[300px] to prevent squish */}
-                        <div className="grid grid-cols-2 gap-y-3 gap-x-6">
+                        <div className="grid grid-cols-2 gap-y-3 gap-x-3 sm:gap-x-6">
                             <div className="min-w-0">
                                 <p className="text-[10px] font-bold text-[#003C6C] mb-0.5 whitespace-nowrap">Class Number</p>
                                 <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
@@ -342,17 +340,16 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                                     <span className="truncate">{formatMetaValue('Career', career || 'Undergraduate')}</span>
                                 </div>
                             </div>
-                            <div className="min-w-0">
+                            <div className="min-w-0 pr-2">
                                 <p className="text-[10px] font-bold text-[#003C6C] mb-0.5 whitespace-nowrap">Grading</p>
                                 <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
                                     <BookOpen className="w-3.5 h-3.5 text-[#003C6C] shrink-0" />
-                                    <span className="truncate">{formatMetaValue('Grading', grading ? 'Student Option' : 'Letter')}</span>
+                                    <span className="whitespace-normal break-words">{formatMetaValue('Grading', grading ? 'Student Option' : 'Letter')}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* COL 2: Time */}
                     <div className="flex-[1_0_200px] flex flex-col justify-center min-w-[200px] pt-4 border-t border-dashed border-slate-200 md:border-t-0 md:pt-0 md:border-l md:pl-6">
                         <div className="flex items-start gap-4 mb-4">
                             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
@@ -388,7 +385,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                         </div>
                     </div>
 
-                    {/* COL 3: Buttons */}
                     <div className="flex-[1_0_220px] flex flex-col gap-2 justify-center min-w-[220px] 2xl:border-l 2xl:pl-6 border-slate-200 border-dashed">
                         {hasDiscussions && (
                             <div className={`relative ${openDropdownId === section.id ? 'z-50' : 'z-0'}`} ref={openDropdownId === section.id ? dropdownRef : null}>
