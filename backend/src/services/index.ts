@@ -1,4 +1,4 @@
-export { registerUser, loginUser } from './authService';
+export { registerUser, loginUser, refreshAccessToken, logoutUser } from './authService';
 export {
   fetchCourses,
   fetchCourseDescription,

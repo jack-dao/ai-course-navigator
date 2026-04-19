@@ -93,11 +93,25 @@ model Professor {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String?   
+  password  String?
   name      String
   createdAt DateTime @default(now())
 
-  schedules Schedule[]
+  schedules     Schedule[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
 }
 
 model Schedule {

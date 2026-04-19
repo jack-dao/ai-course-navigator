@@ -13,23 +13,27 @@ vi.mock('../lib/prisma', () => ({
       findUnique: vi.fn().mockResolvedValue({ description: 'A course', prerequisites: 'None' }),
     },
     professor: {
-      findMany: vi
-        .fn()
-        .mockResolvedValue([
-          {
-            name: 'Smith',
-            avgRating: 4.5,
-            avgDifficulty: 2.0,
-            wouldTakeAgain: '90%',
-            numRatings: 50,
-            rmpLink: null,
-            reviews: [],
-          },
-        ]),
+      findMany: vi.fn().mockResolvedValue([
+        {
+          name: 'Smith',
+          avgRating: 4.5,
+          avgDifficulty: 2.0,
+          wouldTakeAgain: '90%',
+          numRatings: 50,
+          rmpLink: null,
+          reviews: [],
+        },
+      ]),
     },
     user: {
       findUnique: vi.fn().mockResolvedValue(null),
       create: vi.fn().mockResolvedValue({ id: '1' }),
+    },
+    refreshToken: {
+      create: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
+      updateMany: vi.fn().mockResolvedValue({}),
     },
     schedule: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -161,6 +165,32 @@ describe('API Integration Tests', () => {
     it('returns 500 for missing message field', async () => {
       const res = await request(app).post('/api/chat').send({});
       expect(res.status).toBe(500);
+    });
+  });
+
+  describe('POST /api/auth/refresh', () => {
+    it('returns 400 for missing refreshToken', async () => {
+      const res = await request(app).post('/api/auth/refresh').send({});
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 401 for invalid refresh token', async () => {
+      const res = await request(app).post('/api/auth/refresh').send({ refreshToken: 'invalid-token' });
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('Invalid or expired refresh token');
+    });
+  });
+
+  describe('POST /api/auth/logout', () => {
+    it('returns 400 for missing refreshToken', async () => {
+      const res = await request(app).post('/api/auth/logout').send({});
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 200 on successful logout', async () => {
+      const res = await request(app).post('/api/auth/logout').send({ refreshToken: 'some-token' });
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Logged out successfully');
     });
   });
 

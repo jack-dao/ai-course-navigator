@@ -1,5 +1,5 @@
-import { registerSchema, loginSchema } from '../validators/auth';
-import { registerUser, loginUser } from '../services/authService';
+import { registerSchema, loginSchema, refreshSchema, logoutSchema } from '../validators/auth';
+import { registerUser, loginUser, refreshAccessToken, logoutUser } from '../services/authService';
 import type { Request, Response } from 'express';
 
 const register = async (req: Request, res: Response): Promise<void> => {
@@ -26,4 +26,24 @@ const login = async (req: Request, res: Response): Promise<void> => {
   res.json({ message: 'Login successful', ...result });
 };
 
-export { register, login };
+const refresh = async (req: Request, res: Response): Promise<void> => {
+  const { refreshToken } = refreshSchema.parse(req.body);
+
+  const result = await refreshAccessToken(refreshToken);
+  if ('error' in result) {
+    res.status(401).json({ error: result.error });
+    return;
+  }
+
+  res.json(result);
+};
+
+const logout = async (req: Request, res: Response): Promise<void> => {
+  const { refreshToken } = logoutSchema.parse(req.body);
+
+  await logoutUser(refreshToken);
+
+  res.json({ message: 'Logged out successfully' });
+};
+
+export { register, login, refresh, logout };
