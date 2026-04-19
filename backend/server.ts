@@ -4,6 +4,8 @@ import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import 'dotenv/config';
 
+import logger from './src/lib/logger';
+import errorHandler from './src/middleware/errorHandler';
 import courseRoutes from './src/routes/courseRoutes';
 import authRoutes from './src/routes/authRoutes';
 import scheduleRoutes from './src/routes/scheduleRoutes';
@@ -18,17 +20,19 @@ const allowedOrigins = [
   'https://ai-course-navigator.vercel.app',
   'https://aislugnavigator.com',
   'https://www.aislugnavigator.com',
-  'https://ai-slug-navigator.onrender.com'
+  'https://ai-slug-navigator.onrender.com',
 ];
 
-app.use(compression({
-  filter: (req, res) => {
-    if (req.path.includes('/api/chat')) {
-      return false;
-    }
-    return compression.filter(req, res);
-  }
-}));
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.path.includes('/api/chat')) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+  })
+);
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
@@ -50,13 +54,16 @@ const chatLimiter = rateLimit({
 
 app.use(generalLimiter);
 
+app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
 app.use('/api/courses', courseRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/chat', chatLimiter, chatRoutes);
 
+app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });

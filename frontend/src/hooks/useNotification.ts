@@ -8,9 +8,11 @@ export const useNotification = () => {
   const showNotification = useCallback((message: string, type: Notification['type'] = 'success') => {
     if (timerRef.current) clearTimeout(timerRef.current);
     setNotification(null);
-    setTimeout(() => { setNotification({ message, type }); }, 10);
+    setTimeout(() => {
+      setNotification({ message, type });
+    }, 10);
     timerRef.current = setTimeout(() => {
-      setNotification(prev => (prev?.message === message ? null : prev));
+      setNotification((prev) => (prev?.message === message ? null : prev));
     }, 3000);
   }, []);
 

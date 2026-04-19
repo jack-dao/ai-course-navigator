@@ -1,9 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './supabase';
-import HomePage from './pages/HomePage';
+import ErrorBoundary from './components/ErrorBoundary';
 import type { User, Session } from '@supabase/supabase-js';
 import type { TabName } from './types';
+import { Loader2 } from 'lucide-react';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+
+function LoadingFallback() {
+  return (
+    <div className="h-screen w-full flex items-center justify-center">
+      <Loader2 className="w-10 h-10 animate-spin text-ucsc-gold" />
+    </div>
+  );
+}
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -17,7 +28,9 @@ function App() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setUser(session.user);
         setSession(session);
@@ -35,16 +48,20 @@ function App() {
   );
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/search" element={renderPage('search')} />
-        <Route path="/schedule" element={renderPage('schedule')} />
-        <Route path="/about" element={renderPage('about')} />
-        <Route path="/chat" element={renderPage('search', true)} />
-        <Route path="/" element={<Navigate to="/search" replace />} />
-        <Route path="*" element={<Navigate to="/search" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/search" element={renderPage('search')} />
+            <Route path="/schedule" element={renderPage('schedule')} />
+            <Route path="/about" element={renderPage('about')} />
+            <Route path="/chat" element={renderPage('search', true)} />
+            <Route path="/" element={<Navigate to="/search" replace />} />
+            <Route path="*" element={<Navigate to="/search" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

@@ -29,7 +29,7 @@ const Header = ({
   onToggleChat,
   selectedTerm,
   setSelectedTerm,
-  availableTerms = []
+  availableTerms = [],
 }: HeaderProps) => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ const Header = ({
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = async () => {
@@ -58,9 +58,8 @@ const Header = ({
   const terms = availableTerms.length > 0 ? availableTerms : ['2026 Winter Quarter'];
 
   return (
-    <header className="bg-[#003C6C] border-b border-[#FDC700] sticky top-0 z-[60] shadow-xl shrink-0 h-[70px] md:h-[80px] overflow-visible select-none">
+    <header className="bg-ucsc-blue border-b border-ucsc-gold sticky top-0 z-[60] shadow-xl shrink-0 h-[70px] md:h-[80px] overflow-visible select-none">
       <div className="w-full h-full px-4 md:px-6 lg:px-8 flex items-center justify-between gap-3">
-
         {/* LEFT: Logo & Term Selector */}
         <div className="flex items-center gap-1 min-w-0 shrink-0">
           <img
@@ -75,7 +74,7 @@ const Header = ({
             </h1>
             <div className="mt-1 flex items-center gap-2 text-[10px] md:text-[11px] font-extrabold text-blue-100">
               <span className="inline-flex items-center gap-1.5 shrink-0 hidden xl:inline-flex">
-                <GraduationCap className="w-3 h-3 md:w-3.5 md:h-3.5 text-[#FDC700]" />
+                <GraduationCap className="w-3 h-3 md:w-3.5 md:h-3.5 text-ucsc-gold" />
                 <span className="whitespace-nowrap">UC Santa Cruz</span>
               </span>
               <span className="h-3 w-px bg-white/25 shrink-0 hidden xl:block" />
@@ -100,28 +99,25 @@ const Header = ({
                         }}
                         className={`w-full text-left px-4 py-2.5 text-[11px] font-bold transition-all cursor-pointer ${
                           selectedTerm === term
-                            ? 'text-[#003C6C] bg-blue-50'
+                            ? 'text-ucsc-blue bg-blue-50'
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }`}
                       >
-                         {term}
+                        {term}
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-
             </div>
           </div>
         </div>
 
         {/* CENTER: Tabs - "Hybrid" Mode */}
         <div className="hidden md:flex justify-center flex-1 min-w-0 px-4">
-          <div className="flex bg-[#002a4d]/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden shrink-0">
+          <div className="flex bg-ucsc-blue-dark/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden shrink-0">
             {(['search', 'schedule', 'about'] as const).map((tab) => {
-              const Icon = tab === 'search' ? Search
-                         : tab === 'schedule' ? CalendarDays
-                         : Info;
+              const Icon = tab === 'search' ? Search : tab === 'schedule' ? CalendarDays : Info;
 
               return (
                 <button
@@ -129,7 +125,7 @@ const Header = ({
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 lg:px-6 xl:px-8 py-2.5 text-sm font-bold transition-all duration-200 rounded-none cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                     activeTab === tab
-                      ? 'bg-white text-[#003C6C] shadow-sm'
+                      ? 'bg-white text-ucsc-blue shadow-sm'
                       : 'text-blue-200 hover:text-white hover:bg-white/5'
                   }`}
                   title={tab === 'schedule' ? 'My Schedule' : tab === 'about' ? 'About' : 'Search'}
@@ -146,13 +142,12 @@ const Header = ({
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-3 justify-end shrink-0 ml-auto">
-
           <button
             onClick={onToggleChat}
             className={`hidden md:flex h-10 lg:h-11 items-center gap-2 lg:gap-3 pl-3 pr-5 rounded-full transition-all cursor-pointer border group overflow-visible whitespace-nowrap active:scale-95 shadow-md hover:shadow-lg ${
-                showAIChat
-                ? 'bg-white text-[#003C6C] border-white ring-2 ring-white/50'
-                : 'bg-[#FDC700] text-[#003C6C] border-[#FDC700] hover:bg-[#eec00e] hover:border-[#eec00e]'
+              showAIChat
+                ? 'bg-white text-ucsc-blue border-white ring-2 ring-white/50'
+                : 'bg-ucsc-gold text-ucsc-blue border-ucsc-gold hover:bg-[#eec00e] hover:border-[#eec00e]'
             }`}
           >
             <span className="relative w-7 h-7 lg:w-8 lg:h-8 shrink-0 overflow-visible">
@@ -165,7 +160,7 @@ const Header = ({
             <span className="text-xs lg:text-sm font-bold leading-none hidden xl:inline">
               {showAIChat ? 'Hide Assistant' : 'Ask Sammy AI'}
             </span>
-             <span className="text-xs lg:text-sm font-bold leading-none xl:hidden">
+            <span className="text-xs lg:text-sm font-bold leading-none xl:hidden">
               {showAIChat ? 'Hide' : 'AI Help'}
             </span>
           </button>
@@ -182,9 +177,7 @@ const Header = ({
               {showProfileDropdown && (
                 <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[24px] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-slate-100 p-8 animate-in zoom-in-95 z-[60]">
                   <div className="mb-4 pb-4 border-b border-slate-100 text-center">
-                    <p className="font-bold text-slate-800">
-                      {user.user_metadata?.full_name || 'User'}
-                    </p>
+                    <p className="font-bold text-slate-800">{user.user_metadata?.full_name || 'User'}</p>
                     <p className="text-xs text-slate-500 truncate">{user.email}</p>
                   </div>
                   <button

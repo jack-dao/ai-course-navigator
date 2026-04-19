@@ -1,37 +1,29 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import prisma from '../lib/prisma';
+import logger from '../lib/logger';
+import { chatSchema } from '../validators/chat';
 import type { Request, Response } from 'express';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
 const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    ]
+  model: 'gemini-2.5-flash',
+  safetySettings: [
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+  ],
 });
 
 const handleChat = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { message, userSchedule, term } = req.body;
+    const { message, userSchedule, term } = chatSchema.parse(req.body);
 
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      res.status(400).json({ error: 'Message is required.' });
-      return;
-    }
-    if (message.length > 2000) {
-      res.status(400).json({ error: 'Message must be under 2000 characters.' });
-      return;
-    }
-
-    const scheduleString = userSchedule && userSchedule.length > 0
-      ? userSchedule.map((c: any) =>
-          `• ${c.code} (${c.name}): ${c.days} @ ${c.times}`
-        ).join('\n')
-      : "No classes enrolled yet.";
+    const scheduleString =
+      userSchedule && userSchedule.length > 0
+        ? userSchedule.map((c: { code: string; name: string; days?: string; times?: string }) => `• ${c.code} (${c.name}): ${c.days} @ ${c.times}`).join('\n')
+        : 'No classes enrolled yet.';
 
     const relevantCourses = await prisma.course.findMany({
       where: term ? { term } : {},
@@ -45,17 +37,24 @@ const handleChat = async (req: Request, res: Response): Promise<void> => {
             startTime: true,
             endTime: true,
             status: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    const courseContextString = relevantCourses.map(c =>
-      `- ${c.code}: ${c.name} (${c.credits} units). GE: ${c.geCode || "None"}. Prereqs: ${c.prerequisites || "None"}.\n` +
-      `  Sections: ${c.sections?.map(s =>
-          `[${s.instructor} | ${s.days} ${s.startTime}-${s.endTime} | Status: ${s.status || 'Unknown'}]`
-      ).join(', ') || 'Staff'}`
-    ).join('\n');
+    const courseContextString = relevantCourses
+      .map(
+        (c) =>
+          `- ${c.code}: ${c.name} (${c.credits} units). GE: ${c.geCode || 'None'}. Prereqs: ${c.prerequisites || 'None'}.\n` +
+          `  Sections: ${
+            c.sections
+              ?.map(
+                (s) => `[${s.instructor} | ${s.days} ${s.startTime}-${s.endTime} | Status: ${s.status || 'Unknown'}]`
+              )
+              .join(', ') || 'Staff'
+          }`
+      )
+      .join('\n');
 
     const systemPrompt = `
       You are "Sammy", an academic advisor for UC Santa Cruz.
@@ -82,10 +81,10 @@ const handleChat = async (req: Request, res: Response): Promise<void> => {
     const result = await model.generateContentStream(systemPrompt);
 
     res.writeHead(200, {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-        'Connection': 'keep-alive',
-        'Cache-Control': 'no-cache, no-transform'
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+      Connection: 'keep-alive',
+      'Cache-Control': 'no-cache, no-transform',
     });
 
     for await (const chunk of result.stream) {
@@ -96,18 +95,15 @@ const handleChat = async (req: Request, res: Response): Promise<void> => {
     }
 
     res.end();
-
   } catch (error) {
-    console.error("AI Error:", error);
+    logger.error('AI Error:', error);
 
     if (!res.headersSent) {
-      res.status(500).json({ error: "Something went wrong. Please try again." });
+      res.status(500).json({ error: 'Something went wrong. Please try again.' });
     } else {
       res.end();
     }
   }
 };
 
-export {
-    handleChat
-};
+export { handleChat };

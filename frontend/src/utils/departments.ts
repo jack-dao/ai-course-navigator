@@ -79,5 +79,5 @@ export const DEPARTMENTS: Department[] = [
   { name: 'Theater Arts', prefix: 'THEA' },
   { name: 'UCDC', prefix: 'UCDC' },
   { name: 'Writing', prefix: 'WRIT' },
-  { name: 'Yiddish', prefix: 'YIDD' }
+  { name: 'Yiddish', prefix: 'YIDD' },
 ];

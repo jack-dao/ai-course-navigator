@@ -15,7 +15,12 @@ interface TimeSegment {
   end: number | null;
 }
 
-export const useSchedule = (user: User | null, session: Session | null, availableCourses: Course[], selectedTerm: string) => {
+export const useSchedule = (
+  user: User | null,
+  session: Session | null,
+  availableCourses: Course[],
+  selectedTerm: string
+) => {
   const [selectedCourses, setSelectedCourses] = useState<SelectedCourse[]>(() => {
     try {
       const savedDraft = localStorage.getItem(`draft_${selectedTerm}`);
@@ -55,7 +60,7 @@ export const useSchedule = (user: User | null, session: Session | null, availabl
     const period = match[3];
     if (period === 'PM' && h !== 12) h += 12;
     if (period === 'AM' && h === 12) h = 0;
-    return h + (m / 60);
+    return h + m / 60;
   };
 
   const getDaysArray = (dayStr: string | null | undefined): string[] => {
@@ -63,15 +68,29 @@ export const useSchedule = (user: User | null, session: Session | null, availabl
     return dayStr.match(/Tu|Th|Sa|Su|M|W|F/g) || [];
   };
 
-  const checkForConflicts = (newSection: Section, existingCourses: SelectedCourse[], ignoreCode: string): string | null => {
+  const checkForConflicts = (
+    newSection: Section,
+    existingCourses: SelectedCourse[],
+    ignoreCode: string
+  ): string | null => {
     const getSegments = (sec: Section | SubSection | undefined): TimeSegment[] => {
       const segments: TimeSegment[] = [];
       if (!sec) return segments;
       if (sec.days && sec.startTime && sec.endTime) {
         segments.push({ days: getDaysArray(sec.days), start: parseTime(sec.startTime), end: parseTime(sec.endTime) });
       }
-      if ('selectedLab' in sec && sec.selectedLab && sec.selectedLab.days && sec.selectedLab.startTime && sec.selectedLab.endTime) {
-        segments.push({ days: getDaysArray(sec.selectedLab.days), start: parseTime(sec.selectedLab.startTime), end: parseTime(sec.selectedLab.endTime) });
+      if (
+        'selectedLab' in sec &&
+        sec.selectedLab &&
+        sec.selectedLab.days &&
+        sec.selectedLab.startTime &&
+        sec.selectedLab.endTime
+      ) {
+        segments.push({
+          days: getDaysArray(sec.selectedLab.days),
+          start: parseTime(sec.selectedLab.startTime),
+          end: parseTime(sec.selectedLab.endTime),
+        });
       }
       return segments;
     };
@@ -82,7 +101,7 @@ export const useSchedule = (user: User | null, session: Session | null, availabl
       const existingSegments = getSegments(existing.selectedSection);
       for (const newSeg of newSegments) {
         for (const exSeg of existingSegments) {
-          const dayOverlap = newSeg.days.some(d => exSeg.days.includes(d));
+          const dayOverlap = newSeg.days.some((d) => exSeg.days.includes(d));
           if (dayOverlap) {
             if (newSeg.start !== null && newSeg.end !== null && exSeg.start !== null && exSeg.end !== null) {
               if (newSeg.start < exSeg.end && newSeg.end > exSeg.start) {
@@ -99,17 +118,23 @@ export const useSchedule = (user: User | null, session: Session | null, availabl
   const restoreScheduleFromData = (savedCourses: SavedCourseItem[], allCourses: Course[]): SelectedCourse[] => {
     if (!savedCourses || !Array.isArray(savedCourses)) return [];
     if (!allCourses || allCourses.length === 0) return [];
-    return savedCourses.map(savedItem => {
-      const courseCode = typeof savedItem === 'string' ? savedItem : savedItem.code;
-      const originalCourse = allCourses.find(c => c.code === courseCode);
-      if (!originalCourse) return null;
-      let restoredSection = originalCourse.sections?.find(s => String(s.sectionCode) === String(savedItem.sectionCode));
-      if (restoredSection && savedItem.labCode && restoredSection.subSections) {
-        const restoredLab = restoredSection.subSections.find(lab => String(lab.sectionCode) === String(savedItem.labCode));
-        if (restoredLab) restoredSection = { ...restoredSection, selectedLab: restoredLab };
-      }
-      return { ...originalCourse, selectedSection: restoredSection } as SelectedCourse;
-    }).filter(Boolean) as SelectedCourse[];
+    return savedCourses
+      .map((savedItem) => {
+        const courseCode = typeof savedItem === 'string' ? savedItem : savedItem.code;
+        const originalCourse = allCourses.find((c) => c.code === courseCode);
+        if (!originalCourse) return null;
+        let restoredSection = originalCourse.sections?.find(
+          (s) => String(s.sectionCode) === String(savedItem.sectionCode)
+        );
+        if (restoredSection && savedItem.labCode && restoredSection.subSections) {
+          const restoredLab = restoredSection.subSections.find(
+            (lab) => String(lab.sectionCode) === String(savedItem.labCode)
+          );
+          if (restoredLab) restoredSection = { ...restoredSection, selectedLab: restoredLab };
+        }
+        return { ...originalCourse, selectedSection: restoredSection } as SelectedCourse;
+      })
+      .filter(Boolean) as SelectedCourse[];
   };
 
   useEffect(() => {
@@ -143,7 +168,7 @@ export const useSchedule = (user: User | null, session: Session | null, availabl
     };
 
     fetchUserSchedule();
-  }, [user, session, availableCourses, selectedTerm]);  
+  }, [user, session, availableCourses, selectedTerm]);
 
   return { selectedCourses, setSelectedCourses, checkForConflicts, totalUnits };
 };

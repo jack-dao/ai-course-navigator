@@ -14,3 +14,9 @@ build/
 .vscode/
 .idea/
 .DS_Store
+
+# Logs
+*.log
+
+# Test coverage
+coverage/

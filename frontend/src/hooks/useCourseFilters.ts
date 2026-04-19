@@ -9,7 +9,7 @@ const DEFAULT_FILTERS: CourseFilters = {
   days: [],
   department: 'All Departments',
   sort: 'Best Match',
-  timeRange: [7, 23]
+  timeRange: [7, 23],
 };
 
 export const useCourseFilters = (availableCourses: Course[], professorRatings: ProfessorRatingsMap) => {
@@ -43,7 +43,7 @@ export const useCourseFilters = (availableCourses: Course[], professorRatings: P
     const period = match[3];
     if (period === 'PM' && h !== 12) h += 12;
     if (period === 'AM' && h === 12) h = 0;
-    return h + (m / 60);
+    return h + m / 60;
   };
 
   const processedCourses = useMemo(() => {
@@ -51,55 +51,65 @@ export const useCourseFilters = (availableCourses: Course[], professorRatings: P
     const lowerQuery = searchQuery.toLowerCase();
 
     if (filters.department !== 'All Departments') {
-      const deptObj = DEPARTMENTS.find(d => d.name === filters.department);
+      const deptObj = DEPARTMENTS.find((d) => d.name === filters.department);
       if (deptObj && deptObj.prefix) {
-        results = results.filter(course => course.code.startsWith(deptObj.prefix));
+        results = results.filter((course) => course.code.startsWith(deptObj.prefix));
       }
     }
 
     if (searchQuery) {
-      results = results.map(course => {
-        let score = 0;
-        if (course.code.toLowerCase() === lowerQuery) score += 1000;
-        else if (course.code.toLowerCase().includes(lowerQuery)) score += 100;
-        if (course.sections?.some(sec => (sec.instructor || "").toLowerCase().includes(lowerQuery))) score += 50;
-        if (course.name.toLowerCase().includes(lowerQuery)) score += 10;
-        return { ...course, _searchScore: score };
-      }).filter(c => (c._searchScore ?? 0) > 0);
+      results = results
+        .map((course) => {
+          let score = 0;
+          if (course.code.toLowerCase() === lowerQuery) score += 1000;
+          else if (course.code.toLowerCase().includes(lowerQuery)) score += 100;
+          if (course.sections?.some((sec) => (sec.instructor || '').toLowerCase().includes(lowerQuery))) score += 50;
+          if (course.name.toLowerCase().includes(lowerQuery)) score += 10;
+          return { ...course, _searchScore: score };
+        })
+        .filter((c) => (c._searchScore ?? 0) > 0);
     }
 
     if (filters.openOnly) {
-      results = results.filter(course => course.sections?.some(sec => sec.status !== 'Closed' && sec.status !== 'Wait List'));
+      results = results.filter((course) =>
+        course.sections?.some((sec) => sec.status !== 'Closed' && sec.status !== 'Wait List')
+      );
     }
     if (filters.minUnits > 0) {
-      results = results.filter(course => parseInt(String(course.credits)) === filters.minUnits);
+      results = results.filter((course) => parseInt(String(course.credits)) === filters.minUnits);
     }
     if (filters.days.length > 0) {
-      results = results.filter(course => course.sections?.some(sec => {
-        const secDays = sec.days || "";
-        return filters.days.some(day => secDays.includes(day));
-      }));
+      results = results.filter((course) =>
+        course.sections?.some((sec) => {
+          const secDays = sec.days || '';
+          return filters.days.some((day) => secDays.includes(day));
+        })
+      );
     }
     if (filters.timeRange[0] > 7 || filters.timeRange[1] < 23) {
-      results = results.filter(course => course.sections?.some(sec => {
-        const start = parseTime(sec.startTime);
-        const end = parseTime(sec.endTime);
-        if (start === null || end === null) return false;
-        return start >= filters.timeRange[0] && end <= filters.timeRange[1];
-      }));
+      results = results.filter((course) =>
+        course.sections?.some((sec) => {
+          const start = parseTime(sec.startTime);
+          const end = parseTime(sec.endTime);
+          if (start === null || end === null) return false;
+          return start >= filters.timeRange[0] && end <= filters.timeRange[1];
+        })
+      );
     }
     if (filters.minRating > 0) {
-      results = results.filter(course => course.sections?.some(sec => {
-        const stats = professorRatings[sec.instructor];
-        return stats && stats.avgRating >= filters.minRating;
-      }));
+      results = results.filter((course) =>
+        course.sections?.some((sec) => {
+          const stats = professorRatings[sec.instructor];
+          return stats && stats.avgRating >= filters.minRating;
+        })
+      );
     }
 
     const getBestStats = (course: Course) => {
       let maxRating = -1;
       let minDifficulty = 6;
       let hasData = false;
-      course.sections?.forEach(sec => {
+      course.sections?.forEach((sec) => {
         const stats = professorRatings[sec.instructor];
         if (stats) {
           hasData = true;

@@ -31,28 +31,28 @@ export const useCourses = (selectedTerm: string) => {
           setIsCoursesLoading(true);
         }
       } catch (e) {
-        console.warn("Cache read failed", e);
+        console.warn('Cache read failed', e);
         if (isActive) setIsCoursesLoading(true);
       }
 
       try {
         const [cRes, rRes] = await Promise.all([
           apiFetch(`/api/courses?term=${encodeURIComponent(selectedTerm)}`),
-          apiFetch('/api/ratings')
+          apiFetch('/api/ratings'),
         ]);
 
         if (isActive && cRes.ok) {
           const courses: Course[] = await cRes.json();
           setAvailableCourses(courses);
-          set(cacheKeyCourses, courses).catch(err => console.warn('Cache failed', err));
+          set(cacheKeyCourses, courses).catch((err) => console.warn('Cache failed', err));
         }
         if (isActive && rRes.ok) {
           const ratings: ProfessorRatingsMap = await rRes.json();
           setProfessorRatings(ratings);
-          set(cacheKeyRatings, ratings).catch(err => console.warn('Cache failed', err));
+          set(cacheKeyRatings, ratings).catch((err) => console.warn('Cache failed', err));
         }
       } catch (e) {
-        console.error("Network Load Error:", e);
+        console.error('Network Load Error:', e);
       } finally {
         if (isActive) {
           setIsCoursesLoading(false);
@@ -63,7 +63,9 @@ export const useCourses = (selectedTerm: string) => {
 
     fetchCourses();
 
-    return () => { isActive = false; };
+    return () => {
+      isActive = false;
+    };
   }, [selectedTerm]);
 
   return { availableCourses, professorRatings, isCoursesLoading, isBackgroundFetching };

@@ -3,7 +3,7 @@ import { apiFetch } from '../utils/api';
 import type { School } from '../types';
 
 const sortTerms = (terms: string[]): string[] => {
-  const seasons: Record<string, number> = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
+  const seasons: Record<string, number> = { Winter: 1, Spring: 2, Summer: 3, Fall: 4 };
   return terms.sort((a, b) => {
     const partsA = a.split(' ');
     const partsB = b.split(' ');
@@ -23,14 +23,16 @@ export const useTerms = () => {
     name: 'UC Santa Cruz',
     shortName: 'UCSC',
     term: 'Loading...',
-    status: 'active'
+    status: 'active',
   });
 
   const [availableTerms, setAvailableTerms] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('cachedTerms');
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   });
 
   const [selectedTerm, setSelectedTerm] = useState<string>(() => {
@@ -44,10 +46,7 @@ export const useTerms = () => {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const [infoRes, termsRes] = await Promise.all([
-          apiFetch('/api/courses/info'),
-          apiFetch('/api/courses/terms')
-        ]);
+        const [infoRes, termsRes] = await Promise.all([apiFetch('/api/courses/info'), apiFetch('/api/courses/terms')]);
 
         if (infoRes.ok) setUcscSchool(await infoRes.json());
 
@@ -64,7 +63,7 @@ export const useTerms = () => {
           }
         }
       } catch (e) {
-        console.error("Metadata Load Error:", e);
+        console.error('Metadata Load Error:', e);
       }
     };
     fetchMetadata();

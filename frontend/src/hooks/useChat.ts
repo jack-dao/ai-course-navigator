@@ -6,64 +6,69 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[])
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
-  const handleSendMessage = useCallback(async (text: string) => {
-    setIsChatLoading(true);
+  const handleSendMessage = useCallback(
+    async (text: string) => {
+      setIsChatLoading(true);
 
-    setChatMessages(prev => [
-      ...prev,
-      { role: 'user' as const, text },
-      { role: 'assistant' as const, text: "Sammy is thinking..." }
-    ]);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'user' as const, text },
+        { role: 'assistant' as const, text: 'Sammy is thinking...' },
+      ]);
 
-    try {
-      const response = await apiFetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          term: selectedTerm,
-          userSchedule: selectedCourses.map(c => ({
-            code: c.code,
-            name: c.name,
-            days: c.selectedSection?.days,
-            times: c.selectedSection ? `${c.selectedSection.startTime}-${c.selectedSection.endTime}` : 'TBA'
-          }))
-        })
-      });
+      try {
+        const response = await apiFetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            term: selectedTerm,
+            userSchedule: selectedCourses.map((c) => ({
+              code: c.code,
+              name: c.name,
+              days: c.selectedSection?.days,
+              times: c.selectedSection ? `${c.selectedSection.startTime}-${c.selectedSection.endTime}` : 'TBA',
+            })),
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error("Server connection failed");
-      }
+        if (!response.ok) {
+          throw new Error('Server connection failed');
+        }
 
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-      let botReply = "";
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let botReply = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunkText = decoder.decode(value, { stream: true });
-        botReply += chunkText;
+          const chunkText = decoder.decode(value, { stream: true });
+          botReply += chunkText;
 
-        setChatMessages(prev => {
+          setChatMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { ...updated[updated.length - 1], text: botReply };
+            return updated;
+          });
+        }
+      } catch (error) {
+        console.error('Streaming Error:', error);
+        setChatMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1] = { ...updated[updated.length - 1], text: botReply };
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            text: 'Sorry, I had trouble connecting to the server. Please try again.',
+          };
           return updated;
         });
+      } finally {
+        setIsChatLoading(false);
       }
-
-    } catch (error) {
-      console.error("Streaming Error:", error);
-      setChatMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { ...updated[updated.length - 1], text: "Sorry, I had trouble connecting to the server. Please try again." };
-        return updated;
-      });
-    } finally {
-      setIsChatLoading(false);
-    }
-  }, [selectedTerm, selectedCourses]);
+    },
+    [selectedTerm, selectedCourses]
+  );
 
   return { chatMessages, isChatLoading, handleSendMessage };
 };
