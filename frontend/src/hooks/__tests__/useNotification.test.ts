@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useNotification } from './useNotification';
+import { useNotification } from '../useNotification';
 
 describe('useNotification', () => {
   beforeEach(() => {

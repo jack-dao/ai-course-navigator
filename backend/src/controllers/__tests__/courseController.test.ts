@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { sortTermsDesc, getSmartTerm } from '../services/courseService';
+import { sortTermsDesc, getSmartTerm } from '../../services/courseService';
 
 describe('sortTermsDesc', () => {
   it('sorts "2026 Spring" before "2026 Winter"', () => {

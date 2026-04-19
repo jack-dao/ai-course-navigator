@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useCourseFilters } from './useCourseFilters';
-import type { Course, ProfessorRatingsMap } from '../types';
+import { useCourseFilters } from '../useCourseFilters';
+import type { Course, ProfessorRatingsMap } from '../../types';
 
 const mockSessionStorage = (() => {
   let store: Record<string, string> = {};
@@ -176,10 +176,7 @@ const professorRatings: ProfessorRatingsMap = {
 };
 
 describe('useCourseFilters', () => {
-  function renderFiltersHook(
-    courses: Course[] = sampleCourses,
-    ratings: ProfessorRatingsMap = professorRatings
-  ) {
+  function renderFiltersHook(courses: Course[] = sampleCourses, ratings: ProfessorRatingsMap = professorRatings) {
     return renderHook(() => useCourseFilters(courses, ratings));
   }
 
@@ -358,9 +355,7 @@ describe('useCourseFilters', () => {
         });
       });
       const codes = result.current.processedCourses.map((c) => c.code);
-      const sorted = [...codes].sort((a, b) =>
-        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
-      );
+      const sorted = [...codes].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
       expect(codes).toEqual(sorted);
     });
   });

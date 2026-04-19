@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useSchedule } from './useSchedule';
-import type { SelectedCourse, Section } from '../types';
+import { useSchedule } from '../useSchedule';
+import type { SelectedCourse, Section } from '../../types';
 
 // Mock authFetch to prevent real API calls
 vi.mock('../utils/api', () => ({
@@ -49,10 +49,7 @@ function makeSection(overrides: Partial<Section> = {}): Section {
   };
 }
 
-function makeSelectedCourse(
-  code: string,
-  section: Partial<Section> = {}
-): SelectedCourse {
+function makeSelectedCourse(code: string, section: Partial<Section> = {}): SelectedCourse {
   return {
     id: 1,
     code,

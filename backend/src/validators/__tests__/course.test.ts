@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { termQuerySchema, courseIdSchema } from './course';
+import { termQuerySchema, courseIdSchema } from '../course';
 
 describe('termQuerySchema', () => {
   it('passes with empty object since term is optional', () => {

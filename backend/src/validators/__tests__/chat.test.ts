@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { chatSchema } from './chat';
+import { chatSchema } from '../chat';
 
 describe('chatSchema', () => {
   it('passes with valid input', () => {
@@ -42,9 +42,7 @@ describe('chatSchema', () => {
   it('accepts optional userSchedule', () => {
     const result = chatSchema.safeParse({
       message: 'Hello',
-      userSchedule: [
-        { code: 'CSE 101', name: 'Algorithms' },
-      ],
+      userSchedule: [{ code: 'CSE 101', name: 'Algorithms' }],
     });
     expect(result.success).toBe(true);
     if (result.success) {

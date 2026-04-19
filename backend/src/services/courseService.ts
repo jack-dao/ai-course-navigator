@@ -78,9 +78,9 @@ export const fetchCourses = async (term?: string) => {
         },
       },
     },
-    orderBy: { code: 'asc' },
   });
 
+  // Natural sort so "CSE 5" comes before "CSE 101" — can't be done in Postgres without a computed column
   return courses.sort((a, b) => {
     const codeA = a.code || '';
     const codeB = b.code || '';

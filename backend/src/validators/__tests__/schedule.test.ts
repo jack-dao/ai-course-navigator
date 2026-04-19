@@ -1,13 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { saveScheduleSchema, getScheduleSchema } from './schedule';
+import { saveScheduleSchema, getScheduleSchema } from '../schedule';
 
 describe('saveScheduleSchema', () => {
   it('passes with valid input', () => {
     const result = saveScheduleSchema.safeParse({
       name: 'Fall Schedule',
-      courses: [
-        { code: 'CSE 101', sectionCode: '01A', labCode: '01B' },
-      ],
+      courses: [{ code: 'CSE 101', sectionCode: '01A', labCode: '01B' }],
     });
     expect(result.success).toBe(true);
   });
