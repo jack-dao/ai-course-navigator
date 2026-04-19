@@ -1,4 +1,3 @@
-export { registerUser, loginUser, refreshAccessToken, logoutUser } from './authService';
 export {
   fetchCourses,
   fetchCourseDescription,

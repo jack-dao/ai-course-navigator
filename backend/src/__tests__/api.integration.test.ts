@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 
 // Mock prisma for all integration tests
@@ -24,16 +24,6 @@ vi.mock('../lib/prisma', () => ({
           reviews: [],
         },
       ]),
-    },
-    user: {
-      findUnique: vi.fn().mockResolvedValue(null),
-      create: vi.fn().mockResolvedValue({ id: '1' }),
-    },
-    refreshToken: {
-      create: vi.fn().mockResolvedValue({}),
-      findUnique: vi.fn().mockResolvedValue(null),
-      update: vi.fn().mockResolvedValue({}),
-      updateMany: vi.fn().mockResolvedValue({}),
     },
     schedule: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -106,36 +96,6 @@ describe('API Integration Tests', () => {
     });
   });
 
-  describe('POST /api/auth/register', () => {
-    it('returns 400 for invalid email', async () => {
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send({ email: 'not-email', password: 'password123', name: 'Test' });
-      expect(res.status).toBe(400);
-    });
-
-    it('returns 400 for short password', async () => {
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send({ email: 'test@test.com', password: 'short', name: 'Test' });
-      expect(res.status).toBe(400);
-    });
-
-    it('returns 400 for missing name', async () => {
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send({ email: 'test@test.com', password: 'password123' });
-      expect(res.status).toBe(400);
-    });
-  });
-
-  describe('POST /api/auth/login', () => {
-    it('returns 400 for missing fields', async () => {
-      const res = await request(app).post('/api/auth/login').send({ email: 'test@test.com' });
-      expect(res.status).toBe(400);
-    });
-  });
-
   describe('GET /api/schedules', () => {
     it('returns 401 without auth token', async () => {
       const res = await request(app).get('/api/schedules');
@@ -165,32 +125,6 @@ describe('API Integration Tests', () => {
     it('returns 500 for missing message field', async () => {
       const res = await request(app).post('/api/chat').send({});
       expect(res.status).toBe(500);
-    });
-  });
-
-  describe('POST /api/auth/refresh', () => {
-    it('returns 400 for missing refreshToken', async () => {
-      const res = await request(app).post('/api/auth/refresh').send({});
-      expect(res.status).toBe(400);
-    });
-
-    it('returns 401 for invalid refresh token', async () => {
-      const res = await request(app).post('/api/auth/refresh').send({ refreshToken: 'invalid-token' });
-      expect(res.status).toBe(401);
-      expect(res.body.error).toBe('Invalid or expired refresh token');
-    });
-  });
-
-  describe('POST /api/auth/logout', () => {
-    it('returns 400 for missing refreshToken', async () => {
-      const res = await request(app).post('/api/auth/logout').send({});
-      expect(res.status).toBe(400);
-    });
-
-    it('returns 200 on successful logout', async () => {
-      const res = await request(app).post('/api/auth/logout').send({ refreshToken: 'some-token' });
-      expect(res.status).toBe(200);
-      expect(res.body.message).toBe('Logged out successfully');
     });
   });
 

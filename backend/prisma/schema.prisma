@@ -97,21 +97,7 @@ model User {
   name      String
   createdAt DateTime @default(now())
 
-  schedules     Schedule[]
-  refreshTokens RefreshToken[]
-}
-
-model RefreshToken {
-  id        String   @id @default(uuid())
-  tokenHash String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([tokenHash])
+  schedules Schedule[]
 }
 
 model Schedule {
