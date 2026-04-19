@@ -1,9 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 const getRatings = async (req, res) => {
   try {
-    console.log("🌟 Fetching fresh ratings from DB...");
+    console.log("Fetching ratings from DB...");
 
     const professors = await prisma.professor.findMany({
       select: {
@@ -30,11 +29,11 @@ const getRatings = async (req, res) => {
       };
     });
 
-    console.log(`✅ Served ratings for ${Object.keys(ratingsMap).length} professors.`);
+    console.log(`Served ratings for ${Object.keys(ratingsMap).length} professors.`);
     res.json(ratingsMap);
 
   } catch (err) {
-    console.error("❌ Error fetching ratings from DB:", err);
+    console.error("Error fetching ratings from DB:", err);
     res.status(500).json({ error: "Failed to fetch ratings" });
   }
 };

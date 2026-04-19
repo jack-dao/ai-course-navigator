@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { authFetch } from '../utils/api';
 
 export const useSchedule = (user, session, availableCourses, selectedTerm) => {
   const [selectedCourses, setSelectedCourses] = useState(() => {
@@ -105,10 +106,7 @@ export const useSchedule = (user, session, availableCourses, selectedTerm) => {
       if (fetchedTerms.current.has(selectedTerm)) return;
 
       try {
-          const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-          const response = await fetch(`${apiBase}/api/schedules?term=${encodeURIComponent(selectedTerm)}`, { 
-            headers: { 'Authorization': `Bearer ${session.access_token}` } 
-          });
+          const response = await authFetch(`/api/schedules?term=${encodeURIComponent(selectedTerm)}`, session);
 
           if (response.ok) {
             const data = await response.json();

@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 const sortTermsDesc = (terms) => {
   const seasonWeight = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
@@ -135,7 +134,7 @@ const getCourseDescription = async (req, res) => {
     res.json(course);
   } catch (error) {
     console.error("Description Fetch Error:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to fetch course description' });
   }
 };
 

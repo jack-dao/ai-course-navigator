@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Clock, Plus, Star, MapPin, ChevronDown, RotateCcw, User, Hash, Lock, BookOpen, GraduationCap, Monitor, AlertCircle, Loader2, ChevronRight } from 'lucide-react';
+import { apiFetch } from '../utils/api';
 
 const Skeleton = ({ className }) => (
   <div className={`animate-pulse bg-slate-200/80 rounded-md ${className}`} />
@@ -28,9 +29,8 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
 
     setIsLoadingDetails(true);
     try {
-        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3000';
         const [res] = await Promise.all([
-            fetch(`${apiBase}/api/courses/${course.id}/description`),
+            apiFetch(`/api/courses/${course.id}/description`),
             new Promise(r => setTimeout(r, 300)) 
         ]);
         

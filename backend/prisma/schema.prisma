@@ -40,6 +40,7 @@ model Course {
   sections    Section[]
 
   @@unique([schoolId, code, term])
+  @@index([term])
 }
 
 model Section {
@@ -66,8 +67,11 @@ model Section {
   location      String
   enrolled      Int
   capacity      Int
-  instructor    String     
+  instructor    String
   professor     Professor? @relation(fields: [instructor], references: [name])
+
+  @@index([courseId])
+  @@index([parentId])
 }
 
 model Professor {
@@ -103,4 +107,6 @@ model Schedule {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([userId, name])
 }

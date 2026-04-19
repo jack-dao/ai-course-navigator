@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 const saveSchedule = async (req, res) => {
     try {
@@ -19,7 +18,7 @@ const saveSchedule = async (req, res) => {
                 id: userId,
                 email: email || `user_${userId}@example.com`, 
                 name: userName,
-                password: '', 
+                password: null,
             },
         });
 
@@ -52,7 +51,7 @@ const saveSchedule = async (req, res) => {
     }
     catch (error) {
         console.error('Save error:', error);
-        res.status(500).json({ error: 'Failed to save schedule', details: error.message });
+        res.status(500).json({ error: 'Failed to save schedule' });
     }
 };
 

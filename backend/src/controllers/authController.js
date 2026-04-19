@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 if (!process.env.JWT_SECRET) {
   console.error("Configuration Error: JWT_SECRET is not defined in the .env file.")
