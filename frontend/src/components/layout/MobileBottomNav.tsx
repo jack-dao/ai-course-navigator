@@ -1,6 +1,6 @@
 import React from 'react';
 import { Search, Calendar as CalendarIcon, MessageSquare, Info } from 'lucide-react';
-import { TabName } from '../types';
+import { TabName } from '../../types';
 
 interface MobileBottomNavProps {
   activeTab: TabName;

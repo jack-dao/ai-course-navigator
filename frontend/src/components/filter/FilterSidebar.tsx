@@ -1,9 +1,9 @@
 import React from 'react';
 import { RotateCcw, Star, List, X } from 'lucide-react';
-import { DEPARTMENTS } from '../utils/departments';
-import CustomDropdown from './CustomDropdown';
+import { DEPARTMENTS } from '../../utils/departments';
+import CustomDropdown from '../common/CustomDropdown';
 import FilterSection from './FilterSection';
-import type { CourseFilters } from '../types';
+import type { CourseFilters } from '../../types';
 
 interface FilterSidebarProps {
   filters: CourseFilters;

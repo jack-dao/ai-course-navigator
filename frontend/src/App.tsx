@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { supabase } from './supabase';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components';
 import type { User, Session } from '@supabase/supabase-js';
 import type { TabName } from './types';
 import { Loader2 } from 'lucide-react';

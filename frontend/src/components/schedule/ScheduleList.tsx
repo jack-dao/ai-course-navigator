@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2, MapPin, Clock } from 'lucide-react';
-import { SelectedCourse } from '../types';
+import { SelectedCourse } from '../../types';
 
 interface ScheduleListProps {
   selectedCourses: SelectedCourse[];

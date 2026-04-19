@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SelectedCourse, SubSection, Section } from '../types';
+import type { SelectedCourse, SubSection, Section } from '../../types';
 
 interface ColorPalette {
   bg: string;

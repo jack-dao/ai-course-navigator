@@ -4,18 +4,18 @@
   "scripts": {
     "install-all": "npm install && npm install --prefix frontend && npm install --prefix backend",
     "dev": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
-    "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\" \"backend/server.ts\"",
+    "format": "prettier --write \"frontend/src/**/*.{ts,tsx}\" \"backend/src/**/*.ts\"",
     "prepare": "husky"
   },
   "lint-staged": {
     "frontend/src/**/*.{ts,tsx}": [
       "prettier --write",
-      "eslint --fix --prefix frontend"
+      "frontend/node_modules/.bin/eslint --fix --config frontend/eslint.config.js"
     ],
     "backend/src/**/*.ts": [
       "prettier --write"
     ],
-    "backend/server.ts": [
+    "backend/src/server.ts": [
       "prettier --write"
     ]
   },

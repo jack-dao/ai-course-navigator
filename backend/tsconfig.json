@@ -4,7 +4,7 @@
     "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "..",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -17,6 +17,6 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["server.ts", "src/**/*.ts", "scripts/**/*.ts"],
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "../shared/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

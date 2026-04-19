@@ -13,25 +13,21 @@ import {
 } from 'lucide-react';
 import type { User, Session } from '@supabase/supabase-js';
 
-import Header from '../components/Header';
-import FilterSidebar from '../components/FilterSidebar';
-import CustomDropdown from '../components/CustomDropdown';
-import ChatSidebar from '../components/ChatSidebar';
-import AuthModal from '../components/AuthModal';
-import CalendarView from '../components/CalendarView';
-import ScheduleList from '../components/ScheduleList';
-import ProfessorModal from '../components/ProfessorModal';
-import PrivacyModal from '../components/PrivacyModal';
-import AboutTab from '../components/AboutTab';
-import CourseList from '../components/CourseList';
-import MobileBottomNav from '../components/MobileBottomNav';
-
-import { useCourseFilters } from '../hooks/useCourseFilters';
-import { useSchedule } from '../hooks/useSchedule';
-import { useNotification } from '../hooks/useNotification';
-import { useTerms } from '../hooks/useTerms';
-import { useCourses } from '../hooks/useCourses';
-import { useChat } from '../hooks/useChat';
+import {
+  Header,
+  MobileBottomNav,
+  FilterSidebar,
+  ChatSidebar,
+  CourseList,
+  CalendarView,
+  ScheduleList,
+  AuthModal,
+  ProfessorModal,
+  PrivacyModal,
+  CustomDropdown,
+  AboutTab,
+} from '../components';
+import { useCourseFilters, useSchedule, useNotification, useTerms, useCourses, useChat } from '../hooks';
 import { authFetch } from '../utils/api';
 import type { TabName, Course, Section, ProfessorModalData, CourseFilters as CourseFiltersType } from '../types';
 

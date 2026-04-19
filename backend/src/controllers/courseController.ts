@@ -1,128 +1,27 @@
-import prisma from '../lib/prisma';
 import { termQuerySchema, courseIdSchema } from '../validators/course';
+import {
+  fetchCourses,
+  fetchCourseDescription,
+  fetchSchoolInfo,
+  fetchTerms,
+  sortTermsDesc,
+  getSmartTerm,
+} from '../services/courseService';
 import type { Request, Response } from 'express';
-
-const sortTermsDesc = (terms: string[]): string[] => {
-  const seasonWeight: Record<string, number> = { Winter: 1, Spring: 2, Summer: 3, Fall: 4 };
-
-  return terms.sort((a, b) => {
-    const partsA = a.split(' ');
-    const partsB = b.split(' ');
-
-    const yearA = parseInt(partsA[0]);
-    const seasonA = partsA[1];
-
-    const yearB = parseInt(partsB[0]);
-    const seasonB = partsB[1];
-
-    if (yearA !== yearB) {
-      return yearB - yearA;
-    }
-    return (seasonWeight[seasonB] || 0) - (seasonWeight[seasonA] || 0);
-  });
-};
-
-function getSmartTerm(): string {
-  const now = new Date();
-  const month = now.getMonth();
-  const year = now.getFullYear();
-
-  if (month <= 2) return `Winter ${year}`;
-  if (month <= 5) return `Spring ${year}`;
-  if (month <= 7) return `Summer ${year}`;
-  return `Fall ${year}`;
-}
 
 const getCourses = async (req: Request, res: Response): Promise<void> => {
   const { term } = termQuerySchema.parse(req.query);
 
-  const courses = await prisma.course.findMany({
-    where: term ? { term } : {},
-    select: {
-      id: true,
-      code: true,
-      name: true,
-      credits: true,
-      geCode: true,
-      career: true,
-      grading: true,
-      term: true,
-      schoolId: true,
-      sections: {
-        where: {
-          parentId: null,
-        },
-        orderBy: {
-          sectionNumber: 'asc',
-        },
-        select: {
-          id: true,
-          classNumber: true,
-          sectionNumber: true,
-          instructor: true,
-          days: true,
-          startTime: true,
-          endTime: true,
-          location: true,
-          status: true,
-          enrolled: true,
-          capacity: true,
-          instructionMode: true,
-          subSections: {
-            orderBy: { sectionNumber: 'asc' },
-            select: {
-              id: true,
-              classNumber: true,
-              sectionNumber: true,
-              days: true,
-              startTime: true,
-              endTime: true,
-              location: true,
-              status: true,
-              enrolled: true,
-              capacity: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      code: 'asc',
-    },
-  });
-
-  // Custom sort for "CSE 101" vs "CSE 15" logic
-  const sortedCourses = courses.sort((a, b) => {
-    const codeA = a.code || '';
-    const codeB = b.code || '';
-
-    const [numA] = codeA
-      .replace('CSE ', '')
-      .split(/([0-9]+)/)
-      .filter(Boolean);
-    const [numB] = codeB
-      .replace('CSE ', '')
-      .split(/([0-9]+)/)
-      .filter(Boolean);
-
-    return (parseInt(numA) || 0) - (parseInt(numB) || 0);
-  });
+  const courses = await fetchCourses(term);
 
   res.set('Cache-Control', 'public, max-age=300');
-  res.json(sortedCourses);
+  res.json(courses);
 };
 
-// Fetch description/prereqs only when requested
 const getCourseDescription = async (req: Request, res: Response): Promise<void> => {
   const { id } = courseIdSchema.parse(req.params);
 
-  const course = await prisma.course.findUnique({
-    where: { id },
-    select: {
-      description: true,
-      prerequisites: true,
-    },
-  });
+  const course = await fetchCourseDescription(id);
 
   if (!course) {
     res.status(404).json({ error: 'Course not found' });
@@ -133,41 +32,18 @@ const getCourseDescription = async (req: Request, res: Response): Promise<void> 
   res.json(course);
 };
 
-const getSchoolInfo = async (req: Request, res: Response): Promise<void> => {
-  const distinctTerms = await prisma.course.findMany({
-    select: { term: true },
-    distinct: ['term'],
-  });
-
-  let termsList = distinctTerms.map((t) => t.term).filter(Boolean) as string[];
-  let latestTerm: string | null = null;
-
-  if (termsList.length > 0) {
-    const sorted = sortTermsDesc(termsList);
-    latestTerm = sorted[0];
-  } else {
-    latestTerm = getSmartTerm();
-  }
+const getSchoolInfo = async (_req: Request, res: Response): Promise<void> => {
+  const info = await fetchSchoolInfo();
 
   res.set('Cache-Control', 'public, max-age=3600');
-  res.json({
-    id: 'ucsc',
-    name: 'UC Santa Cruz',
-    shortName: 'UCSC',
-    term: latestTerm,
-    status: 'active',
-  });
+  res.json(info);
 };
 
-const getTerms = async (req: Request, res: Response): Promise<void> => {
-  const terms = await prisma.course.findMany({
-    select: { term: true },
-    distinct: ['term'],
-  });
+const getTerms = async (_req: Request, res: Response): Promise<void> => {
+  const terms = await fetchTerms();
 
-  const sortedTerms = sortTermsDesc(terms.map((t) => t.term).filter(Boolean) as string[]);
   res.set('Cache-Control', 'public, max-age=3600');
-  res.json(sortedTerms);
+  res.json(terms);
 };
 
 export { getCourses, getCourseDescription, getSchoolInfo, getTerms, sortTermsDesc, getSmartTerm };

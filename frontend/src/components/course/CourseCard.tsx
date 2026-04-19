@@ -16,8 +16,8 @@ import {
   Loader2,
   ChevronRight,
 } from 'lucide-react';
-import { apiFetch } from '../utils/api';
-import type { Course, Section, SubSection, CourseFilters, ProfessorRatingsMap, ProfessorRating } from '../types';
+import { apiFetch } from '../../utils/api';
+import type { Course, Section, SubSection, CourseFilters, ProfessorRatingsMap, ProfessorRating } from '../../types';
 
 interface SkeletonProps {
   className?: string;

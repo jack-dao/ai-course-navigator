@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { sortTermsDesc, getSmartTerm } from './courseController';
+import { sortTermsDesc, getSmartTerm } from '../services/courseService';
 
 describe('sortTermsDesc', () => {
   it('sorts "2026 Spring" before "2026 Winter"', () => {
@@ -15,12 +15,7 @@ describe('sortTermsDesc', () => {
   it('sorts multiple terms in descending order', () => {
     const terms = ['2025 Winter', '2026 Fall', '2025 Spring', '2026 Winter'];
     const result = sortTermsDesc(terms);
-    expect(result).toEqual([
-      '2026 Fall',
-      '2026 Winter',
-      '2025 Spring',
-      '2025 Winter',
-    ]);
+    expect(result).toEqual(['2026 Fall', '2026 Winter', '2025 Spring', '2025 Winter']);
   });
 
   it('handles a single term', () => {

@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { GraduationCap, LogOut, User, Search, CalendarDays, Info, ChevronDown } from 'lucide-react';
-import { supabase } from '../supabase';
+import { supabase } from '../../supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import type { TabName } from '../types';
+import type { TabName } from '../../types';
 
-import compassLogo from '../assets/logo-compass.png';
-import sammyChat from '../assets/sammy-chat.png';
+import compassLogo from '../../assets/logo-compass.png';
+import sammyChat from '../../assets/sammy-chat.png';
 
 interface HeaderProps {
   activeTab: TabName;

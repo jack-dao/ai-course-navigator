@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Loader, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
-import { supabase } from '../supabase';
-import type { School } from '../types';
+import { supabase } from '../../supabase';
+import type { School } from '../../types';
 
-import compassLogo from '../assets/logo-compass.png';
+import compassLogo from '../../assets/logo-compass.png';
 
 interface AuthModalProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Star, MessageSquare, Flame, ThumbsUp, TrendingUp, Calendar, Tag, ExternalLink } from 'lucide-react';
-import { ProfessorModalData } from '../types';
+import { ProfessorModalData } from '../../types';
 
 interface ProfessorModalProps {
   professor: ProfessorModalData | null;

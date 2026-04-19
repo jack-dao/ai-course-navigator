@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Send, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import sammyChat from '../assets/sammy-chat.png';
-import type { ChatMessage } from '../types';
+import sammyChat from '../../assets/sammy-chat.png';
+import type { ChatMessage } from '../../types';
 
 interface ChatSidebarProps {
   messages?: ChatMessage[];

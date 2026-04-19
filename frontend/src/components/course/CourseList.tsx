@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, BookOpen } from 'lucide-react';
 import CourseCard from './CourseCard';
-import type { Course, Section, CourseFilters, ProfessorRatingsMap } from '../types';
+import type { Course, Section, CourseFilters, ProfessorRatingsMap } from '../../types';
 
 interface CourseListProps {
   searchQuery: string;
