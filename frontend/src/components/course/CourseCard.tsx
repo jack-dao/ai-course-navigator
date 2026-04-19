@@ -223,7 +223,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
   };
 
   const handleAddClick = (section: Section) => {
-    const hasDiscussions = section.subSections?.length && section.subSections.length > 0;
+    const hasDiscussions = (section.subSections?.length ?? 0) > 0;
     if (hasDiscussions) {
       const selectedId = selectedSubSections[section.id];
       if (!selectedId) {
@@ -347,7 +347,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
       <div className="divide-y divide-slate-200 border-l border-r border-b border-slate-200 rounded-b-[20px]">
         {sortedSections.length > 0 ? (
           sortedSections.map((section, index) => {
-            const hasDiscussions = section.subSections?.length && section.subSections.length > 0;
+            const hasDiscussions = (section.subSections?.length ?? 0) > 0;
             const ratingData = professorRatings?.[section.instructor];
             const selectedSubId = selectedSubSections[section.id];
             const selectedSub = section.subSections?.find((s) => s.id === selectedSubId);
