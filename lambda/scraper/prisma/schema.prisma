@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model School {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  currentTerm   String?
+  courses       Course[]
+}
+
+model Course {
+  id                Int       @id @default(autoincrement())
+  code              String    // e.g. "CSE 101"
+  name              String    // e.g. "Algorithms"
+  term              String    @default("Winter 2026")
+  credits           Int
+  department        String
+  description       String?
+
+  geCode            String?
+  prerequisites     String?
+
+  career            String?
+  grading           String?
+  
+  // Note: This field gets overwritten if multiple profs teach the same course.
+  // The real instructor info lives in 'Section'.
+  instructor  String?    
+
+  schoolId    Int
+  school      School    @relation(fields: [schoolId], references: [id])
+
+  sections    Section[]
+
+  @@unique([schoolId, code, term])
+  @@index([term])
+}
+
+model Section {
+  id            Int      @id @default(autoincrement())
+  courseId      Int
+  course        Course   @relation(fields: [courseId], references: [id])
+
+  sectionNumber String   
+  sectionCode   String   @unique // e.g. "CSE 101-01"
+  sectionType   String   // "LEC", "LAB", etc.
+  
+  classNumber   String?
+  instructionMode String?
+
+  parentId      Int?     
+  parent        Section?  @relation("LinkedSections", fields: [parentId], references: [id])
+  subSections   Section[] @relation("LinkedSections")
+
+  status        String   
+  days          String   
+  time          String
+  startTime     String
+  endTime       String
+  location      String
+  enrolled      Int
+  capacity      Int
+  instructor    String
+  professor     Professor? @relation(fields: [instructor], references: [name])
+
+  @@index([courseId])
+  @@index([parentId])
+}
+
+model Professor {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  rmpId          String?   // The weird ID RMP uses
+  
+  avgRating      Float?    @default(0)      
+  avgDifficulty  Float?    @default(0)      
+  numRatings     Int?      @default(0)
+  wouldTakeAgain String?   @default("N/A")  
+  rmpLink        String?
+  reviews        Json?
+  // -----------------------------------------
+
+  sections       Section[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  name      String
+  createdAt DateTime @default(now())
+
+  schedules Schedule[]
+}
+
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  name      String   
+  courses   Json     // Stores the list of selected class IDs
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId, name])
+}

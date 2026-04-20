@@ -54,9 +54,8 @@ resource "aws_lambda_function" "scraper" {
   timeout       = 900 # 15 minutes max for scraping
   memory_size   = 1024
 
-  # Placeholder zip — will be replaced by CI/CD deployment
-  filename         = "${path.module}/placeholder-lambda.zip"
-  source_code_hash = filebase64sha256("${path.module}/placeholder-lambda.zip")
+  filename         = "${path.module}/scraper-lambda.zip"
+  source_code_hash = filebase64sha256("${path.module}/scraper-lambda.zip")
 
   environment {
     variables = {
