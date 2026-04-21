@@ -2,10 +2,12 @@
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-ucsc-blue: #003C6C;
+  --color-ucsc-gold: #FDC700;
+  --color-ucsc-blue-dark: #002a4d;
 }
 
 body {
-  /* ⚡️ FIX: Changed from min-width: 1280px to width: 100% so it fits on phones */
   width: 100%;
   overflow-x: hidden;
   margin: 0;
