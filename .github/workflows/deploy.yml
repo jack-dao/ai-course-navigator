@@ -85,6 +85,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          command_timeout: 20m
           script: |
             cd /home/ec2-user/ai-slug-navigator || git clone ${{ secrets.REPO_URL }} /home/ec2-user/ai-slug-navigator
             cd /home/ec2-user/ai-slug-navigator

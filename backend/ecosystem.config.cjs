@@ -4,6 +4,7 @@ module.exports = {
       name: 'ai-slug-navigator',
       script: 'tsx',
       args: 'src/server.ts',
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       max_memory_restart: '512M',
