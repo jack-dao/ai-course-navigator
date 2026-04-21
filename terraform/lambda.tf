@@ -50,7 +50,7 @@ resource "aws_lambda_function" "scraper" {
   function_name = "${var.project_name}-scraper"
   role          = aws_iam_role.lambda_scraper.arn
   handler       = "handler.handler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900 # 15 minutes max for scraping
   memory_size   = 1024
 
