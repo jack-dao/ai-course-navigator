@@ -54,7 +54,7 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
     availableCourses,
     selectedTerm
   );
-  const { chatMessages, isChatLoading, handleSendMessage } = useChat(selectedTerm, selectedCourses);
+  const { chatMessages, isChatLoading, handleSendMessage } = useChat(selectedTerm, selectedCourses, session);
   const { notification, showNotification } = useNotification();
 
   const MAX_UNITS = 22;

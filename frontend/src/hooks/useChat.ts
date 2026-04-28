@@ -1,13 +1,23 @@
 import { useState, useCallback } from 'react';
-import { apiFetch } from '../utils/api';
+import type { Session } from '@supabase/supabase-js';
+import { authFetch } from '../utils/api';
 import type { ChatMessage, SelectedCourse } from '../types';
 
-export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[]) => {
+export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[], session: Session | null) => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
 
   const handleSendMessage = useCallback(
     async (text: string) => {
+      if (!session) {
+        setChatMessages((prev) => [
+          ...prev,
+          { role: 'user' as const, text },
+          { role: 'assistant' as const, text: 'Please sign in to chat with Sammy.' },
+        ]);
+        return;
+      }
+
       setIsChatLoading(true);
 
       setChatMessages((prev) => [
@@ -17,7 +27,7 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[])
       ]);
 
       try {
-        const response = await apiFetch('/api/chat', {
+        const response = await authFetch('/api/chat', session, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -36,7 +46,11 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[])
           throw new Error('Server connection failed');
         }
 
-        const reader = response.body!.getReader();
+        if (!response.body) {
+          throw new Error('Empty response body');
+        }
+
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let botReply = '';
 
@@ -67,7 +81,7 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[])
         setIsChatLoading(false);
       }
     },
-    [selectedTerm, selectedCourses]
+    [selectedTerm, selectedCourses, session]
   );
 
   return { chatMessages, isChatLoading, handleSendMessage };
