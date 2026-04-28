@@ -1,19 +1,60 @@
-const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client-secrets-manager');
-const { PrismaClient } = require('@prisma/client');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const https = require('https');
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
+import { PrismaClient } from '@prisma/client';
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import https from 'https';
+import type { Handler } from 'aws-lambda';
 
-let prisma;
+interface AppSecrets {
+  DATABASE_URL: string;
+  DIRECT_URL: string;
+  JWT_SECRET: string;
+  GEMINI_API_KEY: string;
+}
 
-async function getSecrets() {
+interface Discussion {
+  sectionNumber: string;
+  sectionType: string;
+  days: string;
+  time: string;
+  location: string;
+  enrolled: number;
+  capacity: number;
+  status: 'Open' | 'Closed';
+}
+
+interface ScrapedCourse {
+  code: string;
+  title: string;
+  section: string;
+  instructor: string;
+  meeting: string;
+  location: string;
+  status: string;
+  enrolled: number;
+  capacity: number;
+  discussions: Discussion[];
+  geCode: string | null;
+  prerequisites: string | null;
+  description: string | null;
+  career: string | null;
+  grading: string | null;
+  classNumber: string | null;
+  instructionMode: string | null;
+  credits: number;
+}
+
+let prisma: PrismaClient | undefined;
+
+async function getSecrets(): Promise<AppSecrets> {
   const client = new SecretsManagerClient({ region: process.env.AWS_REGION || 'us-west-2' });
   const command = new GetSecretValueCommand({ SecretId: process.env.SECRETS_ARN });
   const response = await client.send(command);
-  return JSON.parse(response.SecretString);
+  if (!response.SecretString) throw new Error('Empty SecretString from Secrets Manager');
+  return JSON.parse(response.SecretString) as AppSecrets;
 }
 
-async function initPrisma() {
+async function initPrisma(): Promise<PrismaClient> {
   if (prisma) return prisma;
   const secrets = await getSecrets();
   process.env.DATABASE_URL = secrets.DATABASE_URL;
@@ -33,12 +74,12 @@ const httpClient = axios.create({
 
 const BASE_URL = 'https://pisa.ucsc.edu/class_search/index.php';
 
-function chunk(arr, size) {
+function chunk<T>(arr: T[], size: number): T[][] {
   return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
 }
 
-function parseDiscussions(detail$) {
-  const results = [];
+function parseDiscussions(detail$: cheerio.CheerioAPI): Discussion[] {
+  const results: Discussion[] = [];
   const targetHeader = detail$('.panel-heading').filter((_, el) => detail$(el).text().includes('Associated'));
   if (targetHeader.length === 0) return [];
 
@@ -52,7 +93,11 @@ function parseDiscussions(detail$) {
 
     const type = headerMatch[2];
     const sectionNum = headerMatch[3];
-    let time = 'TBA', location = 'TBA', enrolled = 0, capacity = 0, days = 'TBA';
+    let time = 'TBA';
+    let location = 'TBA';
+    let enrolled = 0;
+    let capacity = 0;
+    let days = 'TBA';
 
     const timeMatch = text.match(/(\d{2}:\d{2}[AP]M-\d{2}:\d{2}[AP]M)/);
     if (timeMatch) time = timeMatch[1];
@@ -63,30 +108,54 @@ function parseDiscussions(detail$) {
     if (locMatch) location = locMatch[1].trim();
 
     const statsMatch = text.match(/Enrl:\s*(\d+)\s*\/\s*(\d+)/);
-    if (statsMatch) { enrolled = parseInt(statsMatch[1]); capacity = parseInt(statsMatch[2]); }
+    if (statsMatch) {
+      enrolled = parseInt(statsMatch[1]);
+      capacity = parseInt(statsMatch[2]);
+    }
 
     results.push({
-      sectionNumber: sectionNum, sectionType: type, days, time, location, enrolled, capacity,
-      status: (enrolled >= capacity && capacity > 0) ? 'Closed' : 'Open',
+      sectionNumber: sectionNum,
+      sectionType: type,
+      days,
+      time,
+      location,
+      enrolled,
+      capacity,
+      status: enrolled >= capacity && capacity > 0 ? 'Closed' : 'Open',
     });
   });
   return results;
 }
 
-async function saveToDatabase(course, schoolId, termName) {
+async function saveToDatabase(course: ScrapedCourse, schoolId: number, termName: string): Promise<void> {
+  if (!prisma) throw new Error('Prisma not initialized');
   try {
     const dbCourse = await prisma.course.upsert({
       where: { schoolId_code_term: { schoolId, code: course.code, term: termName } },
       update: {
-        name: course.title, instructor: course.instructor, department: course.code.split(' ')[0],
-        geCode: course.geCode, prerequisites: course.prerequisites, description: course.description,
-        career: course.career, grading: course.grading, credits: course.credits,
+        name: course.title,
+        instructor: course.instructor,
+        department: course.code.split(' ')[0],
+        geCode: course.geCode,
+        prerequisites: course.prerequisites,
+        description: course.description,
+        career: course.career,
+        grading: course.grading,
+        credits: course.credits,
       },
       create: {
-        code: course.code, name: course.title, term: termName, credits: course.credits,
-        instructor: course.instructor, department: course.code.split(' ')[0], schoolId,
-        geCode: course.geCode, prerequisites: course.prerequisites, description: course.description,
-        career: course.career, grading: course.grading,
+        code: course.code,
+        name: course.title,
+        term: termName,
+        credits: course.credits,
+        instructor: course.instructor,
+        department: course.code.split(' ')[0],
+        schoolId,
+        geCode: course.geCode,
+        prerequisites: course.prerequisites,
+        description: course.description,
+        career: course.career,
+        grading: course.grading,
       },
     });
 
@@ -95,15 +164,25 @@ async function saveToDatabase(course, schoolId, termName) {
     const uniqueSectionCode = `${course.code}-${course.section}-${termName}`;
 
     const lectureData = {
-      courseId: dbCourse.id, sectionNumber: course.section, sectionCode: uniqueSectionCode,
-      sectionType: 'LEC', instructor: course.instructor, days, time: timeRange,
-      startTime: timeRange.split('-')[0] || 'TBA', endTime: timeRange.split('-')[1] || 'TBA',
-      location: course.location, enrolled: course.enrolled, capacity: course.capacity,
-      status: course.status, classNumber: course.classNumber, instructionMode: course.instructionMode,
+      courseId: dbCourse.id,
+      sectionNumber: course.section,
+      sectionCode: uniqueSectionCode,
+      sectionType: 'LEC',
+      instructor: course.instructor,
+      days,
+      time: timeRange,
+      startTime: timeRange.split('-')[0] || 'TBA',
+      endTime: timeRange.split('-')[1] || 'TBA',
+      location: course.location,
+      enrolled: course.enrolled,
+      capacity: course.capacity,
+      status: course.status,
+      classNumber: course.classNumber,
+      instructionMode: course.instructionMode,
     };
 
     const existingSection = await prisma.section.findUnique({ where: { sectionCode: uniqueSectionCode } });
-    let lectureId;
+    let lectureId: number;
 
     if (existingSection) {
       const updated = await prisma.section.update({ where: { id: existingSection.id }, data: lectureData });
@@ -117,11 +196,20 @@ async function saveToDatabase(course, schoolId, termName) {
       for (const dis of course.discussions) {
         const uniqueDisCode = `${course.code}-${dis.sectionNumber}-${termName}`;
         const disData = {
-          courseId: dbCourse.id, parentId: lectureId, sectionCode: uniqueDisCode,
-          sectionNumber: dis.sectionNumber, sectionType: dis.sectionType, instructor: 'Staff',
-          days: dis.days, time: dis.time, startTime: dis.time.split('-')[0] || 'TBA',
-          endTime: dis.time.split('-')[1] || 'TBA', location: dis.location,
-          enrolled: dis.enrolled, capacity: dis.capacity, status: dis.status,
+          courseId: dbCourse.id,
+          parentId: lectureId,
+          sectionCode: uniqueDisCode,
+          sectionNumber: dis.sectionNumber,
+          sectionType: dis.sectionType,
+          instructor: 'Staff',
+          days: dis.days,
+          time: dis.time,
+          startTime: dis.time.split('-')[0] || 'TBA',
+          endTime: dis.time.split('-')[1] || 'TBA',
+          location: dis.location,
+          enrolled: dis.enrolled,
+          capacity: dis.capacity,
+          status: dis.status,
         };
 
         const existingDis = await prisma.section.findUnique({ where: { sectionCode: uniqueDisCode } });
@@ -133,11 +221,11 @@ async function saveToDatabase(course, schoolId, termName) {
       }
     }
   } catch (e) {
-    console.error(`Error saving ${course.code}: ${e.message}`);
+    console.error(`Error saving ${course.code}: ${(e as Error).message}`);
   }
 }
 
-async function processClass($, el, schoolId, termName) {
+async function processClass($: cheerio.CheerioAPI, el: any, schoolId: number, termName: string): Promise<void> {
   const header = $(el).find('.panel-heading').text().trim();
   if (header.includes('Search Results')) return;
 
@@ -153,16 +241,29 @@ async function processClass($, el, schoolId, termName) {
   let title = sectionMatch ? sectionMatch[2] : rest;
 
   const instructor = $(el).find('.panel-body .row > div:nth-child(2)').text().split(':')[1]?.trim() || 'Staff';
-  const location = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(1)').text().replace('Location:', '').trim() || 'TBA';
-  const meeting = $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(2)').text().replace('Day and Time:', '').trim() || 'TBA';
+  const location =
+    $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(1)').text().replace('Location:', '').trim() || 'TBA';
+  const meeting =
+    $(el).find('.panel-body .row > div:nth-child(3) > div:nth-child(2)').text().replace('Day and Time:', '').trim() || 'TBA';
 
-  let enrolled = 0, capacity = 0;
+  let enrolled = 0;
+  let capacity = 0;
   const enrollText = $(el).find('.panel-body .row > div:nth-child(4)').text();
   const enrollMatch = enrollText.match(/(\d+)\s+of\s+(\d+)/);
-  if (enrollMatch) { enrolled = parseInt(enrollMatch[1]); capacity = parseInt(enrollMatch[2]); }
+  if (enrollMatch) {
+    enrolled = parseInt(enrollMatch[1]);
+    capacity = parseInt(enrollMatch[2]);
+  }
 
-  let discussions = [], geCode = null, prerequisites = null, description = null;
-  let career = null, grading = null, classNumber = null, instructionMode = null, credits = 5;
+  let discussions: Discussion[] = [];
+  let geCode: string | null = null;
+  let prerequisites: string | null = null;
+  let description: string | null = null;
+  let career: string | null = null;
+  let grading: string | null = null;
+  let classNumber: string | null = null;
+  let instructionMode: string | null = null;
+  let credits = 5;
 
   let detailsLinkHref = $(el).find('h2 a').attr('href');
   if (!detailsLinkHref) detailsLinkHref = $(el).find('.panel-heading a').attr('href');
@@ -178,8 +279,11 @@ async function processClass($, el, schoolId, termName) {
 
       let fullHeader = '';
       detail$('h2').each((_, h2) => {
-        const text = detail$(h2).text().replace(/\u00A0/g, ' ').trim();
-        if (text.startsWith(code)) { fullHeader = text; return false; }
+        const text = detail$(h2).text().replace(/ /g, ' ').trim();
+        if (text.startsWith(code)) {
+          fullHeader = text;
+          return false;
+        }
       });
 
       if (fullHeader) {
@@ -207,23 +311,53 @@ async function processClass($, el, schoolId, termName) {
       if (gradingMatch) grading = gradingMatch[1].trim();
 
       const geMatch = panelText.match(/General Education(?:[:\s]*(?:Code\(s\))?[:\s]*)?([A-Z\s,-]+?)(?=\.?\s*Status)/i);
-      if (geMatch) { const rawGe = geMatch[1].trim(); if (rawGe.length < 15 && rawGe !== '.') geCode = rawGe; }
+      if (geMatch) {
+        const rawGe = geMatch[1].trim();
+        if (rawGe.length < 15 && rawGe !== '.') geCode = rawGe;
+      }
 
-      const prereqMatch = panelText.match(/Enrollment Requirements\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Description|$))/i);
+      const prereqMatch = panelText.match(
+        /Enrollment Requirements\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Description|$))/i
+      );
       if (prereqMatch) prerequisites = prereqMatch[1].trim();
 
-      const descMatch = panelText.match(/Description\s*:?\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Enrollment Requirements|$))/i);
+      const descMatch = panelText.match(
+        /Description\s*:?\s*([\s\S]+?)(?=\s*(?:Class Notes|Meeting Information|Enrollment Requirements|$))/i
+      );
       if (descMatch) description = descMatch[1].trim();
-    } catch (_err) { /* skip detail fetch failures */ }
+    } catch (_err) {
+      /* skip detail fetch failures */
+    }
   }
 
   await saveToDatabase(
-    { code, title, section, instructor, meeting, location, status, enrolled, capacity, discussions, geCode, prerequisites, description, career, grading, classNumber, instructionMode, credits },
-    schoolId, termName
+    {
+      code,
+      title,
+      section,
+      instructor,
+      meeting,
+      location,
+      status,
+      enrolled,
+      capacity,
+      discussions,
+      geCode,
+      prerequisites,
+      description,
+      career,
+      grading,
+      classNumber,
+      instructionMode,
+      credits,
+    },
+    schoolId,
+    termName
   );
 }
 
-async function scrapeCourses() {
+async function scrapeCourses(): Promise<void> {
+  if (!prisma) throw new Error('Prisma not initialized');
   console.log('Starting course scraper...');
 
   const initRes = await httpClient.get(BASE_URL);
@@ -240,9 +374,12 @@ async function scrapeCourses() {
   });
 
   const formData = new URLSearchParams({
-    action: 'results', 'binds[:term]': String(termId),
-    'binds[:reg_status]': 'all', 'binds[:subject]': '',
-    rec_start: '0', rec_dur: '5000',
+    action: 'results',
+    'binds[:term]': String(termId),
+    'binds[:reg_status]': 'all',
+    'binds[:subject]': '',
+    rec_start: '0',
+    rec_dur: '5000',
   });
 
   const megaResponse = await httpClient.post(BASE_URL, formData.toString());
@@ -253,7 +390,7 @@ async function scrapeCourses() {
   if (panels.length === 0) return;
 
   // Pre-sync professors
-  const uniqueInstructors = new Set();
+  const uniqueInstructors = new Set<string>();
   panels.forEach((el) => {
     const header = $(el).find('.panel-heading').text().trim();
     if (header.includes('Search Results')) return;
@@ -281,36 +418,66 @@ async function scrapeCourses() {
 
 const SCHOOL_ID = 'U2Nob29sLTEwNzg=';
 
-const DEPT_MAP = {
-  AM: ['Applied Mathematics'], STAT: ['Statistics'], MATH: ['Mathematics'],
-  CSE: ['Computer Science', 'Computer Engineering'], ECE: ['Electrical Engineering', 'Computer Engineering'],
-  BME: ['Biomolecular', 'Bioinformatics', 'Biology'], CMPM: ['Computational Media', 'Game Design'],
-  BIOL: ['Biology', 'Biological'], BIOC: ['Biochemistry'], CHEM: ['Chemistry'],
-  PHYS: ['Physics'], ASTR: ['Astronomy', 'Astrophysics'], EART: ['Earth Sciences', 'Geology'],
-  ENVS: ['Environmental'], ECON: ['Economics'], PSYC: ['Psychology'], SOCY: ['Sociology'],
-  ANTH: ['Anthropology'], POLI: ['Politics', 'Political Science'], EDUC: ['Education'],
-  LIT: ['Literature', 'English'], WRIT: ['Writing', 'Rhetoric'], LING: ['Linguistics'],
-  HIS: ['History'], PHIL: ['Philosophy'], HAVC: ['History of Art', 'Visual Culture'],
-  ART: ['Art', 'Studio Art'], FILM: ['Film'], THEA: ['Theater'], MUSC: ['Music'],
-  SPAN: ['Spanish'], FREN: ['French'], JAPN: ['Japanese'], CHIN: ['Chinese'],
+const DEPT_MAP: Record<string, string[]> = {
+  AM: ['Applied Mathematics'],
+  STAT: ['Statistics'],
+  MATH: ['Mathematics'],
+  CSE: ['Computer Science', 'Computer Engineering'],
+  ECE: ['Electrical Engineering', 'Computer Engineering'],
+  BME: ['Biomolecular', 'Bioinformatics', 'Biology'],
+  CMPM: ['Computational Media', 'Game Design'],
+  BIOL: ['Biology', 'Biological'],
+  BIOC: ['Biochemistry'],
+  CHEM: ['Chemistry'],
+  PHYS: ['Physics'],
+  ASTR: ['Astronomy', 'Astrophysics'],
+  EART: ['Earth Sciences', 'Geology'],
+  ENVS: ['Environmental'],
+  ECON: ['Economics'],
+  PSYC: ['Psychology'],
+  SOCY: ['Sociology'],
+  ANTH: ['Anthropology'],
+  POLI: ['Politics', 'Political Science'],
+  EDUC: ['Education'],
+  LIT: ['Literature', 'English'],
+  WRIT: ['Writing', 'Rhetoric'],
+  LING: ['Linguistics'],
+  HIS: ['History'],
+  PHIL: ['Philosophy'],
+  HAVC: ['History of Art', 'Visual Culture'],
+  ART: ['Art', 'Studio Art'],
+  FILM: ['Film'],
+  THEA: ['Theater'],
+  MUSC: ['Music'],
+  SPAN: ['Spanish'],
+  FREN: ['French'],
+  JAPN: ['Japanese'],
+  CHIN: ['Chinese'],
 };
 
-async function searchRMP(queryText) {
+async function searchRMP(queryText: string): Promise<any[]> {
   try {
-    const resp = await axios.post('https://www.ratemyprofessors.com/graphql', {
-      query: `query ($query: TeacherSearchQuery!, $count: Int) {
+    const resp = await axios.post(
+      'https://www.ratemyprofessors.com/graphql',
+      {
+        query: `query ($query: TeacherSearchQuery!, $count: Int) {
         newSearch { teachers(query: $query, first: $count) { edges { node {
           legacyId firstName lastName department numRatings avgRating
           courseCodes { courseName }
         } } } }
       }`,
-      variables: { query: { schoolID: SCHOOL_ID, text: queryText }, count: 100 },
-    }, { headers: { Authorization: 'Basic dGVzdDp0ZXN0', 'Content-Type': 'application/json' } });
+        variables: { query: { schoolID: SCHOOL_ID, text: queryText }, count: 100 },
+      },
+      { headers: { Authorization: 'Basic dGVzdDp0ZXN0', 'Content-Type': 'application/json' } }
+    );
     return resp.data?.data?.newSearch?.teachers?.edges || [];
-  } catch (_e) { return []; }
+  } catch (_e) {
+    return [];
+  }
 }
 
-async function matchProfessors() {
+async function matchProfessors(): Promise<void> {
+  if (!prisma) throw new Error('Prisma not initialized');
   console.log('Starting RMP matching...');
 
   try {
@@ -318,7 +485,9 @@ async function matchProfessors() {
       where: { rmpId: { not: null }, OR: [{ numRatings: 0 }, { numRatings: null }] },
       data: { rmpId: null, numRatings: null, avgRating: null },
     });
-  } catch (_e) { /* skip if column missing */ }
+  } catch (_e) {
+    /* skip if column missing */
+  }
 
   const professors = await prisma.professor.findMany({ include: { sections: { include: { course: true } } } });
   console.log(`Matching ${professors.length} professors...`);
@@ -338,7 +507,7 @@ async function matchProfessors() {
     const deptKeywords = taughtSubjects.flatMap((code) => DEPT_MAP[code] || []);
     const primaryDept = deptKeywords[0] || '';
 
-    let results = [];
+    let results: any[] = [];
     if (firstNamePart.length > 1) results.push(...(await searchRMP(`${firstNamePart} ${lastName}`)));
     if (primaryDept) results.push(...(await searchRMP(`${lastName} ${primaryDept}`)));
 
@@ -347,7 +516,7 @@ async function matchProfessors() {
       results.push(...(await searchRMP(lastName)));
     }
 
-    const uniqueResults = new Map();
+    const uniqueResults = new Map<number, any>();
     results.forEach((r) => uniqueResults.set(r.node.legacyId, r));
     const candidates = Array.from(uniqueResults.values()).map((x) => x.node);
     if (candidates.length === 0) continue;
@@ -361,16 +530,19 @@ async function matchProfessors() {
         if (firstInitial && rmpFirst.startsWith(firstInitial)) score += 2;
       } else return { candidate: ins, score: -100 };
 
-      const rmpCourseNames = ins.courseCodes.map((c) => c.courseName.toUpperCase());
-      if (taughtSubjects.some((s) => rmpCourseNames.some((rc) => rc.startsWith(s)))) score += 5;
+      const rmpCourseNames = ins.courseCodes.map((c: any) => c.courseName.toUpperCase());
+      if (taughtSubjects.some((s) => rmpCourseNames.some((rc: string) => rc.startsWith(s)))) score += 5;
 
       const rmpDept = (ins.department || '').toLowerCase();
       if (deptKeywords.some((k) => rmpDept.includes(k.toLowerCase()))) score += 5;
 
-      const rmpCleanCodes = rmpCourseNames.map((c) => c.replace(/\s/g, ''));
+      const rmpCleanCodes = rmpCourseNames.map((c: string) => c.replace(/\s/g, ''));
       if (taughtCodes.some((c) => rmpCleanCodes.includes(c))) score += 10;
 
-      if (ins.numRatings > 0) { score += 20; score += Math.min(ins.numRatings, 5); }
+      if (ins.numRatings > 0) {
+        score += 20;
+        score += Math.min(ins.numRatings, 5);
+      }
       return { candidate: ins, score };
     });
 
@@ -387,7 +559,8 @@ async function matchProfessors() {
 
 // ─── FETCH RATINGS ───
 
-async function fetchRatings() {
+async function fetchRatings(): Promise<void> {
+  if (!prisma) throw new Error('Prisma not initialized');
   console.log('Starting ratings fetch...');
 
   const professors = await prisma.professor.findMany({ where: { rmpId: { not: null } } });
@@ -396,38 +569,53 @@ async function fetchRatings() {
   for (const prof of professors) {
     try {
       const b64Id = Buffer.from(`Teacher-${prof.rmpId}`).toString('base64');
-      const resp = await axios.post('https://www.ratemyprofessors.com/graphql', {
-        query: `query ($id: ID!) { node(id: $id) { ... on Teacher {
+      const resp = await axios.post(
+        'https://www.ratemyprofessors.com/graphql',
+        {
+          query: `query ($id: ID!) { node(id: $id) { ... on Teacher {
           avgRating numRatings avgDifficulty wouldTakeAgainPercent department
           ratings(first: 20) { edges { node {
             comment date class grade helpfulRating clarityRating difficultyRating wouldTakeAgain ratingTags
           } } }
         } } }`,
-        variables: { id: b64Id },
-      }, { headers: { Authorization: 'Basic dGVzdDp0ZXN0', 'Content-Type': 'application/json' } });
+          variables: { id: b64Id },
+        },
+        { headers: { Authorization: 'Basic dGVzdDp0ZXN0', 'Content-Type': 'application/json' } }
+      );
 
       const data = resp.data?.data?.node;
       if (!data) continue;
 
-      const reviews = data.ratings.edges.map((e) => ({
-        comment: e.node.comment, date: e.node.date, course: e.node.class, grade: e.node.grade,
-        rating: (e.node.helpfulRating + e.node.clarityRating) / 2, difficulty: e.node.difficultyRating,
+      const reviews = data.ratings.edges.map((e: any) => ({
+        comment: e.node.comment,
+        date: e.node.date,
+        course: e.node.class,
+        grade: e.node.grade,
+        rating: (e.node.helpfulRating + e.node.clarityRating) / 2,
+        difficulty: e.node.difficultyRating,
         wouldTakeAgain: e.node.wouldTakeAgain === 1,
-        tags: e.node.ratingTags ? e.node.ratingTags.split('--').filter((t) => t) : [],
+        tags: e.node.ratingTags ? e.node.ratingTags.split('--').filter((t: string) => t) : [],
       }));
 
-      const takeAgain = data.wouldTakeAgainPercent !== null && data.wouldTakeAgainPercent !== -1
-        ? Math.round(data.wouldTakeAgainPercent).toString() : 'N/A';
+      const takeAgain =
+        data.wouldTakeAgainPercent !== null && data.wouldTakeAgainPercent !== -1
+          ? Math.round(data.wouldTakeAgainPercent).toString()
+          : 'N/A';
 
       await prisma.professor.update({
         where: { id: prof.id },
         data: {
-          avgRating: data.avgRating, avgDifficulty: data.avgDifficulty, numRatings: data.numRatings,
-          wouldTakeAgain: takeAgain, rmpLink: `https://www.ratemyprofessors.com/professor/${prof.rmpId}`,
+          avgRating: data.avgRating,
+          avgDifficulty: data.avgDifficulty,
+          numRatings: data.numRatings,
+          wouldTakeAgain: takeAgain,
+          rmpLink: `https://www.ratemyprofessors.com/professor/${prof.rmpId}`,
           reviews: reviews,
         },
       });
-    } catch (_e) { /* skip individual failures */ }
+    } catch (_e) {
+      /* skip individual failures */
+    }
     await new Promise((r) => setTimeout(r, 200));
   }
   console.log('Ratings fetch complete!');
@@ -435,7 +623,7 @@ async function fetchRatings() {
 
 // ─── LAMBDA HANDLER ───
 
-exports.handler = async (event) => {
+export const handler: Handler = async (event) => {
   console.log('Lambda scraper triggered', JSON.stringify(event));
 
   try {

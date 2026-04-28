@@ -134,7 +134,10 @@ jobs:
         run: |
           npm install
           npx prisma generate
-          zip -r ../../scraper-lambda.zip handler.js package.json node_modules prisma -x 'node_modules/.cache/*'
+          npx tsc
+          # Strip dev deps (typescript, prisma CLI, @types) from the runtime bundle
+          npm prune --omit=dev
+          zip -r ../../scraper-lambda.zip handler.js package.json node_modules prisma -x 'node_modules/.cache/*' '*.ts' 'tsconfig.json'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

@@ -9,6 +9,7 @@ backend/node_modules/
 # Build outputs
 dist/
 build/
+lambda/scraper/handler.js
 
 # IDEs
 .vscode/
