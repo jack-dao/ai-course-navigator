@@ -14,27 +14,33 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
+# AWS-managed prefix list of CloudFront origin-facing IPs. Used to restrict
+# port 3000 to only CloudFront, blocking direct hits to the EC2 public IP.
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 # Security group for EC2
 resource "aws_security_group" "backend" {
   name        = "${var.project_name}-backend-sg"
   description = "Security group for backend server"
 
-  # SSH access
+  # SSH — emergency human access only. Routine deploys use SSM (no SSH).
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "SSH access"
+    cidr_blocks = [var.ssh_allowed_cidr]
+    description = "SSH access (human emergency only)"
   }
 
-  # HTTP from CloudFront
+  # API port — only CloudFront origin IPs can reach it. Blocks direct hits.
   ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Backend API port"
+    from_port       = 3000
+    to_port         = 3000
+    protocol        = "tcp"
+    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
+    description     = "Backend API port (CloudFront only)"
   }
 
   # Outbound traffic
@@ -63,12 +69,14 @@ resource "aws_instance" "backend" {
   instance_type          = var.ec2_instance_type
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.backend.id]
+  iam_instance_profile   = aws_iam_instance_profile.backend.name
 
-  # Install Docker on startup
+  # Install Docker + jq (for deploy script secret parsing) on startup.
+  # SSM agent is preinstalled on Amazon Linux 2023.
   user_data = <<-EOF
     #!/bin/bash
     dnf update -y
-    dnf install -y docker
+    dnf install -y docker jq
     systemctl enable docker
     systemctl start docker
     usermod -aG docker ec2-user

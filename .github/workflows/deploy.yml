@@ -76,13 +76,13 @@ jobs:
       - name: Invalidate CloudFront Cache
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
 
-  # Deploy backend to EC2 via SSH
+  # Deploy backend to EC2 via SSM Run Command (no SSH).
+  # The script fetches secrets from AWS Secrets Manager via the instance role,
+  # so secrets never traverse GitHub Actions or SSM command logs.
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -90,33 +90,56 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          command_timeout: 20m
-          script: |
-            cd /home/ec2-user/ai-slug-navigator || git clone ${{ secrets.REPO_URL }} /home/ec2-user/ai-slug-navigator
-            cd /home/ec2-user/ai-slug-navigator
-            git pull origin main
+      - name: Resolve EC2 instance ID
+        id: instance
+        run: |
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=ai-slug-navigator-backend" \
+                      "Name=instance-state-name,Values=running" \
+            --query "Reservations[0].Instances[0].InstanceId" \
+            --output text)
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            echo "Could not resolve backend instance ID" >&2
+            exit 1
+          fi
+          echo "instance_id=$INSTANCE_ID" >> "$GITHUB_OUTPUT"
 
-            cd backend
-            docker build -t ai-slug-navigator-backend .
-            docker stop ai-slug-backend 2>/dev/null || true
-            docker rm ai-slug-backend 2>/dev/null || true
-            docker run -d \
-              --name ai-slug-backend \
-              --restart unless-stopped \
-              -p 3000:3000 \
-              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-              -e DIRECT_URL="${{ secrets.DIRECT_URL }}" \
-              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-              -e NODE_ENV=production \
-              -e PORT=3000 \
-              ai-slug-navigator-backend
+      - name: Deploy via SSM
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "${{ steps.instance.outputs.instance_id }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy ${GITHUB_SHA::7}" \
+            --parameters 'commands=["sudo -u ec2-user bash /home/ec2-user/ai-slug-navigator/scripts/deploy-on-ec2.sh"]' \
+            --cloud-watch-output-config CloudWatchOutputEnabled=true \
+            --query "Command.CommandId" \
+            --output text)
+          echo "Started SSM command $COMMAND_ID"
+
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}"
+
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "Status" --output text)
+
+          echo "--- stdout ---"
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardOutputContent" --output text
+          echo "--- stderr ---"
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "${{ steps.instance.outputs.instance_id }}" \
+            --query "StandardErrorContent" --output text
+
+          if [ "$STATUS" != "Success" ]; then
+            echo "SSM command finished with status $STATUS" >&2
+            exit 1
+          fi
 
   # Deploy Lambda scraper
   deploy-lambda:

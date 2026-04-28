@@ -3,6 +3,11 @@ output "ec2_public_ip" {
   value       = aws_eip.backend.public_ip
 }
 
+output "ec2_instance_id" {
+  description = "Instance ID of the backend EC2 (used by CI for SSM deploys)"
+  value       = aws_instance.backend.id
+}
+
 output "s3_bucket_name" {
   description = "Name of the frontend S3 bucket"
   value       = aws_s3_bucket.frontend.id

@@ -28,6 +28,11 @@ variable "ec2_key_name" {
   default     = "ai-slug-navigator"
 }
 
+variable "ssh_allowed_cidr" {
+  description = "CIDR block allowed to SSH into the backend EC2 (e.g. \"203.0.113.5/32\"). Deploys go through SSM, so this is only for emergency human access."
+  type        = string
+}
+
 variable "database_url" {
   description = "Supabase PostgreSQL connection string"
   type        = string
