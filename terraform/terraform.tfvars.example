@@ -7,6 +7,10 @@ domain_name       = "aislugnavigator.com"
 ec2_instance_type = "t3.micro"
 ec2_key_name      = "ai-slug-navigator"
 
+# Your home/office IP for emergency SSH access — find with `curl ifconfig.me`.
+# Deploys go through SSM, not SSH, so this only needs to cover human access.
+ssh_allowed_cidr = "203.0.113.5/32"
+
 # Secrets — get these from your Supabase and Google Cloud dashboards
 database_url   = "postgresql://..."
 direct_url     = "postgresql://..."
