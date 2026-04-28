@@ -89,7 +89,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
         const normalizedUser = {
           id: user.id,
           email: user.email,
-          name: user.user_metadata?.full_name || user.email!.split('@')[0],
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
         };
         onLoginSuccess(normalizedUser, session.access_token);
         onClose();

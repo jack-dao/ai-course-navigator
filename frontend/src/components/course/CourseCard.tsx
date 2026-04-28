@@ -230,7 +230,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
         setErrors((prev) => ({ ...prev, [section.id]: true }));
         return;
       }
-      const discussion = section.subSections!.find((s) => String(s.id) === String(selectedId));
+      const discussion = (section.subSections ?? []).find((s) => String(s.id) === String(selectedId));
       onAdd(course, { ...section, selectedLab: discussion });
     } else {
       onAdd(course, section);
@@ -504,7 +504,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                                   <RotateCcw className="w-3 h-3" /> Clear Selection
                                 </button>
                               )}
-                              {section.subSections!.map((sub) => (
+                              {(section.subSections ?? []).map((sub) => (
                                 <button
                                   key={sub.id}
                                   onClick={() => handleSelectDiscussion(section.id, sub.id)}
