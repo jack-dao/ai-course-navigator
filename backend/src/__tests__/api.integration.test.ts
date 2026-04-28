@@ -116,15 +116,17 @@ describe('API Integration Tests', () => {
   });
 
   describe('POST /api/chat', () => {
-    it('returns 500 for empty message (chat catches all errors internally)', async () => {
-      const res = await request(app).post('/api/chat').send({ message: '' });
-      expect(res.status).toBe(500);
-      expect(res.body.error).toBeDefined();
+    it('returns 401 without auth token', async () => {
+      const res = await request(app).post('/api/chat').send({ message: 'hello' });
+      expect(res.status).toBe(401);
     });
 
-    it('returns 500 for missing message field', async () => {
-      const res = await request(app).post('/api/chat').send({});
-      expect(res.status).toBe(500);
+    it('returns 403 with invalid token', async () => {
+      const res = await request(app)
+        .post('/api/chat')
+        .set('Authorization', 'Bearer invalid-token')
+        .send({ message: 'hello' });
+      expect(res.status).toBe(403);
     });
   });
 
