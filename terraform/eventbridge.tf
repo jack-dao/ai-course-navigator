@@ -12,14 +12,15 @@ resource "aws_cloudwatch_event_rule" "nightly_scrape" {
 # EventBridge target — the Lambda function
 resource "aws_cloudwatch_event_target" "scraper_lambda" {
   rule = aws_cloudwatch_event_rule.nightly_scrape.name
-  arn  = aws_lambda_function.scraper.arn
+  arn  = aws_lambda_alias.scraper_live.arn
 }
 
-# Allow EventBridge to invoke the Lambda
+# Allow EventBridge to invoke the Lambda via alias
 resource "aws_lambda_permission" "eventbridge" {
   statement_id  = "AllowEventBridgeInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.scraper.function_name
+  qualifier     = aws_lambda_alias.scraper_live.name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.nightly_scrape.arn
 }

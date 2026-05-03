@@ -406,7 +406,11 @@ async function scrapeCourses(): Promise<void> {
   const batches = chunk(panels, 10);
   let processed = 0;
   for (const batch of batches) {
-    await Promise.all(batch.map((el) => processClass($, el, ucsc.id, termName)));
+    const results = await Promise.allSettled(batch.map((el) => processClass($, el, ucsc.id, termName)));
+    const failures = results.filter((r) => r.status === 'rejected');
+    if (failures.length > 0) {
+      console.warn(`Batch had ${failures.length} failure(s):`, failures.map((f) => (f as PromiseRejectedResult).reason?.message || f));
+    }
     processed += batch.length;
     console.log(`Processed ${processed}/${panels.length}`);
     await new Promise((r) => setTimeout(r, 50));

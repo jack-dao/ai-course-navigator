@@ -19,6 +19,8 @@ RUN npm install -g tsx pm2
 COPY src ./src
 COPY ecosystem.config.cjs ./
 
+USER node
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

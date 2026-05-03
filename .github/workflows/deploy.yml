@@ -143,6 +143,25 @@ jobs:
             exit 1
           fi
 
+      - name: Verify backend health
+        run: |
+          BACKEND_URL="${{ secrets.BACKEND_HEALTH_URL }}"
+          if [ -n "$BACKEND_URL" ]; then
+            for i in $(seq 1 5); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL" || echo "000")
+              if [ "$STATUS" = "200" ]; then
+                echo "Backend is healthy (HTTP 200)."
+                exit 0
+              fi
+              echo "Attempt $i: got HTTP $STATUS, retrying..."
+              sleep 5
+            done
+            echo "Backend health check failed after 5 attempts." >&2
+            exit 1
+          else
+            echo "BACKEND_HEALTH_URL not set, skipping external health check."
+          fi
+
   # Deploy Lambda scraper
   deploy-lambda:
     needs: test
@@ -172,4 +191,22 @@ jobs:
           aws-region: us-west-2
 
       - name: Update Lambda Function
-        run: aws lambda update-function-code --function-name ai-slug-navigator-scraper --zip-file fileb://scraper-lambda.zip
+        run: |
+          aws lambda update-function-code \
+            --function-name ai-slug-navigator-scraper \
+            --zip-file fileb://scraper-lambda.zip
+
+          # Wait for update to complete before publishing
+          aws lambda wait function-updated --function-name ai-slug-navigator-scraper
+
+          # Publish new version and update alias for rollback support
+          VERSION=$(aws lambda publish-version \
+            --function-name ai-slug-navigator-scraper \
+            --query 'Version' --output text)
+          echo "Published Lambda version: $VERSION"
+
+          aws lambda update-alias \
+            --function-name ai-slug-navigator-scraper \
+            --name live \
+            --function-version "$VERSION"
+          echo "Updated 'live' alias to version $VERSION"

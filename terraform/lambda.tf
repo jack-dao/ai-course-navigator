@@ -63,7 +63,16 @@ resource "aws_lambda_function" "scraper" {
     }
   }
 
+  publish = true
+
   tags = {
     Name = "${var.project_name}-scraper"
   }
+}
+
+# Alias pointing to the latest published version — EventBridge invokes this
+resource "aws_lambda_alias" "scraper_live" {
+  name             = "live"
+  function_name    = aws_lambda_function.scraper.function_name
+  function_version = aws_lambda_function.scraper.version
 }
