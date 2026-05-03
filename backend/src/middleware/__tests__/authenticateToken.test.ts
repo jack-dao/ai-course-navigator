@@ -66,4 +66,34 @@ describe('authenticateToken middleware', () => {
     expect(res.sendStatus).toHaveBeenCalledWith(403);
     expect(next).not.toHaveBeenCalled();
   });
+
+  it('returns 403 when token payload is missing sub field', () => {
+    const token = jwt.sign({ email: 'test@test.com' }, TEST_SECRET);
+    const { req, res, next } = createMocks(`Bearer ${token}`);
+    authenticateToken(req, res, next);
+
+    expect(res.sendStatus).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 when sub field is not a string', () => {
+    const token = jwt.sign({ sub: 123 }, TEST_SECRET);
+    const { req, res, next } = createMocks(`Bearer ${token}`);
+    authenticateToken(req, res, next);
+
+    expect(res.sendStatus).toHaveBeenCalledWith(403);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('sets user_metadata on req.user when present in token', () => {
+    const token = jwt.sign(
+      { sub: 'user-456', email: 'a@b.com', user_metadata: { full_name: 'Test User' } },
+      TEST_SECRET
+    );
+    const { req, res, next } = createMocks(`Bearer ${token}`);
+    authenticateToken(req, res, next);
+
+    expect(next).toHaveBeenCalled();
+    expect(req.user!.user_metadata?.full_name).toBe('Test User');
+  });
 });

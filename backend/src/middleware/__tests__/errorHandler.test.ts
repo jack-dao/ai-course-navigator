@@ -74,4 +74,23 @@ describe('errorHandler middleware', () => {
     const jsonCall = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(jsonCall.requestId).toBe('unknown');
   });
+
+  it('includes field paths in ZodError details in dev mode', () => {
+    const { req, res, next } = createMocks();
+    const zodError = new ZodError([
+      {
+        path: ['body', 'email'],
+        message: 'Required',
+        code: 'invalid_type',
+        expected: 'string',
+        received: 'undefined',
+      } as ZodIssue,
+    ]);
+
+    errorHandler(zodError, req, res, next);
+
+    const jsonCall = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    expect(jsonCall.details[0].path).toBe('body.email');
+    expect(jsonCall.details[0].message).toBe('Required');
+  });
 });

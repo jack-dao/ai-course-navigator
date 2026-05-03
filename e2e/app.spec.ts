@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Navigation', () => {
   test('homepage redirects to /search', async ({ page }) => {
@@ -14,7 +15,6 @@ test.describe('Navigation', () => {
 
   test('can navigate to schedule tab', async ({ page }) => {
     await page.goto('/search');
-    // Click schedule tab in header (desktop)
     await page.locator('header button', { hasText: /schedule/i }).first().click();
     await expect(page).toHaveURL('/schedule');
     await expect(page.getByText('My Schedule')).toBeVisible();
@@ -24,6 +24,12 @@ test.describe('Navigation', () => {
     await page.goto('/about');
     await expect(page.getByText('AI Slug Navigator')).toBeVisible();
     await expect(page.getByText('Under the Hood')).toBeVisible();
+  });
+
+  test('can navigate back to search from schedule', async ({ page }) => {
+    await page.goto('/schedule');
+    await page.locator('header button', { hasText: /search/i }).first().click();
+    await expect(page).toHaveURL('/search');
   });
 });
 
@@ -38,6 +44,33 @@ test.describe('Course Search', () => {
   test('results count is displayed', async ({ page }) => {
     await page.goto('/search');
     await expect(page.getByText(/results found/)).toBeVisible();
+  });
+
+  test('search input has accessible label', async ({ page }) => {
+    await page.goto('/search');
+    await expect(page.getByLabel('Search courses')).toBeVisible();
+  });
+
+  test('filter toggle button works', async ({ page }) => {
+    await page.goto('/search');
+    // Desktop filter toggle
+    const filterBtn = page.locator('button', { hasText: 'Filters' }).first();
+    if (await filterBtn.isVisible()) {
+      await filterBtn.click();
+      // Filter button should toggle state (still visible after click)
+      await expect(filterBtn).toBeVisible();
+    }
+  });
+
+  test('sort dropdown is accessible', async ({ page }) => {
+    await page.goto('/search');
+    // Check that sort dropdown trigger exists with aria-expanded
+    const sortTrigger = page.locator('button[aria-haspopup="listbox"]').first();
+    if (await sortTrigger.isVisible()) {
+      await expect(sortTrigger).toHaveAttribute('aria-expanded', 'false');
+      await sortTrigger.click();
+      await expect(sortTrigger).toHaveAttribute('aria-expanded', 'true');
+    }
   });
 });
 
@@ -56,6 +89,24 @@ test.describe('Schedule Page', () => {
     await page.goto('/schedule');
     await expect(page.getByText('Save Schedule')).toBeVisible();
   });
+
+  test('save button shows login prompt when not authenticated', async ({ page }) => {
+    await page.goto('/schedule');
+    await page.getByText('Save Schedule').click();
+    // Should show auth modal or notification about logging in
+    const authDialog = page.locator('[role="dialog"]');
+    const notification = page.getByText(/log in/i);
+    const hasAuthModal = await authDialog.isVisible().catch(() => false);
+    const hasNotification = await notification.isVisible().catch(() => false);
+    expect(hasAuthModal || hasNotification).toBeTruthy();
+  });
+
+  test('schedule tab has list/calendar toggle with proper ARIA', async ({ page }) => {
+    await page.goto('/schedule');
+    const tabs = page.locator('[role="tab"]');
+    // Mobile toggles exist (may be hidden on desktop, but exist in DOM)
+    expect(await tabs.count()).toBeGreaterThanOrEqual(2);
+  });
 });
 
 test.describe('Chat', () => {
@@ -70,16 +121,92 @@ test.describe('Chat', () => {
     await expect(page.getByText('No Friday classes')).toBeVisible();
     await expect(page.getByText('Balance workload')).toBeVisible();
   });
-});
 
-test.describe('Accessibility', () => {
-  test('page has proper title', async ({ page }) => {
-    await page.goto('/search');
-    await expect(page).toHaveTitle(/AI/i);
+  test('chat input accepts text', async ({ page }) => {
+    await page.goto('/chat');
+    const input = page.locator('textarea[placeholder="Ask a question..."]');
+    await input.fill('What classes should I take?');
+    await expect(input).toHaveValue('What classes should I take?');
   });
 
   test('send button has accessible label', async ({ page }) => {
     await page.goto('/chat');
     await expect(page.getByLabel('Send message')).toBeVisible();
+  });
+
+  test('Escape key closes chat and navigates away', async ({ page }) => {
+    await page.goto('/chat');
+    await expect(page.getByText('How can I help?')).toBeVisible();
+    await page.keyboard.press('Escape');
+    // Chat should close — we should no longer see the chat content
+    // (or URL should change away from /chat)
+    await page.waitForTimeout(300);
+    // The chat close handler navigates to /search
+    const url = page.url();
+    expect(url).not.toContain('/chat');
+  });
+});
+
+test.describe('Keyboard Navigation', () => {
+  test('Escape closes dropdown menus', async ({ page }) => {
+    await page.goto('/search');
+    const sortTrigger = page.locator('button[aria-haspopup="listbox"]').first();
+    if (await sortTrigger.isVisible()) {
+      await sortTrigger.click();
+      await expect(sortTrigger).toHaveAttribute('aria-expanded', 'true');
+      await page.keyboard.press('Escape');
+      await expect(sortTrigger).toHaveAttribute('aria-expanded', 'false');
+    }
+  });
+});
+
+test.describe('Accessibility - Automated', () => {
+  test('page has proper title', async ({ page }) => {
+    await page.goto('/search');
+    await expect(page).toHaveTitle(/AI/i);
+  });
+
+  test('search page passes axe-core checks', async ({ page }) => {
+    await page.goto('/search');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page })
+      .disableRules(['color-contrast']) // Tailwind dynamic classes make this flaky
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+
+  test('schedule page passes axe-core checks', async ({ page }) => {
+    await page.goto('/schedule');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page })
+      .disableRules(['color-contrast'])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+
+  test('about page passes axe-core checks', async ({ page }) => {
+    await page.goto('/about');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page })
+      .disableRules(['color-contrast'])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+
+  test('chat page passes axe-core checks', async ({ page }) => {
+    await page.goto('/chat');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page })
+      .disableRules(['color-contrast'])
+      .analyze();
+
+    expect(results.violations).toEqual([]);
   });
 });
