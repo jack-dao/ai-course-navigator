@@ -4,6 +4,7 @@ import request from 'supertest';
 // Mock prisma for all integration tests
 vi.mock('../lib/prisma', () => ({
   default: {
+    $queryRaw: vi.fn().mockResolvedValue([{ '?column?': 1 }]),
     course: {
       findMany: vi
         .fn()

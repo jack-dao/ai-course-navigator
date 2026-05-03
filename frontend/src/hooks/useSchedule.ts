@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { authFetch } from '../utils/api';
+import { parseTimeToHours, parseDays } from '../utils/schedule';
 import type { User, Session } from '@supabase/supabase-js';
 import type { SelectedCourse, Section, Course, SubSection } from '../types';
 
@@ -31,7 +32,6 @@ export const useSchedule = (
   });
 
   const [prevTerm, setPrevTerm] = useState(selectedTerm);
-
   if (selectedTerm !== prevTerm) {
     setPrevTerm(selectedTerm);
     try {
@@ -51,23 +51,6 @@ export const useSchedule = (
     }, 0);
   }, [selectedCourses]);
 
-  const parseTime = (timeStr: string | null | undefined): number | null => {
-    if (!timeStr) return null;
-    const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
-    if (!match) return null;
-    let h = parseInt(match[1]);
-    const m = parseInt(match[2]);
-    const period = match[3];
-    if (period === 'PM' && h !== 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
-    return h + m / 60;
-  };
-
-  const getDaysArray = (dayStr: string | null | undefined): string[] => {
-    if (!dayStr || dayStr === 'TBA') return [];
-    return dayStr.match(/Tu|Th|Sa|Su|M|W|F/g) || [];
-  };
-
   const checkForConflicts = (
     newSection: Section,
     existingCourses: SelectedCourse[],
@@ -77,7 +60,11 @@ export const useSchedule = (
       const segments: TimeSegment[] = [];
       if (!sec) return segments;
       if (sec.days && sec.startTime && sec.endTime) {
-        segments.push({ days: getDaysArray(sec.days), start: parseTime(sec.startTime), end: parseTime(sec.endTime) });
+        segments.push({
+          days: parseDays(sec.days),
+          start: parseTimeToHours(sec.startTime),
+          end: parseTimeToHours(sec.endTime),
+        });
       }
       if (
         'selectedLab' in sec &&
@@ -87,9 +74,9 @@ export const useSchedule = (
         sec.selectedLab.endTime
       ) {
         segments.push({
-          days: getDaysArray(sec.selectedLab.days),
-          start: parseTime(sec.selectedLab.startTime),
-          end: parseTime(sec.selectedLab.endTime),
+          days: parseDays(sec.selectedLab.days),
+          start: parseTimeToHours(sec.selectedLab.startTime),
+          end: parseTimeToHours(sec.selectedLab.endTime),
         });
       }
       return segments;

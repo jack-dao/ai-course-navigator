@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { DEPARTMENTS } from '../utils/departments';
+import { parseTimeToHours } from '../utils/schedule';
 import type { Course, CourseFilters, ProfessorRatingsMap } from '../types';
 
 const DEFAULT_FILTERS: CourseFilters = {
@@ -32,18 +33,6 @@ export const useCourseFilters = (availableCourses: Course[], professorRatings: P
     setSearchQuery('');
     sessionStorage.removeItem('searchQuery');
     sessionStorage.setItem('courseFilters', JSON.stringify(DEFAULT_FILTERS));
-  };
-
-  const parseTime = (timeStr: string | null | undefined): number | null => {
-    if (!timeStr) return null;
-    const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
-    if (!match) return null;
-    let h = parseInt(match[1]);
-    const m = parseInt(match[2]);
-    const period = match[3];
-    if (period === 'PM' && h !== 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
-    return h + m / 60;
   };
 
   const processedCourses = useMemo(() => {
@@ -89,8 +78,8 @@ export const useCourseFilters = (availableCourses: Course[], professorRatings: P
     if (filters.timeRange[0] > 7 || filters.timeRange[1] < 23) {
       results = results.filter((course) =>
         course.sections?.some((sec) => {
-          const start = parseTime(sec.startTime);
-          const end = parseTime(sec.endTime);
+          const start = parseTimeToHours(sec.startTime);
+          const end = parseTimeToHours(sec.endTime);
           if (start === null || end === null) return false;
           return start >= filters.timeRange[0] && end <= filters.timeRange[1];
         })

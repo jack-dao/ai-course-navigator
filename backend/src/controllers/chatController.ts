@@ -20,11 +20,17 @@ const handleChat = async (req: Request, res: Response): Promise<void> => {
       'Cache-Control': 'no-cache, no-transform',
     });
 
-    for await (const chunk of result.stream) {
-      const chunkText = chunk.text();
-      if (chunkText) {
-        res.write(chunkText);
+    try {
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          res.write(chunkText);
+        }
       }
+    } catch (streamError) {
+      logger.error('Chat stream error:', streamError);
+      // Stream already started — write error message inline so the client sees it
+      res.write('\n\n[Sorry, an error occurred while generating the response. Please try again.]');
     }
 
     res.end();

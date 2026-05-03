@@ -1,4 +1,5 @@
 import React from 'react';
+import { parseDays, parseTimeToMinutes, formatDisplayTime, getDayIndex } from '../../utils/schedule';
 import type { SelectedCourse, SubSection, Section } from '../../types';
 
 interface ColorPalette {
@@ -28,34 +29,6 @@ function getCourseColor(courseCode: string): ColorPalette {
     hash = courseCode.charCodeAt(i) + ((hash << 5) - hash);
   }
   return COLOR_PALETTES[Math.abs(hash) % COLOR_PALETTES.length];
-}
-
-function parseDays(dayStr: string | undefined): string[] {
-  if (!dayStr || dayStr === 'TBA') return [];
-  const days: string[] = [];
-  if (dayStr.includes('M')) days.push('M');
-  if (dayStr.includes('Tu')) days.push('Tu');
-  if (dayStr.includes('W')) days.push('W');
-  if (dayStr.includes('Th')) days.push('Th');
-  if (dayStr.includes('F')) days.push('F');
-  return days;
-}
-
-function parseTime(timeStr: string | undefined): number {
-  if (!timeStr || timeStr === 'TBA') return 0;
-  const match = timeStr.match(/(\d+):(\d+)(AM|PM)/i);
-  if (!match) return 0;
-  const [_, hoursStr, minutesStr, modifier] = match;
-  let hours = parseInt(hoursStr, 10);
-  const minutes = parseInt(minutesStr, 10);
-  if (modifier.toUpperCase() === 'PM' && hours !== 12) hours += 12;
-  if (modifier.toUpperCase() === 'AM' && hours === 12) hours = 0;
-  return hours * 60 + minutes;
-}
-
-function formatDisplayTime(timeStr: string | undefined): string {
-  if (!timeStr || timeStr === 'TBA') return '';
-  return timeStr.replace(/^0/, '').replace(/([AP]M)/i, '$1');
 }
 
 interface CalendarViewProps {
@@ -129,11 +102,11 @@ const CalendarView = ({ selectedCourses }: CalendarViewProps) => {
                 const renderBlock = (item: SubSection | Section, type: string, uniqueKey: string) => {
                   const days = parseDays(item.days);
                   days.forEach((dayShort) => {
-                    const dayIndex = { M: 0, Tu: 1, W: 2, Th: 3, F: 4 }[dayShort];
-                    if (dayIndex === undefined) return;
+                    const dayIdx = getDayIndex(dayShort);
+                    if (dayIdx === undefined) return;
 
-                    const startMin = parseTime(item.startTime);
-                    const endMin = parseTime(item.endTime);
+                    const startMin = parseTimeToMinutes(item.startTime);
+                    const endMin = parseTimeToMinutes(item.endTime);
 
                     const topPercent = ((startMin - START_MINUTE_OFFSET) / TOTAL_MINUTES) * 100;
                     const heightPercent = ((endMin - startMin) / TOTAL_MINUTES) * 100;
@@ -145,7 +118,7 @@ const CalendarView = ({ selectedCourses }: CalendarViewProps) => {
                           position: 'absolute',
                           top: `${topPercent}%`,
                           height: `${heightPercent}%`,
-                          left: `${dayIndex * 20}%`,
+                          left: `${dayIdx * 20}%`,
                           width: '20%',
                           padding: '1px',
                           zIndex: 30,

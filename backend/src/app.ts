@@ -8,6 +8,7 @@ import httpsRedirect from './middleware/httpsRedirect';
 import requestId from './middleware/requestId';
 import { allowedOrigins } from './config/cors';
 import { generalLimiter, chatLimiter } from './config/rateLimits';
+import prisma from './lib/prisma';
 import courseRoutes from './routes/courseRoutes';
 import scheduleRoutes from './routes/scheduleRoutes';
 import ratingsRoutes from './routes/ratingsRoutes';
@@ -40,7 +41,14 @@ app.use(express.json({ limit: '1mb' }));
 
 app.use(generalLimiter);
 
-app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  } catch {
+    res.status(503).json({ status: 'unavailable', timestamp: new Date().toISOString() });
+  }
+});
 
 app.use('/api/courses', courseRoutes);
 app.use('/api/schedules', scheduleRoutes);

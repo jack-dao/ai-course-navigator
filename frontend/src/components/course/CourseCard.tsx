@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { apiFetch } from '../../utils/api';
+import { parseTimeToHours, expandDays, formatDisplayTime } from '../../utils/schedule';
 import type { Course, Section, SubSection, CourseFilters, ProfessorRatingsMap, ProfessorRating } from '../../types';
 
 interface SkeletonProps {
@@ -89,17 +90,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const parseTime = (timeStr: string | undefined): number | null => {
-    if (!timeStr) return null;
-    const match = timeStr.match(/(\d+):(\d+)(AM|PM)/);
-    if (!match) return null;
-    const [_, hStr, m, period] = match;
-    let h = parseInt(hStr);
-    if (period === 'PM' && h !== 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
-    return h + parseInt(m) / 60;
-  };
-
   const sortedSections = useMemo(() => {
     let sections = [...(course.sections || [])];
 
@@ -121,8 +111,8 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
       }
       if (filters.timeRange && (filters.timeRange[0] > 7 || filters.timeRange[1] < 23)) {
         sections = sections.filter((s) => {
-          const start = parseTime(s.startTime);
-          const end = parseTime(s.endTime);
+          const start = parseTimeToHours(s.startTime);
+          const end = parseTimeToHours(s.endTime);
           if (start === null || end === null) return false;
           return start >= filters.timeRange[0] && end <= filters.timeRange[1];
         });
@@ -145,7 +135,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
     return sections;
   }, [course.sections, professorRatings, sortOption, filters]);
 
-  const formatTime = (time: string | undefined): string => (time ? time.replace(/^0/, '') : '');
   const formatInstructor = (name: string | undefined): string => (name ? name.replace(/,/g, ', ') : 'Staff');
   const formatLocation = (loc: string | undefined): string =>
     loc
@@ -155,22 +144,6 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(' ')
       : 'TBA';
-
-  const expandDays = (daysStr: string | undefined): string => {
-    if (!daysStr || daysStr === 'TBA') return 'TBA';
-    const map: Record<string, string> = {
-      M: 'Monday',
-      Tu: 'Tuesday',
-      W: 'Wednesday',
-      Th: 'Thursday',
-      F: 'Friday',
-      Sa: 'Saturday',
-      Su: 'Sunday',
-    };
-    const matches = daysStr.match(/Tu|Th|Sa|Su|M|W|F/g);
-    if (!matches) return daysStr;
-    return matches.map((d) => map[d]).join(', ');
-  };
 
   const getGEMapping = (code: string): string => {
     const map: Record<string, string> = {
@@ -436,7 +409,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-slate-900 text-sm truncate">{expandDays(section.days)}</p>
                         <p className="text-xs font-bold text-slate-900 mt-0.5 truncate">
-                          {formatTime(section.startTime)} - {formatTime(section.endTime)}
+                          {formatDisplayTime(section.startTime)} - {formatDisplayTime(section.endTime)}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1.5 text-xs font-bold text-slate-600 min-w-0">
                           <MapPin className="w-3 h-3 shrink-0" />
@@ -485,7 +458,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                         >
                           <span className="truncate">
                             {selectedSub
-                              ? `${expandDays(selectedSub.days)} ${formatTime(selectedSub.startTime)} - ${formatTime(selectedSub.endTime)}`
+                              ? `${expandDays(selectedSub.days)} ${formatDisplayTime(selectedSub.startTime)} - ${formatDisplayTime(selectedSub.endTime)}`
                               : 'Select Discussion'}
                           </span>
                           <ChevronDown
@@ -519,7 +492,7 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
                                       {expandDays(sub.days)}
                                     </span>
                                     <span className="text-[10px] font-bold text-black block mt-0.5 truncate">
-                                      {formatTime(sub.startTime)} - {formatTime(sub.endTime)} |{' '}
+                                      {formatDisplayTime(sub.startTime)} - {formatDisplayTime(sub.endTime)} |{' '}
                                       {formatLocation(sub.location)}
                                     </span>
                                   </div>
@@ -579,4 +552,4 @@ const CourseCard = ({ course, onAdd, professorRatings, onShowProfessor, sortOpti
   );
 };
 
-export default CourseCard;
+export default React.memo(CourseCard);

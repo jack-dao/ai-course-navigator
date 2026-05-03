@@ -108,5 +108,5 @@ model Schedule {
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
-  @@index([userId, name])
+  @@unique([userId, name])
 }

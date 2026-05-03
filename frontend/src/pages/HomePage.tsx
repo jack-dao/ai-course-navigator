@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Save,
@@ -17,7 +17,6 @@ import {
   Header,
   MobileBottomNav,
   FilterSidebar,
-  ChatSidebar,
   CourseList,
   CalendarView,
   ScheduleList,
@@ -27,6 +26,8 @@ import {
   CustomDropdown,
   AboutTab,
 } from '../components';
+
+const ChatSidebar = lazy(() => import('../components/chat/ChatSidebar'));
 import { useCourseFilters, useSchedule, useNotification, useTerms, useCourses, useChat } from '../hooks';
 import { authFetch } from '../utils/api';
 import type { TabName, Course, Section, ProfessorModalData, CourseFilters as CourseFiltersType } from '../types';
@@ -88,7 +89,7 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
   const [isProfModalOpen, setIsProfModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(() => parseInt(sessionStorage.getItem('currentPage') || '1') || 1);
 
-  // Open chat when arriving at /chat — sync from URL
+  // Open chat when arriving at /chat — sync from URL (derived state, safe to set during render)
   const [prevPathname, setPrevPathname] = useState(location.pathname);
   if (location.pathname !== prevPathname) {
     setPrevPathname(location.pathname);
@@ -128,14 +129,13 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
     };
   }, [showAIChat, showFilters, activeTab]);
 
+  // Reset to page 1 when search or filters change (derived state, safe to set during render)
   const [prevSearch, setPrevSearch] = useState(searchQuery);
-  const [prevFiltersStr, setPrevFiltersStr] = useState(JSON.stringify(filters));
-
-  const filtersStr = JSON.stringify(filters);
-  if (prevSearch !== searchQuery || prevFiltersStr !== filtersStr) {
+  const [prevFilters, setPrevFilters] = useState(filters);
+  if (prevSearch !== searchQuery || prevFilters !== filters) {
     setCurrentPage(1);
     setPrevSearch(searchQuery);
-    setPrevFiltersStr(filtersStr);
+    setPrevFilters(filters);
   }
 
   const addCourse = (course: Course, section: Section) => {
@@ -230,7 +230,7 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
   const currentCourses = processedCourses.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   return (
-    <div className="h-[100dvh] w-full max-w-[100vw] bg-white flex flex-col font-sans relative overflow-hidden">
+    <div className="h-[100dvh] w-full bg-white flex flex-col font-sans relative overflow-hidden">
       <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-slate-200 h-[70px] md:h-[80px]">
         <Header
           activeTab={activeTab}
@@ -471,14 +471,22 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
         {showAIChat && (
           <div className="fixed inset-0 z-50 bg-white border-l border-ucsc-gold shadow-xl shrink-0 flex flex-col xl:relative xl:h-full xl:w-[400px] xl:bottom-auto pt-[70px] pb-[80px] xl:pt-0 xl:pb-0">
             <div className="w-full h-full overflow-hidden">
-              <ChatSidebar
-                isOpen={true}
-                onClose={handleToggleChat}
-                messages={chatMessages}
-                onSendMessage={handleSendMessage}
-                schoolName={ucscSchool.shortName}
-                isLoading={isChatLoading}
-              />
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-full">
+                    <Loader2 className="w-8 h-8 animate-spin text-ucsc-gold" />
+                  </div>
+                }
+              >
+                <ChatSidebar
+                  isOpen={true}
+                  onClose={handleToggleChat}
+                  messages={chatMessages}
+                  onSendMessage={handleSendMessage}
+                  schoolName={ucscSchool.shortName}
+                  isLoading={isChatLoading}
+                />
+              </Suspense>
             </div>
           </div>
         )}
