@@ -22,7 +22,7 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
     process.env.JWT_SECRET as string,
     (err: jwt.VerifyErrors | null, decoded: string | jwt.JwtPayload | undefined) => {
       if (err) {
-        logger.error('Token verification failed:', err.message);
+        logger.error({ err }, 'Token verification failed');
         return res.sendStatus(403);
       }
 

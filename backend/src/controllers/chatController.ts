@@ -28,14 +28,14 @@ const handleChat = async (req: Request, res: Response): Promise<void> => {
         }
       }
     } catch (streamError) {
-      logger.error('Chat stream error:', streamError);
+      logger.error({ err: streamError }, 'Chat stream error');
       // Stream already started — write error message inline so the client sees it
       res.write('\n\n[Sorry, an error occurred while generating the response. Please try again.]');
     }
 
     res.end();
   } catch (error) {
-    logger.error('AI Error:', error);
+    logger.error({ err: error }, 'AI Error');
 
     if (!res.headersSent) {
       res.status(500).json({ error: 'Something went wrong. Please try again.' });

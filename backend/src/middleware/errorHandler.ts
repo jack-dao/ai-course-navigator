@@ -17,7 +17,7 @@ const errorHandler = (err: Error, req: Request, res: Response, _next: NextFuncti
     return;
   }
 
-  logger.error(`[${requestId}] ${req.method} ${req.path}:`, err.message);
+  logger.error({ err, requestId }, `${req.method} ${req.path}`);
 
   res.status(500).json({
     error: isProduction ? 'Internal server error' : err.message,
