@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Shield, Lock, Eye, Server, Github } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface PrivacyModalProps {
   isOpen: boolean;
@@ -7,6 +8,8 @@ interface PrivacyModalProps {
 }
 
 const PrivacyModal = ({ isOpen, onClose }: PrivacyModalProps) => {
+  const focusTrapRef = useFocusTrap(isOpen);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -27,6 +30,7 @@ const PrivacyModal = ({ isOpen, onClose }: PrivacyModalProps) => {
 
   return (
     <div
+      ref={focusTrapRef}
       className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"

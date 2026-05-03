@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { X, Star, MessageSquare, Flame, ThumbsUp, TrendingUp, Calendar, Tag, ExternalLink } from 'lucide-react';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { ProfessorModalData } from '../../types';
 
 interface ProfessorModalProps {
@@ -9,6 +10,8 @@ interface ProfessorModalProps {
 }
 
 const ProfessorModal = ({ professor, isOpen, onClose }: ProfessorModalProps) => {
+  const focusTrapRef = useFocusTrap(isOpen);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -29,6 +32,7 @@ const ProfessorModal = ({ professor, isOpen, onClose }: ProfessorModalProps) => 
 
   return (
     <div
+      ref={focusTrapRef}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"

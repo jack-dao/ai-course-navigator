@@ -22,9 +22,9 @@ const getSchedules = async (req: Request, res: Response): Promise<void> => {
     return;
   }
   const { userId } = req.user;
-  const { term } = getScheduleSchema.parse(req.query);
+  const { term: scheduleName } = getScheduleSchema.parse(req.query);
 
-  const schedule = await getUserSchedule(userId, term);
+  const schedule = await getUserSchedule(userId, scheduleName);
 
   if (!schedule) {
     res.json({ courses: [] });

@@ -4,3 +4,4 @@ export { useCourseFilters } from './useCourseFilters';
 export { useSchedule } from './useSchedule';
 export { useTerms } from './useTerms';
 export { useNotification } from './useNotification';
+export { useFocusTrap } from './useFocusTrap';

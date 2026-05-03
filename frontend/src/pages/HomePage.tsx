@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import type { User, Session } from '@supabase/supabase-js';
@@ -110,32 +110,38 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
   }, [showAIChat, showFilters, activeTab]);
 
   // --- Handlers ---
-  const addCourse = (course: Course, section: Section) => {
-    const conflictingCourse = checkForConflicts(section, selectedCourses, course.code);
-    if (conflictingCourse) {
-      showNotification(`Time conflict with ${conflictingCourse}`, 'error');
-      return;
-    }
-    const courseUnits = parseInt(String(course.credits || 0));
-    const existingIndex = selectedCourses.findIndex((c) => c.code === course.code);
-    if (existingIndex === -1 && totalUnits + courseUnits > MAX_UNITS) {
-      showNotification(`Cannot add ${course.code}. Exceeds ${MAX_UNITS} unit limit.`, 'error');
-      return;
-    }
-    const isUpdate = existingIndex !== -1;
-    const newSchedule = isUpdate
-      ? selectedCourses.map((c) => (c.code === course.code ? { ...course, selectedSection: section } : c))
-      : [...selectedCourses, { ...course, selectedSection: section }];
-    setSelectedCourses(newSchedule);
-    showNotification(isUpdate ? `Updated ${course.code}` : `Added ${course.code}`, 'success');
-  };
+  const addCourse = useCallback(
+    (course: Course, section: Section) => {
+      const conflictingCourse = checkForConflicts(section, selectedCourses, course.code);
+      if (conflictingCourse) {
+        showNotification(`Time conflict with ${conflictingCourse}`, 'error');
+        return;
+      }
+      const courseUnits = parseInt(String(course.credits || 0));
+      const existingIndex = selectedCourses.findIndex((c) => c.code === course.code);
+      if (existingIndex === -1 && totalUnits + courseUnits > MAX_UNITS) {
+        showNotification(`Cannot add ${course.code}. Exceeds ${MAX_UNITS} unit limit.`, 'error');
+        return;
+      }
+      const isUpdate = existingIndex !== -1;
+      const newSchedule = isUpdate
+        ? selectedCourses.map((c) => (c.code === course.code ? { ...course, selectedSection: section } : c))
+        : [...selectedCourses, { ...course, selectedSection: section }];
+      setSelectedCourses(newSchedule);
+      showNotification(isUpdate ? `Updated ${course.code}` : `Added ${course.code}`, 'success');
+    },
+    [checkForConflicts, selectedCourses, totalUnits, showNotification, setSelectedCourses]
+  );
 
-  const removeCourse = (courseCode: string) => {
-    setSelectedCourses((prev) => prev.filter((c) => c.code !== courseCode));
-    showNotification(`Removed ${courseCode}`, 'info');
-  };
+  const removeCourse = useCallback(
+    (courseCode: string) => {
+      setSelectedCourses((prev) => prev.filter((c) => c.code !== courseCode));
+      showNotification(`Removed ${courseCode}`, 'info');
+    },
+    [setSelectedCourses, showNotification]
+  );
 
-  const handleSaveSchedule = async () => {
+  const handleSaveSchedule = useCallback(async () => {
     if (!user || !session) {
       showNotification('Please log in to save', 'error');
       setShowAuthModal(true);
@@ -171,30 +177,33 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
       console.error('Save exception:', e);
       showNotification('Server error', 'error');
     }
-  };
+  }, [user, session, selectedTerm, selectedCourses, showNotification]);
 
-  const viewProfessorDetails = (name: string) => {
-    const fullStats = professorRatings[name];
-    setSelectedProfessor({
-      name,
-      avgRating: fullStats?.avgRating,
-      avgDifficulty: fullStats?.avgDifficulty,
-      wouldTakeAgain: fullStats?.wouldTakeAgain,
-      numRatings: fullStats?.numRatings,
-      rmpLink: fullStats?.rmpLink,
-      reviews: fullStats?.reviews || [],
-    });
-    setIsProfModalOpen(true);
-  };
+  const viewProfessorDetails = useCallback(
+    (name: string) => {
+      const fullStats = professorRatings[name];
+      setSelectedProfessor({
+        name,
+        avgRating: fullStats?.avgRating,
+        avgDifficulty: fullStats?.avgDifficulty,
+        wouldTakeAgain: fullStats?.wouldTakeAgain,
+        numRatings: fullStats?.numRatings,
+        rmpLink: fullStats?.rmpLink,
+        reviews: fullStats?.reviews || [],
+      });
+      setIsProfModalOpen(true);
+    },
+    [professorRatings]
+  );
 
-  const handleToggleChat = () => {
+  const handleToggleChat = useCallback(() => {
     if (showAIChat) {
       setShowAIChat(false);
       if (location.pathname === '/chat') navigate(`/${activeTab}`);
     } else {
       setShowAIChat(true);
     }
-  };
+  }, [showAIChat, location.pathname, activeTab, navigate]);
 
   return (
     <div className="h-[100dvh] w-full bg-white flex flex-col font-sans relative overflow-hidden">

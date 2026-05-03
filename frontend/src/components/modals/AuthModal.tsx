@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Loader, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
 import { supabase } from '../../supabase';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import type { School } from '../../types';
 
 import compassLogo from '../../assets/logo-compass.png';
@@ -19,6 +20,7 @@ interface FormData {
 }
 
 const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModalProps) => {
+  const focusTrapRef = useFocusTrap(isOpen);
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -60,8 +62,8 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
         options: { redirectTo: window.location.origin },
       });
       if (error) throw error;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     }
   };
 
@@ -104,8 +106,8 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
         setIsLogin(true);
         setFormData({ email: '', password: '', name: '' });
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -113,6 +115,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
 
   return (
     <div
+      ref={focusTrapRef}
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
