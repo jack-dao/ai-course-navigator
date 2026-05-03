@@ -12,18 +12,28 @@ const ProfessorModal = ({ professor, isOpen, onClose }: ProfessorModalProps) => 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.body.style.overflow = 'unset';
+        document.removeEventListener('keydown', handleEscape);
+      };
     } else {
       document.body.style.overflow = 'unset';
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !professor) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Professor details for ${professor.name}`}
+    >
       <div
         className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
         onClick={onClose}
@@ -62,9 +72,10 @@ const ProfessorModal = ({ professor, isOpen, onClose }: ProfessorModalProps) => 
 
             <button
               onClick={onClose}
+              aria-label="Close professor details"
               className="p-2 hover:bg-slate-100 rounded-full transition-colors group cursor-pointer"
             >
-              <X className="w-8 h-8 text-slate-300 group-hover:text-ucsc-blue transition-colors" />
+              <X className="w-8 h-8 text-slate-300 group-hover:text-ucsc-blue transition-colors" aria-hidden="true" />
             </button>
           </div>
         </div>

@@ -11,7 +11,10 @@ interface MobileBottomNavProps {
 
 const MobileBottomNav = ({ activeTab, setActiveTab, showAIChat, setShowAIChat }: MobileBottomNavProps) => {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-200 flex justify-around items-center z-[999] pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+    <nav
+      aria-label="Main navigation"
+      className="md:hidden fixed bottom-0 left-0 right-0 h-[80px] bg-white border-t border-slate-200 flex justify-around items-center z-[999] pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.05)]"
+    >
       <button
         onClick={() => {
           setActiveTab('search');
@@ -54,7 +57,7 @@ const MobileBottomNav = ({ activeTab, setActiveTab, showAIChat, setShowAIChat }:
         <Info className={`w-6 h-6 ${activeTab === 'about' && !showAIChat ? 'stroke-[3px]' : ''}`} />
         <span className="text-[10px] font-bold">About</span>
       </button>
-    </div>
+    </nav>
   );
 };
 

@@ -82,6 +82,9 @@ const Header = ({
               <div className="relative" ref={termDropdownRef}>
                 <button
                   onClick={() => setShowTermDropdown(!showTermDropdown)}
+                  aria-expanded={showTermDropdown}
+                  aria-haspopup="listbox"
+                  aria-label={`Select term, current: ${selectedTerm}`}
                   className="tracking-wide text-blue-50/95 leading-tight hover:text-white transition-colors cursor-pointer flex items-center gap-1 group whitespace-nowrap"
                 >
                   {selectedTerm}
@@ -114,14 +117,19 @@ const Header = ({
         </div>
 
         {/* CENTER: Tabs - "Hybrid" Mode */}
-        <div className="hidden md:flex justify-center flex-1 min-w-0 px-4">
-          <div className="flex bg-ucsc-blue-dark/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden shrink-0">
+        <nav aria-label="Main navigation" className="hidden md:flex justify-center flex-1 min-w-0 px-4">
+          <div
+            className="flex bg-ucsc-blue-dark/60 backdrop-blur-md rounded-lg border border-white/10 shadow-lg overflow-hidden shrink-0"
+            role="tablist"
+          >
             {(['search', 'schedule', 'about'] as const).map((tab) => {
               const Icon = tab === 'search' ? Search : tab === 'schedule' ? CalendarDays : Info;
 
               return (
                 <button
                   key={tab}
+                  role="tab"
+                  aria-selected={activeTab === tab}
                   onClick={() => setActiveTab(tab)}
                   className={`px-4 lg:px-6 xl:px-8 py-2.5 text-sm font-bold transition-all duration-200 rounded-none cursor-pointer flex items-center gap-2 whitespace-nowrap ${
                     activeTab === tab
@@ -138,12 +146,13 @@ const Header = ({
               );
             })}
           </div>
-        </div>
+        </nav>
 
         {/* RIGHT: Actions */}
         <div className="flex items-center gap-3 justify-end shrink-0 ml-auto">
           <button
             onClick={onToggleChat}
+            aria-label={showAIChat ? 'Hide Sammy AI assistant' : 'Open Sammy AI assistant'}
             className={`hidden md:flex h-10 lg:h-11 items-center gap-2 lg:gap-3 pl-3 pr-5 rounded-full transition-all cursor-pointer border group overflow-visible whitespace-nowrap active:scale-95 shadow-md hover:shadow-lg ${
               showAIChat
                 ? 'bg-white text-ucsc-blue border-white ring-2 ring-white/50'
@@ -169,7 +178,9 @@ const Header = ({
             <div className="relative" ref={profileDropdownRef}>
               <button
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                aria-expanded={showProfileDropdown}
                 className="w-9 h-9 md:w-10 md:h-10 bg-white/10 text-white font-black rounded-full flex items-center justify-center shadow-lg border border-white/20 hover:bg-white/20 hover:border-white/40 cursor-pointer hover:scale-105 transition-all"
+                aria-label="Profile menu"
               >
                 {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
               </button>
@@ -192,9 +203,10 @@ const Header = ({
           ) : (
             <button
               onClick={onLoginClick}
+              aria-label="Log in"
               className="px-4 lg:px-5 py-2.5 bg-white/10 border border-white/10 text-white font-bold rounded-full text-xs md:text-sm hover:bg-white/20 hover:border-white/30 transition-all cursor-pointer shadow-sm active:scale-95 whitespace-nowrap flex items-center gap-2 backdrop-blur-sm"
             >
-              <User className="w-4 h-4" /> <span className="hidden lg:inline">Log in</span>
+              <User className="w-4 h-4" aria-hidden="true" /> <span className="hidden lg:inline">Log in</span>
             </button>
           )}
         </div>

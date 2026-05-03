@@ -52,7 +52,11 @@ const FilterSidebar = ({ filters, setFilters, onReset, activeTab, onClose }: Fil
       {/* Header: Flush at the top with its own padding */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
         <div className="flex items-center gap-3">
-          <button onClick={onClose} className="md:hidden text-slate-400 hover:text-slate-600 transition-colors">
+          <button
+            onClick={onClose}
+            aria-label="Close filters"
+            className="md:hidden text-slate-400 hover:text-slate-600 transition-colors"
+          >
             <X className="w-6 h-6" />
           </button>
           <h3 className="font-bold text-2xl text-ucsc-blue">Filters</h3>
@@ -105,6 +109,7 @@ const FilterSidebar = ({ filters, setFilters, onReset, activeTab, onClose }: Fil
                 max="10"
                 step="1"
                 value={filters.minUnits}
+                aria-label={`Minimum units: ${filters.minUnits > 0 ? filters.minUnits : 'any'}`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setFilters((prev) => ({ ...prev, minUnits: parseInt(e.target.value) }))
                 }
@@ -137,6 +142,7 @@ const FilterSidebar = ({ filters, setFilters, onReset, activeTab, onClose }: Fil
                 max="23"
                 step="1"
                 value={filters.timeRange[0]}
+                aria-label={`Earliest start time: ${formatHour(filters.timeRange[0])}`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTimeChange(0, e.target.value)}
                 className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ucsc-blue [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
               />
@@ -146,6 +152,7 @@ const FilterSidebar = ({ filters, setFilters, onReset, activeTab, onClose }: Fil
                 max="23"
                 step="1"
                 value={filters.timeRange[1]}
+                aria-label={`Latest end time: ${formatHour(filters.timeRange[1])}`}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTimeChange(1, e.target.value)}
                 className="absolute w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-ucsc-blue [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:shadow-md z-20"
               />
@@ -165,6 +172,7 @@ const FilterSidebar = ({ filters, setFilters, onReset, activeTab, onClose }: Fil
               max="5"
               step="0.5"
               value={filters.minRating}
+              aria-label={`Minimum instructor rating: ${filters.minRating}`}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setFilters((prev) => ({ ...prev, minRating: parseFloat(e.target.value) }))
               }

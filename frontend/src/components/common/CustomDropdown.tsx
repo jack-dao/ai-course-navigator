@@ -27,14 +27,23 @@ const CustomDropdown = ({
         setIsOpen(false);
       }
     };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
         className={
           triggerClassName ||
           'w-full flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-700 hover:border-ucsc-blue transition-all shadow-sm active:scale-[0.99] cursor-pointer'
@@ -50,7 +59,10 @@ const CustomDropdown = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 min-w-[160px] bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200 origin-top-right">
+        <div
+          className="absolute top-full right-0 mt-2 min-w-[160px] bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-60 overflow-y-auto custom-scrollbar animate-in zoom-in-95 duration-200 origin-top-right"
+          role="listbox"
+        >
           <div className="p-1">
             {options.map((opt) => (
               <button
@@ -59,6 +71,8 @@ const CustomDropdown = ({
                   onChange(opt);
                   setIsOpen(false);
                 }}
+                role="option"
+                aria-selected={value === opt}
                 className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold mb-0.5 last:mb-0 transition-colors flex items-center justify-between cursor-pointer ${
                   value === opt
                     ? 'bg-ucsc-blue/10 text-ucsc-blue'

@@ -434,6 +434,8 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
 
                   {notification && (
                     <div
+                      role="status"
+                      aria-live="polite"
                       className={`md:hidden w-fit mx-auto mt-4 px-8 py-4 rounded-2xl border flex items-center gap-4 animate-in slide-in-from-top-2 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-ucsc-blue border-ucsc-gold'}`}
                     >
                       {notification.type === 'error' ? (
@@ -508,6 +510,8 @@ const HomePage = ({ user, session, openChat = false }: HomePageProps) => {
 
       {notification && (
         <div
+          role="status"
+          aria-live="polite"
           className={`${activeTab === 'schedule' ? 'hidden md:flex' : 'flex'} fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] px-8 py-4 rounded-2xl text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] items-center gap-4 border animate-in slide-in-from-bottom-10 ${notification.type === 'error' ? 'bg-rose-600 border-rose-500' : 'bg-ucsc-blue border-ucsc-gold'}`}
         >
           {notification.type === 'error' ? (

@@ -36,8 +36,14 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
       setError('');
       setSuccessMsg('');
       setIsLogin(true);
+      return;
     }
-  }, [isOpen]);
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     setError('');
@@ -106,7 +112,12 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-label={isLogin ? 'Sign in' : 'Create account'}
+    >
       <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row min-h-[500px] animate-in zoom-in-95 duration-200">
         {/* LEFT SIDE */}
         <div className="hidden md:flex w-2/5 bg-gradient-to-br from-ucsc-blue to-[#005596] px-10 py-10 flex-col relative overflow-hidden">
@@ -144,6 +155,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
         <div className="flex-1 p-8 md:p-12 bg-white relative">
           <button
             onClick={onClose}
+            aria-label="Close login dialog"
             className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all cursor-pointer"
           >
             <X className="w-6 h-6" />
