@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Send, ArrowRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import sammyChat from '../../assets/sammy-chat.png';
 import type { ChatMessage } from '../../types';
 
@@ -133,7 +134,7 @@ const ChatSidebar = ({ messages = [], onSendMessage, isLoading, schoolName }: Ch
                       <p className="whitespace-pre-wrap">{msg.text}</p>
                     ) : (
                       <div className="prose prose-sm max-w-none text-slate-700 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&_strong]:text-ucsc-blue">
-                        <ReactMarkdown>{msg.text}</ReactMarkdown>
+                        <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{msg.text}</ReactMarkdown>
                       </div>
                     )}
                   </div>
