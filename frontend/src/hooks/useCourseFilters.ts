@@ -19,8 +19,12 @@ export const useCourseFilters = (availableCourses: Course[], professorRatings: P
   });
 
   const [filters, setFilters] = useState<CourseFilters>(() => {
-    const saved = sessionStorage.getItem('courseFilters');
-    return saved ? JSON.parse(saved) : { ...DEFAULT_FILTERS };
+    try {
+      const saved = sessionStorage.getItem('courseFilters');
+      return saved ? JSON.parse(saved) : { ...DEFAULT_FILTERS };
+    } catch {
+      return { ...DEFAULT_FILTERS };
+    }
   });
 
   useEffect(() => {

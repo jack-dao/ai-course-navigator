@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const saveScheduleSchema = z.object({
-  name: z.string().min(1, 'Schedule name is required'),
+  name: z.string().min(1, 'Schedule name is required').max(255, 'Schedule name too long'),
   courses: z.array(
     z.object({
       code: z.string(),

@@ -12,6 +12,7 @@ export const chatSchema = z.object({
         times: z.string().optional(),
       })
     )
+    .max(30, 'Schedule cannot exceed 30 courses')
     .optional()
     .default([]),
 });

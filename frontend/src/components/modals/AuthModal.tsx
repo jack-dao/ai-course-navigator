@@ -9,7 +9,7 @@ import compassLogo from '../../assets/logo-compass.png';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (...args: any[]) => void;
+  onLoginSuccess: () => void;
   selectedSchool?: School;
 }
 
@@ -94,12 +94,7 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess, selectedSchool }: AuthModa
       const session = result.data.session;
 
       if (user && session) {
-        const normalizedUser = {
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-        };
-        onLoginSuccess(normalizedUser, session.access_token);
+        onLoginSuccess();
         onClose();
       } else if (user && !session) {
         setSuccessMsg('Account created! Check your email to confirm.');
