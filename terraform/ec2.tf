@@ -24,6 +24,7 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 resource "aws_security_group" "backend" {
   name        = "${var.project_name}-backend-sg"
   description = "Security group for backend server"
+  vpc_id      = aws_vpc.main.id
 
   # SSH — emergency human access only. Routine deploys use SSM (no SSH).
   ingress {
@@ -68,6 +69,7 @@ resource "aws_instance" "backend" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = var.ec2_instance_type
   key_name               = aws_key_pair.deployer.key_name
+  subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.backend.id]
   iam_instance_profile   = aws_iam_instance_profile.backend.name
 
@@ -76,9 +78,9 @@ resource "aws_instance" "backend" {
   user_data = <<-EOF
     #!/bin/bash
     dnf update -y
-    dnf install -y docker jq
-    systemctl enable docker
-    systemctl start docker
+    dnf install -y docker jq amazon-ssm-agent
+    systemctl enable docker amazon-ssm-agent
+    systemctl start docker amazon-ssm-agent
     usermod -aG docker ec2-user
   EOF
 
