@@ -21,3 +21,8 @@ lambda/scraper/handler.js
 
 # Test coverage
 coverage/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
