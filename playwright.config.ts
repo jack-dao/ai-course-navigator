@@ -10,7 +10,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev --prefix frontend',
     url: 'http://localhost:5173',
     reuseExistingServer: true,
     timeout: 30000,
