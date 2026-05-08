@@ -39,8 +39,7 @@ app.use(
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
-app.use(generalLimiter);
-
+// Health check before rate limiter so deploy checks aren't throttled
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -49,6 +48,8 @@ app.get('/api/health', async (_req, res) => {
     res.status(503).json({ status: 'unavailable', timestamp: new Date().toISOString() });
   }
 });
+
+app.use(generalLimiter);
 
 app.use('/api/courses', courseRoutes);
 app.use('/api/schedules', scheduleRoutes);

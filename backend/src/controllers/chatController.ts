@@ -5,13 +5,9 @@ import type { Request, Response } from 'express';
 
 const handleChat = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { message, userSchedule, term } = chatSchema.parse(req.body);
+    const { message, userSchedule, term, history } = chatSchema.parse(req.body);
 
-    const result = await buildChatStream(
-      message,
-      term,
-      userSchedule?.map((c: { code: string; name: string; days?: string; times?: string }) => c)
-    );
+    const result = await buildChatStream(message, term, userSchedule, history);
 
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',

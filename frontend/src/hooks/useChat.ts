@@ -27,6 +27,12 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[],
       ]);
 
       try {
+        // Send conversation history (exclude the placeholder we just added)
+        const priorMessages = chatMessages
+          .filter((m) => m.text !== 'Sammy is thinking...')
+          .slice(-18) // Keep last 18 messages (+ current = 20 max)
+          .map((m) => ({ role: m.role, text: m.text }));
+
         const response = await authFetch('/api/chat', session, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,6 +45,7 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[],
               days: c.selectedSection?.days,
               times: c.selectedSection ? `${c.selectedSection.startTime}-${c.selectedSection.endTime}` : 'TBA',
             })),
+            history: priorMessages,
           }),
         });
 
@@ -81,7 +88,7 @@ export const useChat = (selectedTerm: string, selectedCourses: SelectedCourse[],
         setIsChatLoading(false);
       }
     },
-    [selectedTerm, selectedCourses, session]
+    [selectedTerm, selectedCourses, session, chatMessages]
   );
 
   return { chatMessages, isChatLoading, handleSendMessage };

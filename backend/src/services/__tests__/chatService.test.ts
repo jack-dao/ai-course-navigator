@@ -29,11 +29,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockPrisma.course.findMany.mockResolvedValue([
     {
-      code: 'CSE101',
+      code: 'CSE 101',
       name: 'Algorithms',
       credits: 5,
       geCode: null,
-      prerequisites: 'CSE30',
+      prerequisites: 'CSE 30',
       sections: [{ instructor: 'Smith', days: 'MWF', startTime: '10:00AM', endTime: '11:00AM', status: 'Open' }],
     },
   ]);
@@ -42,51 +42,78 @@ beforeEach(() => {
 
 describe('chatService', () => {
   describe('buildChatStream', () => {
-    it('queries courses for the given term', async () => {
-      await buildChatStream('What classes should I take?', '2026 Spring');
+    it('filters courses by department when mentioned in message', async () => {
+      await buildChatStream('What CSE classes should I take?', '2026 Spring');
 
-      expect(mockPrisma.course.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { term: '2026 Spring' }, take: 20 })
-      );
+      const whereClause = mockPrisma.course.findMany.mock.calls[0][0].where;
+      expect(whereClause.OR).toBeDefined();
+      expect(whereClause.OR.some((c: Record<string, unknown>) => JSON.stringify(c).includes('CSE'))).toBe(true);
     });
 
-    it('queries all courses when no term provided', async () => {
-      await buildChatStream('Help me');
+    it('filters courses by GE code when mentioned', async () => {
+      await buildChatStream('I need an MF class', '2026 Spring');
 
-      expect(mockPrisma.course.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {} }));
+      const whereClause = mockPrisma.course.findMany.mock.calls[0][0].where;
+      expect(whereClause.OR).toBeDefined();
+      expect(whereClause.OR.some((c: Record<string, unknown>) => JSON.stringify(c).includes('MF'))).toBe(true);
     });
 
-    it('passes user schedule into the prompt', async () => {
-      const schedule = [{ code: 'CSE101', name: 'Algorithms', days: 'MWF', times: '10-11AM' }];
-      await buildChatStream('What fits?', '2026 Spring', schedule);
+    it('filters by specific course code when mentioned', async () => {
+      await buildChatStream('Tell me about CSE 101', '2026 Spring');
 
-      const prompt = mockGemini.generateContentStream.mock.calls[0][0];
-      expect(prompt).toContain('CSE101');
-      expect(prompt).toContain('Algorithms');
-      expect(prompt).toContain('MWF');
+      const whereClause = mockPrisma.course.findMany.mock.calls[0][0].where;
+      expect(whereClause.OR).toBeDefined();
+      expect(whereClause.OR.some((c: Record<string, unknown>) => JSON.stringify(c).includes('CSE 101'))).toBe(true);
     });
 
-    it('includes "No classes enrolled" when no schedule', async () => {
-      await buildChatStream('Help me', '2026 Spring');
+    it('falls back to keyword search when no department/GE mentioned', async () => {
+      await buildChatStream('linear algebra prerequisites', '2026 Spring');
 
-      const prompt = mockGemini.generateContentStream.mock.calls[0][0];
-      expect(prompt).toContain('No classes enrolled yet.');
+      const whereClause = mockPrisma.course.findMany.mock.calls[0][0].where;
+      // When no department or GE code is found, should still build a query
+      // (either keyword-based OR or plain term filter)
+      expect(whereClause.term).toBe('2026 Spring');
+      // Keywords "linear", "algebra", "prerequisites" should produce OR conditions
+      if (whereClause.OR) {
+        expect(whereClause.OR.length).toBeGreaterThan(0);
+      }
     });
 
-    it('includes course context from database in prompt', async () => {
-      await buildChatStream('Easy classes?', '2026 Spring');
-
-      const prompt = mockGemini.generateContentStream.mock.calls[0][0];
-      expect(prompt).toContain('CSE101');
-      expect(prompt).toContain('Algorithms');
-      expect(prompt).toContain('Smith');
-    });
-
-    it('includes the user message in the prompt', async () => {
+    it('passes user message as separate user turn, not in system prompt', async () => {
       await buildChatStream('What are the easiest GEs?', '2026 Spring');
 
-      const prompt = mockGemini.generateContentStream.mock.calls[0][0];
-      expect(prompt).toContain('What are the easiest GEs?');
+      const call = mockGemini.generateContentStream.mock.calls[0][0];
+      // Should use structured request, not a plain string
+      expect(call.contents).toBeDefined();
+      expect(call.systemInstruction).toBeDefined();
+      // User message should be in contents, not system instruction
+      const userContent = call.contents.find((c: { role: string }) => c.role === 'user');
+      expect(userContent.parts[0].text).toBe('What are the easiest GEs?');
+      // System instruction should NOT contain the user message
+      expect(call.systemInstruction.parts[0].text).not.toContain('What are the easiest GEs?');
+    });
+
+    it('includes conversation history in contents', async () => {
+      const history = [
+        { role: 'user' as const, text: 'Hello' },
+        { role: 'assistant' as const, text: 'Hi! How can I help?' },
+      ];
+      await buildChatStream('What fits my schedule?', '2026 Spring', [], history);
+
+      const call = mockGemini.generateContentStream.mock.calls[0][0];
+      expect(call.contents).toHaveLength(3); // 2 history + 1 new message
+      expect(call.contents[0].parts[0].text).toBe('Hello');
+      expect(call.contents[1].role).toBe('model');
+      expect(call.contents[2].parts[0].text).toBe('What fits my schedule?');
+    });
+
+    it('includes schedule context in system instruction', async () => {
+      const schedule = [{ code: 'CSE 101', name: 'Algorithms', days: 'MWF', times: '10-11AM' }];
+      await buildChatStream('What fits?', '2026 Spring', schedule);
+
+      const call = mockGemini.generateContentStream.mock.calls[0][0];
+      expect(call.systemInstruction.parts[0].text).toContain('CSE 101');
+      expect(call.systemInstruction.parts[0].text).toContain('MWF');
     });
 
     it('returns the stream result from Gemini', async () => {

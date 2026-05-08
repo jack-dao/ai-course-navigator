@@ -18,29 +18,36 @@ command -v jq >/dev/null || sudo dnf install -y jq
 cd "$REPO_DIR"
 git pull origin main
 
-# Fetch secrets — write to temp file instead of shell variable to avoid ps exposure
-SECRETS_FILE=$(mktemp)
-trap 'rm -f "$SECRETS_FILE"' EXIT
+# Fetch secrets — write to temp files to avoid exposure via ps/docker-inspect
+SECRETS_JSON=$(mktemp)
+ENV_FILE=$(mktemp)
+trap 'rm -f "$SECRETS_JSON" "$ENV_FILE"' EXIT
 
 aws secretsmanager get-secret-value \
   --secret-id "$SECRET_ID" \
   --region "$REGION" \
   --query SecretString \
-  --output text > "$SECRETS_FILE"
+  --output text > "$SECRETS_JSON"
 
 # Validate required secrets exist
 for key in DATABASE_URL DIRECT_URL JWT_SECRET GEMINI_API_KEY; do
-  value=$(jq -r ".$key" "$SECRETS_FILE")
+  value=$(jq -r ".$key" "$SECRETS_JSON")
   if [ -z "$value" ] || [ "$value" = "null" ]; then
     echo "ERROR: Missing required secret: $key" >&2
     exit 1
   fi
 done
 
-DATABASE_URL=$(jq -r .DATABASE_URL "$SECRETS_FILE")
-DIRECT_URL=$(jq -r .DIRECT_URL "$SECRETS_FILE")
-JWT_SECRET=$(jq -r .JWT_SECRET "$SECRETS_FILE")
-GEMINI_API_KEY=$(jq -r .GEMINI_API_KEY "$SECRETS_FILE")
+# Write env file for Docker (secrets never appear in CLI args or docker inspect)
+cat > "$ENV_FILE" <<EOL
+DATABASE_URL=$(jq -r .DATABASE_URL "$SECRETS_JSON")
+DIRECT_URL=$(jq -r .DIRECT_URL "$SECRETS_JSON")
+JWT_SECRET=$(jq -r .JWT_SECRET "$SECRETS_JSON")
+GEMINI_API_KEY=$(jq -r .GEMINI_API_KEY "$SECRETS_JSON")
+NODE_ENV=production
+PORT=3000
+EOL
+chmod 600 "$ENV_FILE"
 
 cd backend
 
@@ -57,12 +64,7 @@ docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
   -p 3000:3000 \
-  -e DATABASE_URL="$DATABASE_URL" \
-  -e DIRECT_URL="$DIRECT_URL" \
-  -e JWT_SECRET="$JWT_SECRET" \
-  -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-  -e NODE_ENV=production \
-  -e PORT=3000 \
+  --env-file "$ENV_FILE" \
   "$IMAGE_NAME:latest"
 
 # Wait for container to be healthy
@@ -83,12 +85,7 @@ if docker image inspect "$IMAGE_NAME:previous" >/dev/null 2>&1; then
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
     -p 3000:3000 \
-    -e DATABASE_URL="$DATABASE_URL" \
-    -e DIRECT_URL="$DIRECT_URL" \
-    -e JWT_SECRET="$JWT_SECRET" \
-    -e GEMINI_API_KEY="$GEMINI_API_KEY" \
-    -e NODE_ENV=production \
-    -e PORT=3000 \
+    --env-file "$ENV_FILE" \
     "$IMAGE_NAME:previous"
   echo "Rolled back to previous image."
 fi
