@@ -15,6 +15,7 @@ CONTAINER_NAME="ai-slug-backend"
 # change need a one-time install on the next deploy.
 command -v jq >/dev/null || sudo dnf install -y jq
 
+git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
 cd "$REPO_DIR"
 git pull origin main
 
