@@ -112,7 +112,7 @@ jobs:
             --instance-ids "${{ steps.instance.outputs.instance_id }}" \
             --document-name "AWS-RunShellScript" \
             --comment "Deploy ${GITHUB_SHA::7}" \
-            --parameters 'commands=["cd /home/ec2-user/ai-slug-navigator && sudo -u ec2-user git pull origin main && sudo -u ec2-user bash scripts/deploy-on-ec2.sh"]' \
+            --parameters 'commands=["export HOME=/root && git config --global --add safe.directory /home/ec2-user/ai-slug-navigator && cd /home/ec2-user/ai-slug-navigator && git pull origin main && bash scripts/deploy-on-ec2.sh > /tmp/deploy.log 2>&1 && echo DEPLOY_OK || { tail -30 /tmp/deploy.log; exit 1; }"]' \
             --cloud-watch-output-config CloudWatchOutputEnabled=true \
             --query "Command.CommandId" \
             --output text)
