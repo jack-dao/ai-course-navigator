@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { mockApi } from './mock-api';
+
+// Set up API mocks before each test
+test.beforeEach(async ({ page }) => {
+  await mockApi(page);
+});
 
 test.describe('Navigation', () => {
   test('homepage redirects to /search', async ({ page }) => {
@@ -41,9 +47,17 @@ test.describe('Course Search', () => {
     await expect(searchInput).toHaveValue('CSE');
   });
 
-  test('results count is displayed', async ({ page }) => {
+  test('displays mock courses from API', async ({ page }) => {
     await page.goto('/search');
-    await expect(page.getByText(/results found/)).toBeVisible();
+    await expect(page.getByText('3 results found')).toBeVisible();
+    await expect(page.getByText('CSE 101')).toBeVisible();
+    await expect(page.getByText('MATH 21')).toBeVisible();
+  });
+
+  test('search filters courses by query', async ({ page }) => {
+    await page.goto('/search');
+    await page.getByPlaceholder('Search courses...').fill('CSE');
+    await expect(page.getByText('2 results found')).toBeVisible();
   });
 
   test('search input has accessible label', async ({ page }) => {
@@ -53,18 +67,15 @@ test.describe('Course Search', () => {
 
   test('filter toggle button works', async ({ page }) => {
     await page.goto('/search');
-    // Desktop filter toggle
     const filterBtn = page.locator('button', { hasText: 'Filters' }).first();
     if (await filterBtn.isVisible()) {
       await filterBtn.click();
-      // Filter button should toggle state (still visible after click)
       await expect(filterBtn).toBeVisible();
     }
   });
 
   test('sort dropdown is accessible', async ({ page }) => {
     await page.goto('/search');
-    // Check that sort dropdown trigger exists with aria-expanded
     const sortTrigger = page.locator('button[aria-haspopup="listbox"]').first();
     if (await sortTrigger.isVisible()) {
       await expect(sortTrigger).toHaveAttribute('aria-expanded', 'false');
@@ -93,7 +104,6 @@ test.describe('Schedule Page', () => {
   test('save button shows login prompt when not authenticated', async ({ page }) => {
     await page.goto('/schedule');
     await page.getByText('Save Schedule').click();
-    // Should show auth modal or notification about logging in
     const authDialog = page.locator('[role="dialog"]');
     const notification = page.getByText(/log in/i);
     const hasAuthModal = await authDialog.isVisible().catch(() => false);
@@ -104,7 +114,6 @@ test.describe('Schedule Page', () => {
   test('schedule tab has list/calendar toggle with proper ARIA', async ({ page }) => {
     await page.goto('/schedule');
     const tabs = page.locator('[role="tab"]');
-    // Mobile toggles exist (may be hidden on desktop, but exist in DOM)
     expect(await tabs.count()).toBeGreaterThanOrEqual(2);
   });
 });
@@ -138,10 +147,7 @@ test.describe('Chat', () => {
     await page.goto('/chat');
     await expect(page.getByText('How can I help?')).toBeVisible();
     await page.keyboard.press('Escape');
-    // Chat should close — we should no longer see the chat content
-    // (or URL should change away from /chat)
     await page.waitForTimeout(300);
-    // The chat close handler navigates to /search
     const url = page.url();
     expect(url).not.toContain('/chat');
   });
@@ -171,7 +177,7 @@ test.describe('Accessibility - Automated', () => {
     await page.waitForLoadState('networkidle');
 
     const results = await new AxeBuilder({ page })
-      .disableRules(['color-contrast']) // Tailwind dynamic classes make this flaky
+      .disableRules(['color-contrast'])
       .analyze();
 
     expect(results.violations).toEqual([]);
