@@ -1,9 +1,9 @@
 # SSL certificate for the domain
 resource "aws_acm_certificate" "main" {
-  provider          = aws.us_east_1
-  domain_name       = var.domain_name
+  provider                  = aws.us_east_1
+  domain_name               = var.domain_name
   subject_alternative_names = []
-  validation_method = "DNS"
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
