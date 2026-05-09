@@ -95,6 +95,10 @@ resource "aws_instance" "backend" {
     volume_type = "gp3"
   }
 
+  lifecycle {
+    ignore_changes = [ami, user_data]
+  }
+
   tags = {
     Name = "${var.project_name}-backend"
   }

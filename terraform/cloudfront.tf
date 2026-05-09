@@ -2,7 +2,7 @@
 resource "aws_acm_certificate" "main" {
   provider                  = aws.us_east_1
   domain_name               = var.domain_name
-  subject_alternative_names = []
+  subject_alternative_names = ["www.${var.domain_name}"]
   validation_method         = "DNS"
 
   lifecycle {
@@ -26,7 +26,7 @@ resource "aws_cloudfront_origin_access_control" "s3" {
 resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   default_root_object = "index.html"
-  aliases             = [var.domain_name]
+  aliases             = [var.domain_name, "www.${var.domain_name}"]
   price_class         = "PriceClass_100"
 
   # Origin 1: S3 (frontend static files)
