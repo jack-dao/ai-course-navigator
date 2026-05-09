@@ -257,8 +257,8 @@ async function processClass($: cheerio.CheerioAPI, el: any, schoolId: number, te
 
   let enrolled = 0;
   let capacity = 0;
-  const enrollText = $(el).find('.panel-body .row > div:nth-child(4)').text();
-  const enrollMatch = enrollText.match(/(\d+)\s+of\s+(\d+)/);
+  const panelText = $(el).find('.panel-body').text();
+  const enrollMatch = panelText.match(/(\d+)\s+of\s+(\d+)\s+Enrolled/i);
   if (enrollMatch) {
     enrolled = parseInt(enrollMatch[1]);
     capacity = parseInt(enrollMatch[2]);
