@@ -78,10 +78,16 @@ resource "aws_instance" "backend" {
   user_data = <<-EOF
     #!/bin/bash
     dnf update -y
-    dnf install -y docker jq amazon-ssm-agent
+    dnf install -y docker jq amazon-ssm-agent git
     systemctl enable docker amazon-ssm-agent
     systemctl start docker amazon-ssm-agent
     usermod -aG docker ec2-user
+    # Add swap for Docker builds (t4g.micro only has 1GB RAM)
+    fallocate -l 2G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+    echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
   EOF
 
   root_block_device {
