@@ -192,9 +192,11 @@ jobs:
 
       - name: Update Lambda Function
         run: |
+          aws s3 cp scraper-lambda.zip s3://ai-slug-navigator-terraform-state/lambda/scraper-lambda.zip
           aws lambda update-function-code \
             --function-name ai-slug-navigator-scraper \
-            --zip-file fileb://scraper-lambda.zip
+            --s3-bucket ai-slug-navigator-terraform-state \
+            --s3-key lambda/scraper-lambda.zip
 
           # Wait for update to complete before publishing
           aws lambda wait function-updated --function-name ai-slug-navigator-scraper
