@@ -64,7 +64,7 @@ docker rm "$CONTAINER_NAME" 2>/dev/null || true
 docker run -d \
   --name "$CONTAINER_NAME" \
   --restart unless-stopped \
-  -p 443:443 \
+  -p 3000:3000 \
   --env-file "$ENV_FILE" \
   "$IMAGE_NAME:latest"
 
@@ -85,7 +85,7 @@ if docker image inspect "$IMAGE_NAME:previous" >/dev/null 2>&1; then
   docker run -d \
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
-    -p 443:443 \
+    -p 3000:3000 \
     --env-file "$ENV_FILE" \
     "$IMAGE_NAME:previous"
   echo "Rolled back to previous image."
