@@ -57,9 +57,12 @@ async function getSecrets(): Promise<AppSecrets> {
 async function initPrisma(): Promise<PrismaClient> {
   if (prisma) return prisma;
   const secrets = await getSecrets();
-  process.env.DATABASE_URL = secrets.DATABASE_URL;
+  // Use DIRECT_URL to bypass PgBouncer session pool limits
+  process.env.DATABASE_URL = secrets.DIRECT_URL || secrets.DATABASE_URL;
   process.env.DIRECT_URL = secrets.DIRECT_URL;
-  prisma = new PrismaClient();
+  prisma = new PrismaClient({
+    datasources: { db: { url: secrets.DIRECT_URL || secrets.DATABASE_URL } },
+  });
   return prisma;
 }
 
