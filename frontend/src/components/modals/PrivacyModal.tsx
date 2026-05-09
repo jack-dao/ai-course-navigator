@@ -89,14 +89,15 @@ const PrivacyModal = ({ isOpen, onClose }: PrivacyModalProps) => {
             <p className="text-sm text-slate-600 leading-relaxed ml-7">
               We <strong>do not sell</strong> your personal data to advertisers or third parties. Course data is
               retrieved from public university listings. Professor ratings are sourced from RateMyProfessors for
-              informational purposes only.
+              informational purposes only. When you use the AI chat feature, your messages are sent to Google Gemini for
+              processing. We do not store chat history on our servers.
             </p>
           </section>
 
           <div className="pt-8 mt-8 border-t border-slate-100 text-center">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Last Updated: January 2026</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Last Updated: May 2026</p>
             <a
-              href="https://github.com/jack-dao/ai-course-navigator/issues"
+              href="https://github.com/jack-dao/ai-slug-navigator/issues"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors"
