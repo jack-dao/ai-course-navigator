@@ -57,11 +57,15 @@ async function getSecrets(): Promise<AppSecrets> {
 async function initPrisma(): Promise<PrismaClient> {
   if (prisma) return prisma;
   const secrets = await getSecrets();
-  // Use DIRECT_URL to bypass PgBouncer session pool limits
-  process.env.DATABASE_URL = secrets.DIRECT_URL || secrets.DATABASE_URL;
+  // Use pooled DATABASE_URL with connection_limit=1 to avoid exhausting
+  // Supabase's PgBouncer session pool (direct URL is unreachable from Lambda)
+  const dbUrl = secrets.DATABASE_URL.includes('connection_limit')
+    ? secrets.DATABASE_URL
+    : `${secrets.DATABASE_URL}${secrets.DATABASE_URL.includes('?') ? '&' : '?'}connection_limit=1`;
+  process.env.DATABASE_URL = dbUrl;
   process.env.DIRECT_URL = secrets.DIRECT_URL;
   prisma = new PrismaClient({
-    datasources: { db: { url: secrets.DIRECT_URL || secrets.DATABASE_URL } },
+    datasources: { db: { url: dbUrl } },
   });
   return prisma;
 }
