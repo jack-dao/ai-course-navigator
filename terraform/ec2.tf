@@ -35,13 +35,13 @@ resource "aws_security_group" "backend" {
     description = "SSH access (human emergency only)"
   }
 
-  # API port — only CloudFront origin IPs can reach it. Blocks direct hits.
+  # HTTPS — only CloudFront origin IPs can reach it. Blocks direct hits.
   ingress {
-    from_port       = 3000
-    to_port         = 3000
+    from_port       = 443
+    to_port         = 443
     protocol        = "tcp"
     prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "Backend API port (CloudFront only)"
+    description     = "Backend HTTPS (CloudFront only)"
   }
 
   # Outbound traffic
