@@ -59,6 +59,12 @@ fi
 
 docker build -t "$IMAGE_NAME:latest" .
 
+echo "Applying database migrations..."
+docker run --rm \
+  --env-file "$ENV_FILE" \
+  "$IMAGE_NAME:latest" \
+  npx --yes prisma@5.10.2 migrate deploy
+
 docker stop "$CONTAINER_NAME" 2>/dev/null || true
 docker rm "$CONTAINER_NAME" 2>/dev/null || true
 docker run -d \
