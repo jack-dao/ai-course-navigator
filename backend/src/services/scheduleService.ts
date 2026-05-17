@@ -45,12 +45,20 @@ const ensureUserAccount = async (userId: string, email: string, userName: string
 
 export const saveUserSchedule = async ({ userId, email, userName, name, courses }: SaveScheduleInput) => {
   const scheduleUserId = await ensureUserAccount(userId, email, userName);
-
-  const schedule = await prisma.schedule.upsert({
-    where: { userId_name: { userId: scheduleUserId, name: name || 'My Schedule' } },
-    update: { courses },
-    create: { userId: scheduleUserId, name: name || 'My Schedule', courses },
+  const scheduleName = name || 'My Schedule';
+  const existingSchedule = await prisma.schedule.findFirst({
+    where: { userId: scheduleUserId, name: scheduleName },
+    orderBy: { createdAt: 'desc' },
   });
+
+  const schedule = existingSchedule
+    ? await prisma.schedule.update({
+        where: { id: existingSchedule.id },
+        data: { courses },
+      })
+    : await prisma.schedule.create({
+        data: { userId: scheduleUserId, name: scheduleName, courses },
+      });
 
   logger.info(`Saved schedule "${name}" for user ${scheduleUserId}`);
 

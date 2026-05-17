@@ -8,8 +8,9 @@ vi.mock('../../lib/prisma', () => ({
       update: vi.fn(),
     },
     schedule: {
+      create: vi.fn(),
       findFirst: vi.fn(),
-      upsert: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -24,8 +25,9 @@ const mockPrisma = prisma as unknown as {
     update: ReturnType<typeof vi.fn>;
   };
   schedule: {
+    create: ReturnType<typeof vi.fn>;
     findFirst: ReturnType<typeof vi.fn>;
-    upsert: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -38,7 +40,8 @@ describe('scheduleService', () => {
     it('upserts user and creates new schedule when none exists', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue({});
-      mockPrisma.schedule.upsert.mockResolvedValue({ id: 1, name: '2026 Spring', courses: [] });
+      mockPrisma.schedule.findFirst.mockResolvedValue(null);
+      mockPrisma.schedule.create.mockResolvedValue({ id: 1, name: '2026 Spring', courses: [] });
 
       const result = await saveUserSchedule({
         userId: 'user-1',
@@ -49,13 +52,14 @@ describe('scheduleService', () => {
       });
 
       expect(mockPrisma.user.create).toHaveBeenCalled();
-      expect(mockPrisma.schedule.upsert).toHaveBeenCalled();
+      expect(mockPrisma.schedule.create).toHaveBeenCalled();
       expect(result.name).toBe('2026 Spring');
     });
 
-    it('calls upsert with correct where/update/create args', async () => {
+    it('creates a schedule when none exists for the current term', async () => {
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1' });
-      mockPrisma.schedule.upsert.mockResolvedValue({ id: 5, name: '2026 Spring', courses: [] });
+      mockPrisma.schedule.findFirst.mockResolvedValue(null);
+      mockPrisma.schedule.create.mockResolvedValue({ id: 5, name: '2026 Spring', courses: [] });
 
       await saveUserSchedule({
         userId: 'user-1',
@@ -65,13 +69,32 @@ describe('scheduleService', () => {
         courses: [],
       });
 
-      expect(mockPrisma.schedule.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId_name: { userId: 'user-1', name: '2026 Spring' } },
-          update: { courses: [] },
-          create: { userId: 'user-1', name: '2026 Spring', courses: [] },
-        })
-      );
+      expect(mockPrisma.schedule.findFirst).toHaveBeenCalledWith({
+        where: { userId: 'user-1', name: '2026 Spring' },
+        orderBy: { createdAt: 'desc' },
+      });
+      expect(mockPrisma.schedule.create).toHaveBeenCalledWith({
+        data: { userId: 'user-1', name: '2026 Spring', courses: [] },
+      });
+    });
+
+    it('updates the newest existing schedule for the current term', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1' });
+      mockPrisma.schedule.findFirst.mockResolvedValue({ id: 5, name: '2026 Spring', courses: [] });
+      mockPrisma.schedule.update.mockResolvedValue({ id: 5, name: '2026 Spring', courses: [] });
+
+      await saveUserSchedule({
+        userId: 'user-1',
+        email: 'test@test.com',
+        userName: 'Test',
+        name: '2026 Spring',
+        courses: [{ code: 'CSE101', sectionCode: '01A', labCode: '' }],
+      });
+
+      expect(mockPrisma.schedule.update).toHaveBeenCalledWith({
+        where: { id: 5 },
+        data: { courses: [{ code: 'CSE101', sectionCode: '01A', labCode: '' }] },
+      });
     });
 
     it('updates an existing user with the same email to the current auth id', async () => {
@@ -79,7 +102,8 @@ describe('scheduleService', () => {
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ id: 'old-user-id', email: 'test@test.com' });
       mockPrisma.user.update.mockResolvedValue({ id: 'user-1', email: 'test@test.com' });
-      mockPrisma.schedule.upsert.mockResolvedValue({ id: 6, name: '2026 Spring', courses: [] });
+      mockPrisma.schedule.findFirst.mockResolvedValue(null);
+      mockPrisma.schedule.create.mockResolvedValue({ id: 6, name: '2026 Spring', courses: [] });
 
       await saveUserSchedule({
         userId: 'user-1',
@@ -96,11 +120,9 @@ describe('scheduleService', () => {
           name: 'Test',
         },
       });
-      expect(mockPrisma.schedule.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId_name: { userId: 'user-1', name: '2026 Spring' } },
-        })
-      );
+      expect(mockPrisma.schedule.create).toHaveBeenCalledWith({
+        data: { userId: 'user-1', name: '2026 Spring', courses: [] },
+      });
     });
   });
 
