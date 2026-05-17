@@ -19,28 +19,44 @@ function LoadingFallback() {
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUser(session.user);
-        setSession(session);
+    let isMounted = true;
+
+    const syncSession = (nextSession: Session | null) => {
+      if (!isMounted) return;
+      setUser(nextSession?.user ?? null);
+      setSession(nextSession);
+    };
+
+    const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        syncSession(session);
+      } catch (error) {
+        console.error('Failed to initialize auth session:', error);
+        syncSession(null);
+      } finally {
+        if (isMounted) setIsAuthReady(true);
       }
-    });
+    };
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setUser(session.user);
-        setSession(session);
-      } else {
-        setUser(null);
-        setSession(null);
-      }
+      syncSession(session);
+      if (isMounted) setIsAuthReady(true);
     });
 
-    return () => subscription.unsubscribe();
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const renderPage = (defaultTab: TabName, openChat = false) => (
@@ -49,18 +65,22 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/search" element={renderPage('search')} />
-            <Route path="/schedule" element={renderPage('schedule')} />
-            <Route path="/about" element={renderPage('about')} />
-            <Route path="/chat" element={renderPage('search', true)} />
-            <Route path="/" element={<Navigate to="/search" replace />} />
-            <Route path="*" element={<Navigate to="/search" replace />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      {isAuthReady ? (
+        <BrowserRouter>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/search" element={renderPage('search')} />
+              <Route path="/schedule" element={renderPage('schedule')} />
+              <Route path="/about" element={renderPage('about')} />
+              <Route path="/chat" element={renderPage('search', true)} />
+              <Route path="/" element={<Navigate to="/search" replace />} />
+              <Route path="*" element={<Navigate to="/search" replace />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      ) : (
+        <LoadingFallback />
+      )}
     </ErrorBoundary>
   );
 }
