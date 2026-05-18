@@ -125,7 +125,7 @@ export const useSchedule = (
   };
 
   useEffect(() => {
-    if (!selectedTerm || selectedCourses.length === 0) return;
+    if (!selectedTerm) return;
     localStorage.setItem(`draft_${selectedTerm}`, JSON.stringify(selectedCourses));
   }, [selectedCourses, selectedTerm]);
 

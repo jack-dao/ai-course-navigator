@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { useSchedule } from '../useSchedule';
 import type { SelectedCourse, Section } from '../../types';
 
@@ -319,6 +319,22 @@ describe('useSchedule', () => {
     it('starts at 0 with no selected courses', () => {
       const { result } = renderScheduleHook();
       expect(result.current.totalUnits).toBe(0);
+    });
+  });
+
+  describe('draft persistence', () => {
+    it('updates localStorage to an empty draft when the final course is removed', () => {
+      const course = makeSelectedCourse('CSE115A');
+      mockLocalStorage.setItem('draft_2026 Spring', JSON.stringify([course]));
+
+      const { result } = renderScheduleHook();
+      expect(result.current.selectedCourses).toHaveLength(1);
+
+      act(() => {
+        result.current.setSelectedCourses([]);
+      });
+
+      expect(mockLocalStorage.getItem('draft_2026 Spring')).toBe('[]');
     });
   });
 });
